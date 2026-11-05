@@ -1,4 +1,4 @@
-import { API_BASE_URL, apiClient, clearCsrfMemory } from '@/lib/api-client'
+import { apiClient, clearCsrfMemory } from '@/lib/api-client'
 import type { ApiResponse, LoginPayload, User } from './auth.types'
 
 export const authApi = {
@@ -18,10 +18,5 @@ export const authApi = {
     } finally {
       clearCsrfMemory()
     }
-  },
-
-  /** Điều hướng toàn trang sang BE → Google → BE set cookie → quay về /login?oauth=ok */
-  googleLoginUrl(): string {
-    return `${API_BASE_URL}/auth/google`
   },
 }
