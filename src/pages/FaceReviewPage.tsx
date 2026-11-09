@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { FacePhotos } from '@/features/face/FacePhotos'
 import { FACE_STATUS_LABEL, type FaceAdminRow, type FaceProfileStatus } from '@/features/face/face.types'
 import { useFaceAdmin, useReviewFace } from '@/features/face/use-face'
 import { getApiErrorMessage } from '@/lib/api-client'
@@ -61,11 +62,13 @@ export function FaceReviewPage() {
                       {FACE_STATUS_LABEL[row.status]}
                     </Badge>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {(row.photoUrls ?? []).map((src) => (
-                      <img key={src} src={src} alt="" className="size-24 rounded-lg border object-cover" />
-                    ))}
-                  </div>
+                  <FacePhotos
+                    userId={row.userId}
+                    count={row.photoCount}
+                    labels={row.photoLabels ?? []}
+                    submittedAt={row.submittedAt}
+                    name={displayName(row.user)}
+                  />
                   {row.rejectReason && <p className="text-xs text-destructive">{row.rejectReason}</p>}
                   <div className="flex flex-wrap gap-2">
                     {row.status !== 'approved' && (

@@ -15,7 +15,7 @@ export function captureJpeg(video: HTMLVideoElement): Promise<Blob> {
 
 export async function openUserCamera(): Promise<MediaStream> {
   return navigator.mediaDevices.getUserMedia({
-    video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+    video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 }, height: { ideal: 720 } },
     audio: false,
   })
 }

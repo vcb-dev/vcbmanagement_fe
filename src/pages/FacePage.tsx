@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/page-header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FacePhotos } from '@/features/face/FacePhotos'
 import { FaceScan } from '@/features/face/FaceScan'
 import { FACE_STATUS_LABEL } from '@/features/face/face.types'
 import { useFaceMe } from '@/features/face/use-face'
@@ -23,6 +24,7 @@ function MyFace() {
   const { data, isPending } = useFaceMe()
   const queryClient = useQueryClient()
   const profile = data?.profile
+  const userId = data?.userId
   const tone =
     profile?.status === 'approved'
       ? 'border-emerald-500/25 bg-emerald-500/5'
@@ -62,6 +64,14 @@ function MyFace() {
               </div>
             )}
           </div>
+        )}
+        {userId && profile && profile.photoCount > 0 && (
+          <FacePhotos
+            userId={userId}
+            count={profile.photoCount}
+            labels={profile.photoLabels ?? []}
+            submittedAt={profile.submittedAt}
+          />
         )}
 
         <FaceScan

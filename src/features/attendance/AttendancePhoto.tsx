@@ -61,12 +61,15 @@ export function AttendancePhotos({ record, title }: { record: AttendanceRecord |
                   {SLOT_LABEL[p.slot]} lúc <span className="font-medium text-foreground">{formatTime(p.at)}</span>
                   {p.screenTime && (
                     <span className="block text-xs">
-                      Màn hình hiện {p.screenTime}
+                      Giờ máy {p.screenTime}
                       {p.screenDate && ` · ${p.screenDate}`}
                     </span>
                   )}
                   {p.faceScore != null && (
                     <span className="block text-xs">Khuôn mặt khớp {Math.round(p.faceScore * 100)}%</span>
+                  )}
+                  {p.sceneScore != null && (
+                    <span className="block text-xs">Nền văn phòng {Math.round(p.sceneScore * 100)}%</span>
                   )}
                   {p.distanceMeters !== null && (
                     <span className="block text-xs">Cách công ty {formatMeters(p.distanceMeters)}</span>

@@ -13,6 +13,8 @@ import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { useMe } from '@/features/auth/use-auth'
 import { AppSidebar } from './app-sidebar'
+import { InstallHint } from './install-hint'
+import { MobileTabBar } from './mobile-tab-bar'
 import { NAV_GROUPS } from './nav-items'
 
 export function AppLayout() {
@@ -54,12 +56,16 @@ export function AppLayout() {
             <ThemeToggle />
           </div>
         </header>
-        <div className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
+          <div className="px-4 pt-3 md:hidden">
+            <InstallHint />
+          </div>
           <Suspense fallback={<PageFallback />}>
             <Outlet />
           </Suspense>
         </div>
       </SidebarInset>
+      <MobileTabBar />
     </SidebarProvider>
   )
 }

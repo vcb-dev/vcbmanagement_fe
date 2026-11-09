@@ -111,7 +111,7 @@ export function FaceScan({
       {live ? (
         <div className="mx-auto w-full max-w-sm space-y-3">
           <div className="relative aspect-[3/4] overflow-hidden rounded-3xl border bg-black">
-            <video ref={videoRef} playsInline muted className="size-full -scale-x-100 object-cover" />
+            <video ref={videoRef} playsInline muted autoPlay className="size-full -scale-x-100 object-cover" />
             <OvalGuide step={step} poseOk={poseOk} blocked={blocked} />
             <p className="absolute inset-x-0 bottom-4 px-4 text-center text-sm font-semibold text-white drop-shadow">
               {hint}
@@ -129,7 +129,7 @@ export function FaceScan({
           <StepRail steps={steps} current={stepIndex} poseOk={poseOk} />
         </div>
       ) : (
-        <Button type="button" variant="outline" className="w-full" onClick={begin} disabled={start.isPending}>
+        <Button type="button" variant="outline" className="h-12 w-full text-base" onClick={begin} disabled={start.isPending}>
           {start.isPending ? <Loader2 className="animate-spin" /> : <ScanFace />}
           {idleLabel}
         </Button>

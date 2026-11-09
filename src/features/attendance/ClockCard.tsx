@@ -21,12 +21,41 @@ import { CameraCapture } from './CameraCapture'
 import { useAttendanceToday, usePhotoCheck, usePunch } from './use-attendance'
 import { geoVerdict, useGeolocation, type GeoVerdict } from './use-geolocation'
 
-function useNow(intervalMs = 1000) {
-  const [now, setNow] = useState(() => new Date())
+const VN_TZ = 'Asia/Ho_Chi_Minh'
+
+function vnDateLabel(d: Date) {
+  return d.toLocaleDateString('vi-VN', {
+    weekday: 'long',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: VN_TZ,
+  })
+}
+
+function vnHms(d: Date) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: VN_TZ,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(d)
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '00'
+  return { hour: get('hour'), minute: get('minute'), second: get('second') }
+}
+
+/** Đồng hồ hệ thống (VN): neo theo giờ server, chạy bằng performance.now() nên không bị kéo theo khi đổi giờ máy. */
+function useSystemNow(serverTime?: string, intervalMs = 1000) {
+  const [now, setNow] = useState(() => (serverTime ? new Date(serverTime) : new Date()))
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), intervalMs)
+    const originServer = serverTime ? new Date(serverTime).getTime() : Date.now()
+    const originPerf = performance.now()
+    const tick = () => setNow(new Date(originServer + (performance.now() - originPerf)))
+    tick()
+    const id = setInterval(tick, intervalMs)
     return () => clearInterval(id)
-  }, [intervalMs])
+  }, [serverTime, intervalMs])
   return now
 }
 
@@ -47,8 +76,8 @@ function slotTime(schedule: WorkSchedule, slot: AttendanceSlot) {
 const isInSlot = (slot: AttendanceSlot) => slot.endsWith('_in')
 
 export function ClockCard({ className }: { className?: string }) {
-  const now = useNow()
   const { data, isPending } = useAttendanceToday()
+  const now = useSystemNow(data?.serverTime)
   const punch = usePunch()
   const photoCheck = usePhotoCheck()
   const [note, setNote] = useState('')
@@ -65,7 +94,8 @@ export function ClockCard({ className }: { className?: string }) {
   const face = data?.face
   const faceRequired = !!face?.required
   const faceApproved = face?.profile?.status === 'approved'
-  const nowMinutes = toMinutes(formatTime(now.toISOString()))
+  const clock = vnHms(now)
+  const nowMinutes = toMinutes(`${clock.hour}:${clock.minute}`)
 
   /** Ca đang mở thì tính "đã làm" theo thời gian thực. */
   const liveWorked = (shift: ShiftRecord | undefined) => {
@@ -99,13 +129,11 @@ export function ClockCard({ className }: { className?: string }) {
 
   return (
     <Card className={cn('relative gap-0 overflow-hidden p-0', className)}>
-      <div className="relative bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 p-6 text-white">
+      <div className="relative bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 p-4 text-white sm:p-6">
         <div className="pointer-events-none absolute -top-12 -right-12 size-48 rounded-full bg-white/10 blur-2xl" />
         <div className="relative">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm text-indigo-100 capitalize">
-              {now.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}
-            </p>
+            <p className="text-sm text-indigo-100 capitalize">{vnDateLabel(now)}</p>
             {data && (
               <div className="flex flex-wrap gap-1.5">
                 <SchedulePill label="Sáng" from={data.schedule.morningStart} to={data.schedule.morningEnd} />
@@ -113,14 +141,14 @@ export function ClockCard({ className }: { className?: string }) {
               </div>
             )}
           </div>
-          <p className="mt-2 font-mono text-5xl font-semibold tracking-tight tabular-nums">
-            {now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-            <span className="text-2xl text-indigo-200">:{String(now.getSeconds()).padStart(2, '0')}</span>
+          <p className="mt-2 font-mono text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl">
+            {clock.hour}:{clock.minute}
+            <span className="text-2xl text-indigo-200">:{clock.second}</span>
           </p>
         </div>
       </div>
 
-      <div className="space-y-5 p-6">
+      <div className="space-y-5 p-4 sm:p-6">
         {isPending ? (
           <Skeleton className="h-28 w-full" />
         ) : (
@@ -215,9 +243,9 @@ export function ClockCard({ className }: { className?: string }) {
               </div>
             )}
             <p className="-mt-1 text-xs text-muted-foreground">
-              Bấm 1 lần vào khung để dán ảnh (Ctrl+V), bấm 2 lần để chọn file. Ảnh cần có{' '}
-              <b className="font-medium text-foreground">mặt bạn</b> cùng màn hình đang hiện{' '}
-              <b className="font-medium text-foreground">giờ và ngày hôm nay</b>.
+              Mở camera và chụp. Ảnh cần có <b className="font-medium text-foreground">mặt bạn</b> và nền{' '}
+              <b className="font-medium text-foreground">văn phòng tầng 5</b>. Ngày giờ lấy từ máy tính, phải khớp
+              hệ thống.
             </p>
             <CameraCapture
               photo={photo}
@@ -337,7 +365,7 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
     return (
       <div className="flex items-center gap-2 rounded-xl border bg-muted/40 p-3 text-sm text-muted-foreground">
         <Loader2 className="size-4 shrink-0 animate-spin" />
-        Đang kiểm tra giờ/ngày trên màn hình và khớp khuôn mặt đã đăng ký…
+        Đang kiểm tra ngày giờ máy tính, khuôn mặt và nền văn phòng…
       </div>
     )
   }
@@ -353,15 +381,16 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
     )
   }
   if (check.isSuccess) {
-    const { screenTime, screenDate, faceScore } = check.data
+    const { screenTime, screenDate, faceScore, sceneScore } = check.data
     return (
       <div className="flex items-start gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3 text-sm text-emerald-700 dark:text-emerald-400">
         <ShieldCheck className="mt-0.5 size-4 shrink-0" />
         <div>
           <p className="font-medium">Ảnh hợp lệ</p>
           <p className="text-xs text-muted-foreground">
-            Giờ {screenTime ?? '—'} · ngày {screenDate ?? '—'} khớp hiện tại
+            Giờ máy {screenTime ?? '—'} · ngày {screenDate ?? '—'} khớp hệ thống
             {faceScore != null && ` · khuôn mặt khớp đã đăng ký (${Math.round(faceScore * 100)}%)`}
+            {sceneScore != null && ` · nền văn phòng tầng 5 (${Math.round(sceneScore * 100)}%)`}
           </p>
         </div>
       </div>

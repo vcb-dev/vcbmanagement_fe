@@ -146,7 +146,7 @@ export function LoginPage() {
                     placeholder="ban@vcb.vn"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-10 pl-9"
+                    className="h-11 pl-9"
                   />
                 </div>
               </Field>
@@ -163,7 +163,7 @@ export function LoginPage() {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="h-10 pr-10 pl-9"
+                    className="h-11 pr-10 pl-9"
                   />
                   <Button
                     type="button"
@@ -181,7 +181,7 @@ export function LoginPage() {
               <Button
                 type="submit"
                 disabled={login.isPending}
-                className="h-10 w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25 hover:from-indigo-500 hover:to-violet-500"
+                className="h-12 w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-base text-white shadow-md shadow-indigo-500/25 hover:from-indigo-500 hover:to-violet-500"
               >
                 {login.isPending && <Loader2 className="animate-spin" />}
                 {login.isPending ? 'Đang đăng nhập…' : 'Đăng nhập'}
