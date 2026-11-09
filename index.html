@@ -18,6 +18,46 @@
         Đang tải ứng dụng…
       </div>
     </div>
+    <script>
+      (function () {
+        function wipe() {
+          var jobs = []
+          if ('serviceWorker' in navigator) {
+            jobs.push(
+              navigator.serviceWorker.getRegistrations().then(function (regs) {
+                return Promise.all(regs.map(function (reg) { return reg.unregister() }))
+              }),
+            )
+          }
+          if (window.caches) {
+            jobs.push(
+              caches.keys().then(function (keys) {
+                return Promise.all(keys.map(function (key) { return caches.delete(key) }))
+              }),
+            )
+          }
+          return Promise.all(jobs)
+        }
+        wipe()
+        setTimeout(function () {
+          var root = document.getElementById('root')
+          if (!root || (root.textContent || '').indexOf('Đang tải ứng dụng') === -1) return
+          wipe().then(function () {
+            if (sessionStorage.getItem('vcb-sw-cleared') === '1') {
+              root.innerHTML =
+                '<div style="min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-family:system-ui,sans-serif;padding:24px;text-align:center;color:#18181b">' +
+                '<p style="font-size:18px;font-weight:600;margin:0">Không tải được trang</p>' +
+                '<p style="font-size:14px;color:#52525b;margin:0">Vào Cài đặt → Safari → Xóa dữ liệu website, rồi mở lại link.</p>' +
+                '<button style="font-size:16px;padding:10px 16px;border:0;border-radius:10px;background:#4f46e5;color:#fff" onclick="location.reload()">Tải lại</button>' +
+                '</div>'
+              return
+            }
+            sessionStorage.setItem('vcb-sw-cleared', '1')
+            location.reload()
+          })
+        }, 2500)
+      })()
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

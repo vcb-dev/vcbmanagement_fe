@@ -15,6 +15,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false,
+      selfDestroying: true,
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'pwa-192.png', 'pwa-512.png'],
       manifest: {
         name: 'VCB Management',
@@ -36,11 +37,14 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2,woff}'],
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallbackDenylist: [/^\/api\//, /^\/assets\//],
       },
-      devOptions: phoneHttps ? { enabled: true, type: 'module' } : { enabled: false },
     }),
   ],
+  build: {
+    target: ['es2020', 'safari15'],
+    modulePreload: { polyfill: false },
+  },
   resolve: {
     alias: { '@': path.resolve(import.meta.dirname, './src') },
   },
