@@ -5,6 +5,7 @@ import {
   ScanFace,
   ShieldCheck,
   Sparkles,
+  Users,
   type LucideIcon,
 } from 'lucide-react'
 import type { UserRole } from '@/features/auth/auth.types'
@@ -44,6 +45,13 @@ export const NAV_GROUPS: NavGroup[] = [
         url: '/departments',
         icon: Building2,
         description: 'Giờ ca của bộ phận và mốc đi muộn',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Danh sách nhân sự',
+        url: '/users',
+        icon: Users,
+        description: 'Bộ phận, loại nhân sự và ngày ký hợp đồng',
         roles: ['admin', 'manager'],
       },
     ],
