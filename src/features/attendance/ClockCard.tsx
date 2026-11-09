@@ -129,11 +129,12 @@ export function ClockCard({ className }: { className?: string }) {
 
   return (
     <Card className={cn('relative gap-0 overflow-hidden p-0', className)}>
-      <div className="relative bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 p-4 text-white sm:p-6">
-        <div className="pointer-events-none absolute -top-12 -right-12 size-48 rounded-full bg-white/10 blur-2xl" />
+      <div className="relative p-4 text-white sm:p-6" style={{ backgroundColor: '#4f46e5' }}>
         <div className="relative">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm text-indigo-100 capitalize">{vnDateLabel(now)}</p>
+            <p className="text-sm capitalize" style={{ color: '#c7d2fe' }}>
+              {vnDateLabel(now)}
+            </p>
             {data && (
               <div className="flex flex-wrap gap-1.5">
                 <SchedulePill label="Sáng" from={data.schedule.morningStart} to={data.schedule.morningEnd} />
@@ -141,9 +142,11 @@ export function ClockCard({ className }: { className?: string }) {
               </div>
             )}
           </div>
-          <p className="mt-2 font-mono text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl">
+          <p className="mt-2 text-4xl font-semibold sm:text-5xl" style={{ color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
             {clock.hour}:{clock.minute}
-            <span className="text-2xl text-indigo-200">:{clock.second}</span>
+            <span className="text-2xl" style={{ color: '#c7d2fe' }}>
+              :{clock.second}
+            </span>
           </p>
         </div>
       </div>
@@ -165,8 +168,8 @@ export function ClockCard({ className }: { className?: string }) {
                 <div
                   key={key}
                   className={cn(
-                    'grid grid-cols-[3.5rem_1fr_1fr_1fr] items-center border-t',
-                    activeShift === key && 'bg-primary/5',
+                    'grid grid-cols-[3.5rem_1fr_1fr_1fr] items-center border-t text-zinc-900',
+                    activeShift === key && 'bg-[#eef2ff]',
                   )}
                 >
                   <span className="px-3 py-3 text-sm font-medium">{SHIFT_LABEL[key]}</span>
@@ -297,12 +300,11 @@ export function ClockCard({ className }: { className?: string }) {
                         ? undefined
                         : 'Cần ảnh hợp lệ trước khi chấm công'
               }
-              className={cn(
-                'h-11 w-full text-base shadow-md',
-                nextSlot && !isInSlot(nextSlot)
-                  ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-rose-500/25 hover:from-rose-400 hover:to-orange-400'
-                  : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-indigo-500/25 hover:from-indigo-500 hover:to-violet-500',
-              )}
+              className="h-12 w-full bg-clip-border text-base text-white"
+              style={{
+                backgroundColor: nextSlot && !isInSlot(nextSlot) ? '#e11d48' : '#4f46e5',
+                color: '#fff',
+              }}
             >
               {busy ? <Loader2 className="animate-spin" /> : nextSlot && !isInSlot(nextSlot) ? <LogOut /> : <LogIn />}
               {photoCheck.isPending
@@ -332,10 +334,10 @@ export function ClockCard({ className }: { className?: string }) {
 }
 
 const VERDICT_STYLE: Record<GeoVerdict['tone'], { box: string; icon: typeof MapPin }> = {
-  ok: { box: 'border-emerald-500/25 bg-emerald-500/5 text-emerald-700 dark:text-emerald-400', icon: MapPin },
-  warn: { box: 'border-amber-500/25 bg-amber-500/5 text-amber-700 dark:text-amber-400', icon: LocateFixed },
-  bad: { box: 'border-rose-500/25 bg-rose-500/5 text-rose-700 dark:text-rose-400', icon: MapPinOff },
-  pending: { box: 'bg-muted/40 text-muted-foreground', icon: LocateFixed },
+  ok: { box: 'border-[#a7f3d0] bg-[#ecfdf5] text-[#047857]', icon: MapPin },
+  warn: { box: 'border-[#fde68a] bg-[#fffbeb] text-[#b45309]', icon: LocateFixed },
+  bad: { box: 'border-[#fecdd3] bg-[#fff1f2] text-[#be123c]', icon: MapPinOff },
+  pending: { box: 'border-zinc-200 bg-zinc-50 text-zinc-500', icon: LocateFixed },
 }
 
 function LocationBox({ verdict, onRetry }: { verdict: GeoVerdict; onRetry: () => void }) {
@@ -401,7 +403,7 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
 
 function SchedulePill({ label, from, to }: { label: string; from: string; to: string }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ring-1 ring-white/20 backdrop-blur">
+    <div className="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: 'rgba(255,255,255,0.18)', color: '#fff' }}>
       <Clock3 className="size-3.5" />
       {label} {from}–{to}
     </div>
@@ -411,7 +413,9 @@ function SchedulePill({ label, from, to }: { label: string; from: string; to: st
 function TimeCell({ value, late, early }: { value: string; late?: number | null; early?: number | null }) {
   return (
     <div className="px-1 py-2.5 text-center">
-      <p className="text-base font-semibold tabular-nums">{value}</p>
+      <p className="text-base font-semibold text-zinc-900" style={{ fontVariantNumeric: 'tabular-nums' }}>
+        {value}
+      </p>
       {(late ?? 0) > 0 && (
         <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400">Muộn {formatDuration(late)}</p>
       )}

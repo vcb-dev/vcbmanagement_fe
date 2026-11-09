@@ -57,8 +57,8 @@ export function LoginPage() {
           try {
             const confirmed = await authApi.me()
             queryClient.setQueryData(ME_QUERY_KEY, confirmed)
-            toast.success('Đăng nhập thành công')
             navigate(from, { replace: true })
+            window.setTimeout(() => toast.success('Đăng nhập thành công'), 80)
           } catch {
             markLoggedOut(queryClient)
             toast.error('Không giữ được phiên trên điện thoại. Thử lại sau vài giây.')

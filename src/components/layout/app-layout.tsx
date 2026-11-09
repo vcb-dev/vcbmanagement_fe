@@ -39,10 +39,16 @@ export function AppLayout() {
     <SidebarProvider>
       <AppSidebar user={user} />
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 rounded-t-xl border-b bg-background/80 px-4 backdrop-blur">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-1 data-[orientation=vertical]:h-4" />
-          <Breadcrumb>
+        <header
+          className="sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b bg-white px-3 md:px-4"
+          style={{ height: 'calc(3.5rem + env(safe-area-inset-top, 0px))', paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        >
+          <SidebarTrigger className="size-11 shrink-0 md:size-8" />
+          <Separator orientation="vertical" className="mr-1 hidden h-4 sm:block" />
+          <p className="min-w-0 flex-1 truncate text-[15px] font-semibold text-zinc-900 md:hidden">
+            {page?.title ?? 'VCB Management'}
+          </p>
+          <Breadcrumb className="hidden min-w-0 md:block">
             <BreadcrumbList>
               {group && (
                 <>
@@ -51,11 +57,11 @@ export function AppLayout() {
                 </>
               )}
               <BreadcrumbItem>
-                <BreadcrumbPage className="font-medium">{page?.title ?? 'VCB Management'}</BreadcrumbPage>
+                <BreadcrumbPage className="font-medium text-zinc-900">{page?.title ?? 'VCB Management'}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-1">
             <div className="hidden items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs text-muted-foreground md:flex">
               <CalendarDays className="size-3.5" />
               <span className="capitalize">{today}</span>

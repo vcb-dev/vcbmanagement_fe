@@ -50,7 +50,7 @@ export function DashboardPage() {
       <PageHeader
         title={
           <>
-            {greeting()}, <span className="text-primary">{displayName(user)}</span> 👋
+            {greeting()}, <span className="text-[#4f46e5]">{displayName(user)}</span>
           </>
         }
         description="Tình hình làm việc của bạn trong 30 ngày gần nhất."

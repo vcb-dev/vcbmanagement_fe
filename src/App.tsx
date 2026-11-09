@@ -34,7 +34,7 @@ export default function App() {
 
   return (
     <>
-      <Toaster richColors position="top-center" closeButton />
+      <Toaster closeButton />
       <Suspense
         fallback={
           <div className="flex min-h-dvh items-center justify-center bg-white text-sm text-zinc-600">
