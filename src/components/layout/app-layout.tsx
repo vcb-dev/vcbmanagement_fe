@@ -27,7 +27,13 @@ export function AppLayout() {
     new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }),
   )
 
-  if (!user) return null
+  if (!user) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-background p-6 text-sm text-muted-foreground">
+        Đang tải…
+      </div>
+    )
+  }
 
   return (
     <SidebarProvider>

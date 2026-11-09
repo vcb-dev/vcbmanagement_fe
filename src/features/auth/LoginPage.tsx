@@ -62,7 +62,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="grid min-h-svh lg:grid-cols-[1.1fr_1fr]">
+    <div className="grid min-h-dvh min-h-[100dvh] lg:grid-cols-[1.1fr_1fr]">
       {/* Brand panel */}
       <aside className="relative hidden overflow-hidden bg-zinc-950 text-white lg:flex lg:flex-col lg:justify-between lg:p-12">
         <div className="pointer-events-none absolute inset-0">
@@ -118,13 +118,13 @@ export function LoginPage() {
       </aside>
 
       {/* Form */}
-      <main className="relative flex flex-col items-center justify-center bg-background px-6 py-12">
+      <main className="relative flex min-h-dvh min-h-[100dvh] flex-col items-center justify-center bg-background px-6 py-12">
         <div className="absolute top-4 right-4 flex items-center gap-1">
           <InstallAppButton />
           <ThemeToggle />
         </div>
 
-        <div className="w-full max-w-sm animate-in duration-500 fade-in slide-in-from-bottom-4">
+        <div className="w-full max-w-sm">
           <div className="mb-8 flex flex-col items-center gap-3 text-center lg:items-start lg:text-left">
             <BrandMark className="lg:hidden" />
             <div className="space-y-1.5">
