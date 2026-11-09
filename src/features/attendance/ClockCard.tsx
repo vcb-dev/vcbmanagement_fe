@@ -253,8 +253,8 @@ export function ClockCard({ className }: { className?: string }) {
             )}
             <p className="-mt-1 text-xs text-muted-foreground">
               Mở camera và chụp. Ảnh cần có <b className="font-medium text-foreground">mặt bạn</b> và nền{' '}
-              <b className="font-medium text-foreground">văn phòng tầng 5</b>. Ngày giờ lấy từ đồng hồ điện thoại /
-              máy tính, phải khớp hệ thống Việt Nam.
+              <b className="font-medium text-foreground">văn phòng tầng 5</b>. Ngày giờ lấy từ đồng hồ thiết bị, phải
+              khớp hệ thống Việt Nam.
             </p>
             <CameraCapture
               photo={photo}
@@ -381,7 +381,7 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
     return (
       <div className="flex items-center gap-2 rounded-xl border bg-muted/40 p-3 text-sm text-muted-foreground">
         <Loader2 className="size-4 shrink-0 animate-spin" />
-        Đang kiểm tra ngày giờ máy tính, khuôn mặt và nền văn phòng…
+        Đang kiểm tra ngày giờ, khuôn mặt và nền văn phòng…
       </div>
     )
   }
@@ -412,7 +412,7 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
         <div>
           <p className="font-medium">Ảnh hợp lệ</p>
           <p className="mt-1 text-xs leading-5" style={{ color: '#3f3f46' }}>
-            Giờ máy {screenTime ?? '—'} · ngày {screenDate ?? '—'} khớp hệ thống
+            Giờ {screenTime ?? '—'} · ngày {screenDate ?? '—'} khớp hệ thống
             {faceScore != null && ` · khuôn mặt khớp đã đăng ký (${Math.round(faceScore * 100)}%)`}
             {sceneScore != null && ` · nền văn phòng tầng 5 (${Math.round(sceneScore * 100)}%)`}
           </p>
