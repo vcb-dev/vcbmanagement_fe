@@ -5,8 +5,8 @@ import { getCameraStream, prepareVideoEl } from '@/lib/camera'
 import { cn } from '@/lib/utils'
 
 /** Đủ nét để nhận mặt và nền văn phòng; ~300–600KB, dưới giới hạn 2MB của server. */
-const MAX_WIDTH = 1600
-const JPEG_QUALITY = 0.88
+const MAX_WIDTH = 1280
+const JPEG_QUALITY = 0.85
 
 type CameraState = 'idle' | 'starting' | 'live' | 'error'
 type Facing = 'user' | 'environment'
@@ -20,28 +20,49 @@ function cameraErrorMessage(err: unknown): string {
   return 'Không mở được camera.'
 }
 
-function toJpeg(source: CanvasImageSource, width: number, height: number): Promise<Blob | null> {
+function jpegFromDataUrl(canvas: HTMLCanvasElement): Blob | null {
+  try {
+    const dataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY)
+    const raw = atob(dataUrl.split(',')[1] ?? '')
+    const bytes = new Uint8Array(raw.length)
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i)
+    return new Blob([bytes], { type: 'image/jpeg' })
+  } catch {
+    return null
+  }
+}
+
+function toJpeg(video: HTMLVideoElement): Promise<Blob | null> {
+  const width = video.videoWidth
+  const height = video.videoHeight
+  if (!width || !height) return Promise.resolve(null)
+
   const scale = Math.min(1, MAX_WIDTH / width)
   const canvas = document.createElement('canvas')
-  canvas.width = Math.round(width * scale)
-  canvas.height = Math.round(height * scale)
-  canvas.getContext('2d')!.drawImage(source, 0, 0, canvas.width, canvas.height)
+  canvas.width = Math.max(1, Math.round(width * scale))
+  canvas.height = Math.max(1, Math.round(height * scale))
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return Promise.resolve(null)
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
   return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      if (blob) {
-        resolve(blob)
-        return
-      }
-      try {
-        const dataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY)
-        const raw = atob(dataUrl.split(',')[1] ?? '')
-        const bytes = new Uint8Array(raw.length)
-        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i)
-        resolve(new Blob([bytes], { type: 'image/jpeg' }))
-      } catch {
-        resolve(null)
-      }
-    }, 'image/jpeg', JPEG_QUALITY)
+    let settled = false
+    const finish = (blob: Blob | null) => {
+      if (settled) return
+      settled = true
+      resolve(blob)
+    }
+
+    const timer = window.setTimeout(() => finish(jpegFromDataUrl(canvas)), 800)
+    try {
+      canvas.toBlob((blob) => {
+        window.clearTimeout(timer)
+        finish(blob && blob.size > 0 ? blob : jpegFromDataUrl(canvas))
+      }, 'image/jpeg', JPEG_QUALITY)
+    } catch {
+      window.clearTimeout(timer)
+      finish(jpegFromDataUrl(canvas))
+    }
   })
 }
 
@@ -66,22 +87,24 @@ export function CameraCapture({
   const stop = () => {
     streamRef.current?.getTracks().forEach((t) => t.stop())
     streamRef.current = null
+    const video = videoRef.current
+    if (video) video.srcObject = null
   }
 
   useEffect(() => stop, [])
 
   useEffect(() => {
-    const video = videoRef.current
-    if (state !== 'live' || !video || !streamRef.current) return
-    prepareVideoEl(video)
-    video.srcObject = streamRef.current
-    void video.play().catch(() => undefined)
-  }, [state, previewUrl])
-
-  useEffect(() => {
     if (!previewUrl) return
     return () => URL.revokeObjectURL(previewUrl)
   }, [previewUrl])
+
+  const attachAndPlay = async (stream: MediaStream) => {
+    const video = videoRef.current
+    if (!video) throw new Error('Không tìm thấy khung camera')
+    prepareVideoEl(video)
+    video.srcObject = stream
+    await video.play()
+  }
 
   const start = async (nextFacing = facingRef.current) => {
     if (disabled) return
@@ -93,8 +116,10 @@ export function CameraCapture({
     try {
       const stream = await getCameraStream(nextFacing)
       streamRef.current = stream
+      await attachAndPlay(stream)
       setState('live')
     } catch (err) {
+      stop()
       setError(cameraErrorMessage(err))
       setState('error')
     }
@@ -106,12 +131,19 @@ export function CameraCapture({
 
   const capture = async () => {
     const video = videoRef.current
-    if (!video || !video.videoWidth) return
-    const blob = await toJpeg(video, video.videoWidth, video.videoHeight)
-    if (!blob) return
-    stop()
-    setState('idle')
-    onChange(blob)
+    if (!video) return
+    try {
+      const blob = await toJpeg(video)
+      if (!blob) {
+        setError('Không lấy được ảnh. Hãy chụp lại.')
+        return
+      }
+      stop()
+      setState('idle')
+      onChange(blob)
+    } catch {
+      setError('Không lấy được ảnh. Hãy chụp lại.')
+    }
   }
 
   const clearPhoto = (e?: MouseEvent) => {
@@ -123,18 +155,22 @@ export function CameraCapture({
 
   return (
     <div className="space-y-2">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-xl border bg-muted/40">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-xl border bg-zinc-100">
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          autoPlay
+          className={cn(
+            'absolute inset-0 size-full object-cover',
+            mirrored && '-scale-x-100',
+            !previewUrl && state === 'live' ? 'opacity-100' : 'opacity-0',
+          )}
+        />
         {previewUrl ? (
-          <img src={previewUrl} alt="Ảnh chấm công" className={cn('size-full object-cover', mirrored && '-scale-x-100')} />
+          <img src={previewUrl} alt="Ảnh chấm công" className={cn('relative size-full object-cover', mirrored && '-scale-x-100')} />
         ) : (
           <>
-            <video
-              ref={videoRef}
-              playsInline
-              muted
-              autoPlay
-              className={cn('size-full object-cover', mirrored && '-scale-x-100', state !== 'live' && 'hidden')}
-            />
             {state === 'live' && (
               <>
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -155,14 +191,19 @@ export function CameraCapture({
             {state !== 'live' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center">
                 {state === 'starting' ? (
-                  <Loader2 className="size-7 animate-spin text-muted-foreground" />
+                  <Loader2 className="size-7 animate-spin text-zinc-500" />
                 ) : state === 'error' ? (
-                  <CameraOff className="size-7 text-destructive" />
+                  <CameraOff className="size-7" style={{ color: '#e11d48' }} />
                 ) : (
-                  <ScanFace className="size-8 text-muted-foreground" />
+                  <ScanFace className="size-8 text-zinc-500" />
                 )}
-                {state !== 'starting' && <span className="text-sm font-medium">Mở camera để chụp ảnh chấm công</span>}
-                <span className={cn('text-xs', error || state === 'error' ? 'text-destructive' : 'text-muted-foreground')}>
+                {state !== 'starting' && (
+                  <span className="text-sm font-medium text-zinc-800">Mở camera để chụp ảnh chấm công</span>
+                )}
+                <span
+                  className="text-xs"
+                  style={{ color: error || state === 'error' ? '#be123c' : '#71717a' }}
+                >
                   {state === 'starting' ? 'Đang mở camera…' : (error ?? 'Chỉ chụp trực tiếp từ camera')}
                 </span>
               </div>
@@ -171,7 +212,7 @@ export function CameraCapture({
         )}
         {previewUrl && (
           <>
-            <span className="absolute top-2 left-2 rounded-full bg-emerald-500 px-2 py-0.5 text-[11px] font-medium text-white shadow">
+            <span className="absolute top-2 left-2 rounded-full px-2 py-0.5 text-[11px] font-medium text-white" style={{ backgroundColor: '#10b981' }}>
               Đã chụp
             </span>
             <Button
@@ -211,7 +252,7 @@ export function CameraCapture({
         </div>
       ) : state === 'live' ? (
         <div className="grid grid-cols-[1fr_auto] gap-2">
-          <Button type="button" variant="secondary" className="h-12 text-base" onClick={capture} disabled={disabled}>
+          <Button type="button" variant="secondary" className="h-12 text-base" onClick={() => void capture()} disabled={disabled}>
             <Camera />
             Chụp ảnh
           </Button>

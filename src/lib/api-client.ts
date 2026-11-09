@@ -105,9 +105,7 @@ apiClient.interceptors.request.use(async (config) => {
     if (csrf) config.headers.set(CSRF_HEADER, csrf)
   }
   if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
-    // Safari iOS: ghi multipart mà không có boundary → server không đọc được ảnh.
     config.headers.delete('Content-Type')
-    config.headers.set('Content-Type', false as unknown as string)
   }
   return config
 })

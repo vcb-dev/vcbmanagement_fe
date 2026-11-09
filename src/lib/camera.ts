@@ -8,7 +8,7 @@ export async function getCameraStream(facing: 'user' | 'environment' = 'user'): 
   }
 
   const tries: MediaStreamConstraints[] = [
-    { audio: false, video: { facingMode: { ideal: facing }, width: { ideal: 1920 }, height: { ideal: 1440 } } },
+    { audio: false, video: { facingMode: { ideal: facing } } },
     { audio: false, video: { facingMode: facing } },
     { audio: false, video: true },
   ]
@@ -27,6 +27,8 @@ export async function getCameraStream(facing: 'user' | 'environment' = 'user'): 
 export function prepareVideoEl(video: HTMLVideoElement) {
   video.setAttribute('playsinline', 'true')
   video.setAttribute('webkit-playsinline', 'true')
+  video.playsInline = true
   video.muted = true
   video.autoplay = true
+  video.setAttribute('muted', '')
 }

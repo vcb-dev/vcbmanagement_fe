@@ -56,14 +56,6 @@ export interface PhotoCheckResult {
   sceneScore: number | null
 }
 
-function jpegFile(photo: Blob, name: string) {
-  try {
-    return new File([photo], name, { type: photo.type || 'image/jpeg' })
-  } catch {
-    return photo
-  }
-}
-
 function appendClientTime(form: FormData) {
   // iOS/Android/web: Date.now() là đồng hồ thiết bị đang mở trang (PWA hay Safari/Chrome đều vậy).
   form.append('clientTime', new Date().toISOString())
@@ -74,7 +66,7 @@ export function usePhotoCheck() {
   return useMutation({
     mutationFn: async (photo: Blob) => {
       const form = new FormData()
-      form.append('photo', jpegFile(photo, 'check.jpg'))
+      form.append('photo', photo, 'check.jpg')
       appendClientTime(form)
       const res = await apiClient.post<{ data: PhotoCheckResult }>('/attendance/photo-check', form)
       return res.data.data
@@ -103,7 +95,7 @@ export function usePunch() {
         form.append('longitude', String(location.longitude))
         form.append('accuracy', String(location.accuracy))
       }
-      form.append('photo', jpegFile(photo, `${slot}.jpg`))
+      form.append('photo', photo, `${slot}.jpg`)
       appendClientTime(form)
       if (note) form.append('note', note)
       const res = await apiClient.post<{ data: { slot: AttendanceSlot; record: AttendanceRecord } }>(
