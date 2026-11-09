@@ -5,6 +5,7 @@ import { AppLayout } from '@/components/layout/app-layout'
 import { Toaster } from '@/components/ui/sonner'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
+import { toast } from 'sonner'
 import { markLoggedOut } from '@/features/auth/use-auth'
 import { setSessionExpiredHandler } from '@/lib/api-client'
 
@@ -20,6 +21,7 @@ function useSessionExpiredRedirect() {
 
   useEffect(() => {
     setSessionExpiredHandler(() => {
+      toast.dismiss()
       markLoggedOut(queryClient)
       if (window.location.pathname !== '/login') navigate('/login', { replace: true })
     })

@@ -1,6 +1,15 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
-export const API_BASE_URL = (import.meta.env.VITE_API_URL || '/api/v1').replace(/\/+$/, '')
+function resolveApiBase() {
+  const fromEnv = (import.meta.env.VITE_API_URL || '/api/v1').replace(/\/+$/, '')
+  // Vercel + iPhone: cookie khác domain (Railway) bị Safari chặn → gọi cùng origin qua rewrite.
+  if (typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app')) {
+    return '/api/v1'
+  }
+  return fromEnv
+}
+
+export const API_BASE_URL = resolveApiBase()
 
 const CSRF_COOKIE = 'vcb_csrf'
 const CSRF_HEADER = 'X-CSRF-Token'

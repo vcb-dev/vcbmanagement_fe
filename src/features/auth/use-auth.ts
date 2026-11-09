@@ -26,6 +26,7 @@ export function useMe() {
     staleTime: 5 * 60_000,
     retry: 1,
     retryDelay: 800,
+    refetchOnReconnect: false,
   })
 }
 
