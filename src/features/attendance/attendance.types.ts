@@ -47,6 +47,7 @@ export interface WorkSchedule {
   morningEnd: string
   afternoonStart: string
   afternoonEnd: string
+  evening: { start: string; end: string } | null
   /** Bộ mốc đi muộn (phút, tăng dần) áp dụng cho người dùng. Rỗng = chưa cấu hình. */
   lateThresholds: number[]
 }
