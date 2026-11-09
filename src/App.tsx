@@ -13,6 +13,7 @@ const AttendancePage = lazy(() => import('@/pages/AttendancePage').then((m) => (
 const AssistantPage = lazy(() => import('@/pages/AssistantPage').then((m) => ({ default: m.AssistantPage })))
 const FacePage = lazy(() => import('@/pages/FacePage').then((m) => ({ default: m.FacePage })))
 const FaceReviewPage = lazy(() => import('@/pages/FaceReviewPage').then((m) => ({ default: m.FaceReviewPage })))
+const DepartmentsPage = lazy(() => import('@/pages/DepartmentsPage').then((m) => ({ default: m.DepartmentsPage })))
 
 function useSessionExpiredRedirect() {
   const navigate = useNavigate()
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="/face" element={<FacePage />} />
             <Route element={<ProtectedRoute roles={['admin', 'manager']} />}>
               <Route path="/face/review" element={<FaceReviewPage />} />
+              <Route path="/departments" element={<DepartmentsPage />} />
             </Route>
           </Route>
         </Route>

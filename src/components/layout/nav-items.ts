@@ -1,4 +1,12 @@
-import { CalendarClock, LayoutDashboard, ScanFace, ShieldCheck, Sparkles, type LucideIcon } from 'lucide-react'
+import {
+  Building2,
+  CalendarClock,
+  LayoutDashboard,
+  ScanFace,
+  ShieldCheck,
+  Sparkles,
+  type LucideIcon,
+} from 'lucide-react'
 import type { UserRole } from '@/features/auth/auth.types'
 
 export interface NavItem {
@@ -29,6 +37,13 @@ export const NAV_GROUPS: NavGroup[] = [
         url: '/face/review',
         icon: ShieldCheck,
         description: 'Duyệt đăng ký khuôn mặt nhân viên',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Bộ phận & giờ làm',
+        url: '/departments',
+        icon: Building2,
+        description: 'Giờ ca của bộ phận và mốc đi muộn',
         roles: ['admin', 'manager'],
       },
     ],
