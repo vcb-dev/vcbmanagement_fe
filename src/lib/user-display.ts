@@ -1,9 +1,14 @@
-import type { User, UserRole } from '@/features/auth/auth.types'
+import type { EmploymentType, User, UserRole } from '@/features/auth/auth.types'
 
 export const ROLE_LABEL: Record<UserRole, string> = {
   admin: 'Quản trị viên',
   manager: 'Quản lý',
   staff: 'Nhân viên',
+}
+
+export const EMPLOYMENT_LABEL: Record<EmploymentType, string> = {
+  full_time: 'Toàn thời gian',
+  part_time: 'Part-time',
 }
 
 export function displayName(user: Pick<User, 'fullName' | 'email'>): string {
