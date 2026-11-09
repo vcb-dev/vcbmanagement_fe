@@ -9,7 +9,16 @@ import App from './App'
 import './index.css'
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { refetchOnWindowFocus: false } },
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: 1,
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
+    },
+    mutations: { retry: 0 },
+  },
 })
 
 createRoot(document.getElementById('root')!).render(

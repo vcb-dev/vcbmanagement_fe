@@ -75,9 +75,27 @@ function slotTime(schedule: WorkSchedule, slot: AttendanceSlot) {
 
 const isInSlot = (slot: AttendanceSlot) => slot.endsWith('_in')
 
+function LiveClock({ serverTime }: { serverTime?: string }) {
+  const now = useSystemNow(serverTime, 1000)
+  const clock = vnHms(now)
+  return (
+    <>
+      <p className="text-sm capitalize" style={{ color: '#c7d2fe' }}>
+        {vnDateLabel(now)}
+      </p>
+      <p className="mt-2 text-4xl font-semibold sm:text-5xl" style={{ color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+        {clock.hour}:{clock.minute}
+        <span className="text-2xl" style={{ color: '#c7d2fe' }}>
+          :{clock.second}
+        </span>
+      </p>
+    </>
+  )
+}
+
 export function ClockCard({ className }: { className?: string }) {
   const { data, isPending } = useAttendanceToday()
-  const now = useSystemNow(data?.serverTime)
+  const now = useSystemNow(data?.serverTime, 15_000)
   const punch = usePunch()
   const photoCheck = usePhotoCheck()
   const [note, setNote] = useState('')
@@ -129,35 +147,23 @@ export function ClockCard({ className }: { className?: string }) {
 
   return (
     <Card className={cn('relative gap-0 overflow-hidden p-0', className)}>
-      <div className="relative p-4 text-white sm:p-6" style={{ backgroundColor: '#4f46e5' }}>
-        <div className="relative">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm capitalize" style={{ color: '#c7d2fe' }}>
-              {vnDateLabel(now)}
-            </p>
-            {data && (
-              <div className="flex flex-wrap gap-1.5">
-                <SchedulePill label="Sáng" from={data.schedule.morningStart} to={data.schedule.morningEnd} />
-                <SchedulePill label="Chiều" from={data.schedule.afternoonStart} to={data.schedule.afternoonEnd} />
-              </div>
-            )}
+      <div className="relative min-w-0 overflow-hidden p-4 text-white sm:p-6" style={{ backgroundColor: '#4f46e5' }}>
+        {data && (
+          <div className="mb-2 flex max-w-full flex-wrap gap-1.5">
+            <SchedulePill label="Sáng" from={data.schedule.morningStart} to={data.schedule.morningEnd} />
+            <SchedulePill label="Chiều" from={data.schedule.afternoonStart} to={data.schedule.afternoonEnd} />
           </div>
-          <p className="mt-2 text-4xl font-semibold sm:text-5xl" style={{ color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
-            {clock.hour}:{clock.minute}
-            <span className="text-2xl" style={{ color: '#c7d2fe' }}>
-              :{clock.second}
-            </span>
-          </p>
-        </div>
+        )}
+        <LiveClock serverTime={data?.serverTime} />
       </div>
 
       <div className="space-y-5 p-4 sm:p-6">
         {isPending ? (
           <Skeleton className="h-28 w-full" />
         ) : (
-          <div className="overflow-hidden rounded-xl border">
-            <div className="grid grid-cols-[3.5rem_1fr_1fr_1fr] bg-muted/50 text-xs text-muted-foreground">
-              <span className="px-3 py-2">Ca</span>
+          <div className="overflow-x-auto rounded-xl border">
+            <div className="grid min-w-[17rem] grid-cols-[2.75rem_1fr_1fr_1fr] bg-muted text-xs text-muted-foreground">
+              <span className="px-2 py-2 sm:px-3">Ca</span>
               <span className="py-2 text-center">Giờ vào</span>
               <span className="py-2 text-center">Giờ ra</span>
               <span className="py-2 text-center">Đã làm</span>
@@ -168,8 +174,8 @@ export function ClockCard({ className }: { className?: string }) {
                 <div
                   key={key}
                   className={cn(
-                    'grid grid-cols-[3.5rem_1fr_1fr_1fr] items-center border-t text-zinc-900',
-                    activeShift === key && 'bg-[#eef2ff]',
+                    'grid min-w-[17rem] grid-cols-[2.75rem_1fr_1fr_1fr] items-center border-t text-foreground',
+                    activeShift === key && 'bg-accent',
                   )}
                 >
                   <span className="px-3 py-3 text-sm font-medium">{SHIFT_LABEL[key]}</span>
@@ -429,7 +435,7 @@ function SchedulePill({ label, from, to }: { label: string; from: string; to: st
 function TimeCell({ value, late, early }: { value: string; late?: number | null; early?: number | null }) {
   return (
     <div className="px-1 py-2.5 text-center">
-      <p className="text-base font-semibold text-zinc-900" style={{ fontVariantNumeric: 'tabular-nums' }}>
+      <p className="text-sm font-semibold text-foreground sm:text-base" style={{ fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </p>
       {(late ?? 0) > 0 && (

@@ -38,14 +38,14 @@ export function AppLayout() {
   return (
     <SidebarProvider>
       <AppSidebar user={user} />
-      <SidebarInset>
+      <SidebarInset className="min-w-0 overflow-x-clip">
         <header
-          className="sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b bg-white px-3 md:px-4"
+          className="sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b bg-background px-3 md:px-4"
           style={{ height: 'calc(3.5rem + env(safe-area-inset-top, 0px))', paddingTop: 'env(safe-area-inset-top, 0px)' }}
         >
           <SidebarTrigger className="size-11 shrink-0 md:size-8" />
           <Separator orientation="vertical" className="mr-1 hidden h-4 sm:block" />
-          <p className="min-w-0 flex-1 truncate text-[15px] font-semibold text-zinc-900 md:hidden">
+          <p className="min-w-0 flex-1 truncate text-[15px] font-semibold text-foreground md:hidden">
             {page?.title ?? 'VCB Management'}
           </p>
           <Breadcrumb className="hidden min-w-0 md:block">
@@ -57,7 +57,7 @@ export function AppLayout() {
                 </>
               )}
               <BreadcrumbItem>
-                <BreadcrumbPage className="font-medium text-zinc-900">{page?.title ?? 'VCB Management'}</BreadcrumbPage>
+                <BreadcrumbPage className="font-medium text-foreground">{page?.title ?? 'VCB Management'}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>

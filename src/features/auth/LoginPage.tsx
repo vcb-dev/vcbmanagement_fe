@@ -70,7 +70,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="grid min-h-dvh min-h-[100dvh] bg-[#f7f7fb] lg:grid-cols-[1.1fr_1fr] lg:bg-background">
+    <div className="grid min-h-dvh min-h-[100dvh] overflow-x-clip bg-background lg:grid-cols-[1.1fr_1fr]">
       <aside className="relative hidden overflow-hidden bg-zinc-950 text-white lg:flex lg:flex-col lg:justify-between lg:p-12">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -top-32 -left-32 size-[28rem] rounded-full bg-indigo-600/40 blur-3xl" />
@@ -113,7 +113,7 @@ export function LoginPage() {
         </p>
       </aside>
 
-      <main className="relative flex min-h-dvh min-h-[100dvh] flex-col bg-[#f7f7fb] px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))] lg:items-center lg:justify-center lg:bg-background lg:px-6 lg:py-12">
+      <main className="relative flex min-h-dvh min-h-[100dvh] flex-col bg-background px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))] lg:items-center lg:justify-center lg:px-6 lg:py-12">
         <div className="flex justify-end gap-1 lg:absolute lg:top-4 lg:right-4">
           <InstallAppButton className="size-11" />
           <ThemeToggle className="size-11" />
@@ -123,14 +123,14 @@ export function LoginPage() {
           <div className="mb-8 flex flex-col items-center gap-3 text-center lg:items-start lg:text-left">
             <BrandMark className="size-12 rounded-2xl lg:hidden" />
             <div className="space-y-1.5">
-              <h1 className="text-[1.65rem] leading-tight font-semibold tracking-tight text-zinc-900">
+              <h1 className="text-[1.65rem] leading-tight font-semibold tracking-tight text-foreground">
                 Chào mừng trở lại
               </h1>
-              <p className="text-sm text-zinc-500">Đăng nhập bằng tài khoản được cấp để tiếp tục.</p>
+              <p className="text-sm text-muted-foreground">Đăng nhập bằng tài khoản được cấp để tiếp tục.</p>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-zinc-200/80 lg:bg-transparent lg:p-0 lg:shadow-none lg:ring-0">
+          <form onSubmit={handleSubmit} className="rounded-2xl bg-card p-5 text-card-foreground shadow-sm ring-1 ring-border lg:bg-transparent lg:p-0 lg:shadow-none lg:ring-0">
             <FieldGroup className="gap-5">
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -145,7 +145,7 @@ export function LoginPage() {
                     placeholder="ban@vcb.vn"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-12 border-zinc-200 bg-white pl-9 text-base text-zinc-900"
+                    className="h-12 bg-background pl-9 text-base text-foreground"
                   />
                 </div>
               </Field>
@@ -162,7 +162,7 @@ export function LoginPage() {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="h-12 border-zinc-200 bg-white pr-12 pl-9 text-base text-zinc-900"
+                    className="h-12 bg-background pr-12 pl-9 text-base text-foreground"
                   />
                   <Button
                     type="button"
@@ -189,7 +189,7 @@ export function LoginPage() {
             </FieldGroup>
           </form>
 
-          <p className="mt-6 text-center text-xs text-zinc-500 lg:text-left">
+          <p className="mt-6 text-center text-xs text-muted-foreground lg:text-left">
             Chưa có tài khoản? Liên hệ quản trị viên để được cấp quyền truy cập.
           </p>
         </div>

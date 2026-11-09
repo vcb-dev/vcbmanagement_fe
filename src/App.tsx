@@ -37,7 +37,7 @@ export default function App() {
       <Toaster closeButton />
       <Suspense
         fallback={
-          <div className="flex min-h-dvh items-center justify-center bg-white text-sm text-zinc-600">
+          <div className="flex min-h-dvh items-center justify-center bg-background text-sm text-muted-foreground">
             Đang tải…
           </div>
         }
