@@ -1,6 +1,7 @@
 import { Camera, CameraOff, Loader2, RotateCcw, ScanFace, SwitchCamera, Trash2, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { Button } from '@/components/ui/button'
+import { getCameraStream, prepareVideoEl } from '@/lib/camera'
 import { cn } from '@/lib/utils'
 
 /** Đủ nét để nhận mặt và nền văn phòng; ~300–600KB, dưới giới hạn 2MB của server. */
@@ -56,6 +57,7 @@ export function CameraCapture({
   useEffect(() => {
     const video = videoRef.current
     if (state !== 'live' || !video || !streamRef.current) return
+    prepareVideoEl(video)
     video.srcObject = streamRef.current
     void video.play().catch(() => undefined)
   }, [state, previewUrl])
@@ -73,14 +75,7 @@ export function CameraCapture({
     facingRef.current = nextFacing
     setFacing(nextFacing)
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: nextFacing },
-          width: { ideal: 1920 },
-          height: { ideal: 1440 },
-        },
-        audio: false,
-      })
+      const stream = await getCameraStream(nextFacing)
       streamRef.current = stream
       setState('live')
     } catch (err) {

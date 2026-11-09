@@ -32,20 +32,47 @@ export function useGeolocation(enabled: boolean) {
     }
 
     setState({ status: 'locating' })
-    const id = navigator.geolocation.watchPosition(
-      ({ coords }) =>
-        setState({
-          status: 'ok',
-          reading: { latitude: coords.latitude, longitude: coords.longitude, accuracy: coords.accuracy },
-        }),
-      (err) => {
-        if (err.code === err.PERMISSION_DENIED) setState({ status: 'denied' })
-        else if (err.code === err.TIMEOUT) setState({ status: 'error', message: 'Hết thời gian chờ định vị' })
-        else setState({ status: 'error', message: 'Không lấy được vị trí' })
-      },
-      { enableHighAccuracy: true, timeout: 20_000, maximumAge: 0 },
-    )
-    return () => navigator.geolocation.clearWatch(id)
+    let watchId = -1
+    let cancelled = false
+
+    const onOk = ({ coords }: GeolocationPosition) => {
+      if (cancelled) return
+      setState({
+        status: 'ok',
+        reading: { latitude: coords.latitude, longitude: coords.longitude, accuracy: coords.accuracy },
+      })
+    }
+
+    const startWatch = (highAccuracy: boolean) => {
+      if (watchId >= 0) navigator.geolocation.clearWatch(watchId)
+      watchId = navigator.geolocation.watchPosition(
+        onOk,
+        (err) => {
+          if (cancelled) return
+          if (err.code === err.PERMISSION_DENIED) {
+            setState({ status: 'denied' })
+            return
+          }
+          if (highAccuracy && (err.code === err.TIMEOUT || err.code === err.POSITION_UNAVAILABLE)) {
+            startWatch(false)
+            return
+          }
+          if (err.code === err.TIMEOUT) setState({ status: 'error', message: 'Hết thời gian chờ định vị' })
+          else setState({ status: 'error', message: 'Không lấy được vị trí' })
+        },
+        {
+          enableHighAccuracy: highAccuracy,
+          timeout: highAccuracy ? 25_000 : 20_000,
+          maximumAge: highAccuracy ? 0 : 15_000,
+        },
+      )
+    }
+
+    startWatch(true)
+    return () => {
+      cancelled = true
+      if (watchId >= 0) navigator.geolocation.clearWatch(watchId)
+    }
   }, [enabled, attempt])
 
   const retry = useCallback(() => setAttempt((n) => n + 1), [])

@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { useMe } from '@/features/auth/use-auth'
 import { AppSidebar } from './app-sidebar'
+import { InstallAppButton } from './install-app-button'
 import { InstallHint } from './install-hint'
 import { MobileTabBar } from './mobile-tab-bar'
 import { NAV_GROUPS } from './nav-items'
@@ -53,6 +54,7 @@ export function AppLayout() {
               <CalendarDays className="size-3.5" />
               <span className="capitalize">{today}</span>
             </div>
+            <InstallAppButton />
             <ThemeToggle />
           </div>
         </header>

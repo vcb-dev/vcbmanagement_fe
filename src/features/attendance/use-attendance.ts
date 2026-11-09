@@ -57,6 +57,7 @@ export interface PhotoCheckResult {
 }
 
 function appendClientTime(form: FormData) {
+  // iOS/Android/web: Date.now() là đồng hồ thiết bị đang mở trang (PWA hay Safari/Chrome đều vậy).
   form.append('clientTime', new Date().toISOString())
 }
 

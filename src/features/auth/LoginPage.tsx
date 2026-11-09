@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { BrandMark } from '@/components/brand-logo'
+import { InstallAppButton } from '@/components/layout/install-app-button'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -118,7 +119,10 @@ export function LoginPage() {
 
       {/* Form */}
       <main className="relative flex flex-col items-center justify-center bg-background px-6 py-12">
-        <ThemeToggle className="absolute top-4 right-4" />
+        <div className="absolute top-4 right-4 flex items-center gap-1">
+          <InstallAppButton />
+          <ThemeToggle />
+        </div>
 
         <div className="w-full max-w-sm animate-in duration-500 fade-in slide-in-from-bottom-4">
           <div className="mb-8 flex flex-col items-center gap-3 text-center lg:items-start lg:text-left">

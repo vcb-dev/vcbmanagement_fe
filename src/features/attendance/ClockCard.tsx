@@ -244,8 +244,8 @@ export function ClockCard({ className }: { className?: string }) {
             )}
             <p className="-mt-1 text-xs text-muted-foreground">
               Mở camera và chụp. Ảnh cần có <b className="font-medium text-foreground">mặt bạn</b> và nền{' '}
-              <b className="font-medium text-foreground">văn phòng tầng 5</b>. Ngày giờ lấy từ máy tính, phải khớp
-              hệ thống.
+              <b className="font-medium text-foreground">văn phòng tầng 5</b>. Ngày giờ lấy từ đồng hồ điện thoại /
+              máy tính, phải khớp hệ thống Việt Nam.
             </p>
             <CameraCapture
               photo={photo}

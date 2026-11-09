@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { cn } from '@/lib/utils'
+import { prepareVideoEl } from '@/lib/camera'
 import { captureJpeg, openUserCamera } from './capture-frame'
 import { STEP_LABEL, type LivenessStep } from './face.types'
 import { useScanFrame, useStartScan, type ScanFrameResult } from './use-face'
@@ -43,6 +44,7 @@ export function FaceScan({
   useEffect(() => {
     const video = videoRef.current
     if (!live || !video || !streamRef.current) return
+    prepareVideoEl(video)
     video.srcObject = streamRef.current
     void video.play().catch(() => undefined)
   }, [live])
