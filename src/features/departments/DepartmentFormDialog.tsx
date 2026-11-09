@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { getApiErrorMessage } from '@/lib/api-client'
-import { shiftOrderValid, type Department, type DepartmentInput } from './departments.types'
+import { eveningOrderValid, shiftOrderValid, type Department, type DepartmentInput, type ShiftTimes } from './departments.types'
 import { useSaveDepartment } from './use-departments'
 
 const EMPTY: DepartmentInput = {
@@ -14,9 +14,11 @@ const EMPTY: DepartmentInput = {
   morningEnd: '11:45',
   afternoonStart: '13:20',
   afternoonEnd: '17:50',
+  eveningStart: null,
+  eveningEnd: null,
 }
 
-const TIME_FIELDS: { key: keyof Omit<DepartmentInput, 'name'>; label: string }[] = [
+const TIME_FIELDS: { key: keyof ShiftTimes; label: string }[] = [
   { key: 'morningStart', label: 'Vào ca sáng' },
   { key: 'morningEnd', label: 'Ra ca sáng' },
   { key: 'afternoonStart', label: 'Vào ca chiều' },
@@ -34,6 +36,8 @@ export function DepartmentFormDialog({ department, onClose }: { department: Depa
           morningEnd: department.morningEnd,
           afternoonStart: department.afternoonStart,
           afternoonEnd: department.afternoonEnd,
+          eveningStart: department.eveningStart,
+          eveningEnd: department.eveningEnd,
         }
       : EMPTY,
   )
@@ -45,9 +49,13 @@ export function DepartmentFormDialog({ department, onClose }: { department: Depa
     if (!name) return setError('Nhập tên bộ phận.')
     if (TIME_FIELDS.some(({ key }) => !form[key])) return setError('Nhập đủ 4 mốc giờ.')
     if (!shiftOrderValid(form)) return setError('Giờ phải theo thứ tự: vào sáng < ra sáng ≤ vào chiều < ra chiều.')
+    const eveningErr = eveningOrderValid(form.afternoonEnd, form.eveningStart, form.eveningEnd)
+    if (eveningErr) return setError(eveningErr)
     setError('')
+    const eveningStart = form.eveningStart?.trim() || null
+    const eveningEnd = form.eveningEnd?.trim() || null
     save.mutate(
-      { id: department?.id, input: { ...form, name } },
+      { id: department?.id, input: { ...form, name, eveningStart, eveningEnd } },
       { onSuccess: onClose, onError: (err) => setError(getApiErrorMessage(err)) },
     )
   }
@@ -76,9 +84,9 @@ export function DepartmentFormDialog({ department, onClose }: { department: Depa
               />
             </Field>
             <div className="grid grid-cols-2 gap-4">
-              {TIME_FIELDS.map(({ key, label }) => (
+              {TIME_FIELDS.map(({ key }) => (
                 <Field key={key}>
-                  <FieldLabel htmlFor={`dept-${key}`}>{label}</FieldLabel>
+                  <FieldLabel htmlFor={`dept-${key}`}>{TIME_FIELDS.find((f) => f.key === key)?.label}</FieldLabel>
                   <Input
                     id={`dept-${key}`}
                     type="time"
@@ -87,6 +95,31 @@ export function DepartmentFormDialog({ department, onClose }: { department: Depa
                   />
                 </Field>
               ))}
+            </div>
+            <div className="space-y-1.5">
+              <div className="grid grid-cols-2 gap-4">
+                <Field>
+                  <FieldLabel htmlFor="dept-eveningStart">Vào ca tối</FieldLabel>
+                  <Input
+                    id="dept-eveningStart"
+                    type="time"
+                    value={form.eveningStart ?? ''}
+                    onChange={(e) => setForm({ ...form, eveningStart: e.target.value || null })}
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="dept-eveningEnd">Ra ca tối</FieldLabel>
+                  <Input
+                    id="dept-eveningEnd"
+                    type="time"
+                    value={form.eveningEnd ?? ''}
+                    onChange={(e) => setForm({ ...form, eveningEnd: e.target.value || null })}
+                  />
+                </Field>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Chỉ dùng cho part-time. Để trống nếu bộ phận không có ca tối.
+              </p>
             </div>
             {error && <FieldError>{error}</FieldError>}
           </FieldGroup>

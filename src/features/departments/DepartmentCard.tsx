@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { hoursPerDay, timelineSegment, type Department } from './departments.types'
 
-const AXIS = ['07:00', '10:00', '13:00', '16:00', '19:00']
+const AXIS = ['07:00', '11:00', '15:00', '19:00', '23:00']
 
 function peopleLabel(d: Department) {
   const parts = [
@@ -53,6 +53,14 @@ export function DepartmentCard({
             {d.afternoonStart} – {d.afternoonEnd}
           </p>
         </div>
+        {d.eveningStart && d.eveningEnd && (
+          <div className="col-span-2 rounded-lg bg-muted/50 px-3 py-2">
+            <p className="text-xs text-muted-foreground">Ca tối (part-time)</p>
+            <p className="font-semibold text-amber-700 tabular-nums dark:text-amber-400">
+              {d.eveningStart} – {d.eveningEnd}
+            </p>
+          </div>
+        )}
       </div>
 
       <div aria-hidden="true">
@@ -62,6 +70,12 @@ export function DepartmentCard({
             className="absolute inset-y-0 rounded-full bg-violet-500"
             style={timelineSegment(d.afternoonStart, d.afternoonEnd)}
           />
+          {d.eveningStart && d.eveningEnd && (
+            <i
+              className="absolute inset-y-0 rounded-full bg-amber-500"
+              style={timelineSegment(d.eveningStart, d.eveningEnd)}
+            />
+          )}
         </div>
         <div className="mt-1 flex justify-between text-[10px] text-muted-foreground tabular-nums">
           {AXIS.map((t) => (
