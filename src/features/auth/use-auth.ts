@@ -24,8 +24,8 @@ export function useMe() {
       }
     },
     staleTime: 5 * 60_000,
-    // Chỉ lỗi mạng / 5xx mới tới đây — thử lại để không đá user ra khi BE restart.
-    retry: 2,
+    retry: 1,
+    retryDelay: 800,
   })
 }
 

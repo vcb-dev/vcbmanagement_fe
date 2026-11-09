@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { lazy, useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/app-layout'
 import { Toaster } from '@/components/ui/sonner'
@@ -33,6 +33,13 @@ export default function App() {
   return (
     <>
       <Toaster richColors position="top-center" closeButton />
+      <Suspense
+        fallback={
+          <div className="flex min-h-dvh items-center justify-center bg-white text-sm text-zinc-600">
+            Đang tải…
+          </div>
+        }
+      >
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route element={<ProtectedRoute />}>
@@ -48,6 +55,7 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </>
   )
 }

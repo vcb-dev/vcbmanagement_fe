@@ -14,6 +14,7 @@ export default defineConfig({
     ...(phoneHttps ? [basicSsl()] : []),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: false,
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'pwa-192.png', 'pwa-512.png'],
       manifest: {
         name: 'VCB Management',
