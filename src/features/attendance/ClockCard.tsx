@@ -262,7 +262,10 @@ export function ClockCard({ className }: { className?: string }) {
             />
             {photo && <PhotoCheckBox check={photoCheck} />}
             {punch.isError && (
-              <div className="flex items-start gap-2 rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive">
+              <div
+                className="flex items-start gap-2 rounded-xl border p-3 text-sm"
+                style={{ backgroundColor: '#fff1f2', borderColor: '#fecdd3', color: '#9f1239' }}
+              >
                 <CircleAlert className="mt-0.5 size-4 shrink-0" />
                 <p>{getApiErrorMessage(punch.error)}</p>
               </div>
@@ -300,9 +303,14 @@ export function ClockCard({ className }: { className?: string }) {
                         ? undefined
                         : 'Cần ảnh hợp lệ trước khi chấm công'
               }
-              className="h-12 w-full bg-clip-border text-base text-white"
+              className="h-12 w-full bg-clip-border text-base text-white disabled:opacity-100"
               style={{
-                backgroundColor: nextSlot && !isInSlot(nextSlot) ? '#e11d48' : '#4f46e5',
+                backgroundColor:
+                  isPending || busy || !photoOk || !nextSlot || !locationOk || (faceRequired && !faceApproved)
+                    ? '#c7d2fe'
+                    : nextSlot && !isInSlot(nextSlot)
+                      ? '#e11d48'
+                      : '#4f46e5',
                 color: '#fff',
               }}
             >
@@ -316,7 +324,7 @@ export function ClockCard({ className }: { className?: string }) {
                   : 'Chấm công'}
             </Button>
             {(!photoOk || !locationOk || (faceRequired && !faceApproved)) && (
-              <p className="text-center text-xs text-muted-foreground">
+              <p className="text-center text-xs text-zinc-500">
                 {faceRequired && !faceApproved
                   ? 'Cần khuôn mặt đã duyệt mới chấm công được'
                   : !locationOk
@@ -373,11 +381,16 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
   }
   if (check.isError) {
     return (
-      <div className="flex items-start gap-2 rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive">
+      <div
+        className="flex items-start gap-2 rounded-xl border p-3 text-sm"
+        style={{ backgroundColor: '#fff1f2', borderColor: '#fecdd3', color: '#9f1239' }}
+      >
         <ShieldX className="mt-0.5 size-4 shrink-0" />
         <div>
           <p className="font-medium">Ảnh chưa đủ điều kiện chấm công</p>
-          <p className="text-xs">{getApiErrorMessage(check.error)}</p>
+          <p className="mt-1 text-xs leading-5" style={{ color: '#881337' }}>
+            {getApiErrorMessage(check.error) || 'Không kiểm tra được ảnh. Hãy chụp lại.'}
+          </p>
         </div>
       </div>
     )
@@ -385,11 +398,14 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
   if (check.isSuccess) {
     const { screenTime, screenDate, faceScore, sceneScore } = check.data
     return (
-      <div className="flex items-start gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3 text-sm text-emerald-700 dark:text-emerald-400">
+      <div
+        className="flex items-start gap-2 rounded-xl border p-3 text-sm"
+        style={{ backgroundColor: '#ecfdf5', borderColor: '#a7f3d0', color: '#047857' }}
+      >
         <ShieldCheck className="mt-0.5 size-4 shrink-0" />
         <div>
           <p className="font-medium">Ảnh hợp lệ</p>
-          <p className="text-xs text-muted-foreground">
+          <p className="mt-1 text-xs leading-5" style={{ color: '#3f3f46' }}>
             Giờ máy {screenTime ?? '—'} · ngày {screenDate ?? '—'} khớp hệ thống
             {faceScore != null && ` · khuôn mặt khớp đã đăng ký (${Math.round(faceScore * 100)}%)`}
             {sceneScore != null && ` · nền văn phòng tầng 5 (${Math.round(sceneScore * 100)}%)`}

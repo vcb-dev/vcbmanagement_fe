@@ -26,7 +26,23 @@ function toJpeg(source: CanvasImageSource, width: number, height: number): Promi
   canvas.width = Math.round(width * scale)
   canvas.height = Math.round(height * scale)
   canvas.getContext('2d')!.drawImage(source, 0, 0, canvas.width, canvas.height)
-  return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY))
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob)
+        return
+      }
+      try {
+        const dataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY)
+        const raw = atob(dataUrl.split(',')[1] ?? '')
+        const bytes = new Uint8Array(raw.length)
+        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i)
+        resolve(new Blob([bytes], { type: 'image/jpeg' }))
+      } catch {
+        resolve(null)
+      }
+    }, 'image/jpeg', JPEG_QUALITY)
+  })
 }
 
 export function CameraCapture({
