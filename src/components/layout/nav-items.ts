@@ -1,6 +1,7 @@
 import {
   Building2,
   CalendarClock,
+  CalendarDays,
   LayoutDashboard,
   ScanFace,
   ShieldCheck,
@@ -26,7 +27,10 @@ export interface NavGroup {
 export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Tổng quan',
-    items: [{ title: 'Bảng điều khiển', url: '/', icon: LayoutDashboard, description: 'Tổng quan hoạt động' }],
+    items: [
+      { title: 'Bảng điều khiển', url: '/', icon: LayoutDashboard, description: 'Tổng quan hoạt động' },
+      { title: 'Công của tôi', url: '/my-timesheet', icon: CalendarDays, description: 'Lịch chấm công và công tháng của bạn' },
+    ],
   },
   {
     label: 'Nhân sự',
