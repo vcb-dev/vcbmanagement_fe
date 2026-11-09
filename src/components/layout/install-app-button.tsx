@@ -22,10 +22,6 @@ function isStandalone() {
   )
 }
 
-function isIos() {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent)
-}
-
 export function InstallAppButton({ className }: { className?: string }) {
   const [installed, setInstalled] = useState(false)
   const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null)
