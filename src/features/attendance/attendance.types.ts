@@ -8,6 +8,8 @@ export interface ShiftRecord {
   inAt: string | null
   outAt: string | null
   lateMinutes: number | null
+  /** Lần đi muộn này thuộc mốc thứ mấy (từ 1), null nếu không muộn hoặc chưa cấu hình mốc. */
+  lateLevel: number | null
   earlyMinutes: number | null
   workedMinutes: number | null
 }
@@ -45,6 +47,8 @@ export interface WorkSchedule {
   morningEnd: string
   afternoonStart: string
   afternoonEnd: string
+  /** Bộ mốc đi muộn (phút, tăng dần) áp dụng cho người dùng. Rỗng = chưa cấu hình. */
+  lateThresholds: number[]
 }
 
 export interface Geofence {
@@ -82,9 +86,8 @@ export interface AttendanceRange {
 
 export interface AttendanceDaily {
   date: string
-  schedule: WorkSchedule
   summary: { total: number; present: number; late: number; absent: number }
-  rows: { user: User; record: AttendanceRecord | null }[]
+  rows: { user: User; department: { id: string; name: string } | null; record: AttendanceRecord | null }[]
 }
 
 export const SLOT_LABEL: Record<AttendanceSlot, string> = {
