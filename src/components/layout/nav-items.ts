@@ -6,6 +6,7 @@ import {
   ScanFace,
   ShieldCheck,
   Sparkles,
+  TriangleAlert,
   Users,
   type LucideIcon,
 } from 'lucide-react'
@@ -42,6 +43,13 @@ export const NAV_GROUPS: NavGroup[] = [
         url: '/face/review',
         icon: ShieldCheck,
         description: 'Duyệt đăng ký khuôn mặt nhân viên',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Đi muộn',
+        url: '/late',
+        icon: TriangleAlert,
+        description: 'Đi muộn theo ngày và theo mốc của nhân sự',
         roles: ['admin', 'manager'],
       },
       {
