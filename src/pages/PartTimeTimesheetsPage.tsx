@@ -7,14 +7,17 @@ import { getApiErrorMessage } from '@/lib/api-client'
 import { todayYmd } from '@/lib/format'
 import { CloseMonthButton } from '@/features/part-time/CloseMonthButton'
 import { PartTimeSheetTable } from '@/features/part-time/PartTimeSheetTable'
+import { PartTimeUserSheet } from '@/features/part-time/PartTimeUserSheet'
 import { usePartTimeSheets } from '@/features/part-time/use-part-time-admin'
 
 export function PartTimeTimesheetsPage() {
   const currentMonth = todayYmd().slice(0, 7)
   const [month, setMonth] = useState(currentMonth)
-  const [_selectedUserId, setSelectedUserId] = useState<string | null>(null)
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   const { data: rows = [], isPending, isError, error, refetch } = usePartTimeSheets(month)
+
+  const selectedRow = rows.find((r) => r.user.id === selectedUserId) ?? null
 
   return (
     <PageContainer>
@@ -46,6 +49,12 @@ export function PartTimeTimesheetsPage() {
       ) : (
         <PartTimeSheetTable rows={rows} onSelect={setSelectedUserId} />
       )}
+
+      <PartTimeUserSheet
+        row={selectedRow}
+        month={month}
+        onClose={() => setSelectedUserId(null)}
+      />
     </PageContainer>
   )
 }
