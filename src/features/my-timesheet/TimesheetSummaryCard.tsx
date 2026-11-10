@@ -4,6 +4,7 @@ import { Progress } from '@/components/ui/progress'
 import { formatDuration, formatMonth } from '@/lib/format'
 import { lateLevelLabel } from '@/lib/late-levels'
 import { cn } from '@/lib/utils'
+import { PartTimeSheetPanel } from '@/features/part-time/PartTimeSheetPanel'
 import type { FullTimeSummary, LeaveSummary, MyTimesheet, PartTimeSummary } from './my-timesheet.types'
 
 const num = (value: number) => value.toLocaleString('vi-VN', { maximumFractionDigits: 2 })
@@ -137,19 +138,22 @@ export function TimesheetSummaryCard({ data }: { data: MyTimesheet }) {
               : 'Tạm tính từ chấm công, chỉ tính phần giờ nằm trong ca. Giờ online được cập nhật khi chốt công.'}
         </CardDescription>
         <CardAction>
-          <Badge
-            variant="secondary"
-            className={
-              closed
-                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                : 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
-            }
-          >
-            {closed ? 'Đã chốt' : 'Tạm tính'}
-          </Badge>
+          {!partTime && (
+            <Badge
+              variant="secondary"
+              className={
+                closed
+                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                  : 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+              }
+            >
+              {closed ? 'Đã chốt' : 'Tạm tính'}
+            </Badge>
+          )}
         </CardAction>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {partTime && <PartTimeSheetPanel data={data} />}
         <div
           className={cn(
             'grid divide-y rounded-lg border md:divide-x md:divide-y-0',
