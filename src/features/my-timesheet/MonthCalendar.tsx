@@ -1,14 +1,14 @@
 import { cn } from '@/lib/utils'
 import type { AttendanceRecord } from '@/features/attendance/attendance.types'
-import { DAY_KIND_LABEL, DAY_KIND_STYLE, dayKind, daysOfMonth, leadingBlanks, type DayKind } from './day-status'
+import { DAY_KIND_LABEL, DAY_KIND_STYLE, dayKind, daysOfMonth, leadingBlanks } from './day-status'
 
 const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
-const LEGEND: { kind: DayKind; swatch: string }[] = [
-  { kind: 'full', swatch: 'bg-emerald-500' },
-  { kind: 'morning', swatch: 'bg-sky-500' },
-  { kind: 'afternoon', swatch: 'bg-violet-500' },
-  { kind: 'missing', swatch: 'bg-rose-500' },
-  { kind: 'none', swatch: 'bg-muted-foreground/30' },
+const DEFAULT_LEGEND: { label: string; swatch: string }[] = [
+  { label: DAY_KIND_LABEL.full, swatch: 'bg-emerald-500' },
+  { label: DAY_KIND_LABEL.morning, swatch: 'bg-sky-500' },
+  { label: DAY_KIND_LABEL.afternoon, swatch: 'bg-violet-500' },
+  { label: DAY_KIND_LABEL.missing, swatch: 'bg-rose-500' },
+  { label: DAY_KIND_LABEL.none, swatch: 'bg-muted-foreground/30' },
 ]
 
 export function MonthCalendar({
@@ -17,13 +17,19 @@ export function MonthCalendar({
   today,
   selected,
   onSelect,
+  kind,
+  legend,
 }: {
   month: string
   records: Map<string, AttendanceRecord>
   today: string
   selected: string
   onSelect: (ymd: string) => void
+  kind?: (ymd: string) => { label: string; className: string }
+  legend?: { label: string; swatch: string }[]
 }) {
+  const activeLegend = legend ?? DEFAULT_LEGEND
+
   return (
     <div>
       <div className="mb-1.5 grid grid-cols-7 gap-1 sm:gap-1.5">
@@ -39,12 +45,26 @@ export function MonthCalendar({
         ))}
         {daysOfMonth(month).map((ymd) => {
           const record = records.get(ymd)
-          const kind = dayKind(record, ymd === today)
           const late = record?.lateMinutes ?? 0
           const day = Number(ymd.slice(8))
           const future = ymd > today
           const level = Math.max(record?.morning.lateLevel ?? 0, record?.afternoon.lateLevel ?? 0)
-          const description = `${DAY_KIND_LABEL[kind]}${late > 0 ? `, đi muộn ${late} phút` : ''}${level > 0 ? `, mốc ${level}` : ''}`
+
+          let dayLabel = ''
+          let dayStyle = ''
+
+          if (kind) {
+            const custom = kind(ymd)
+            dayLabel = custom.label
+            dayStyle = future ? 'bg-muted/40 text-muted-foreground' : custom.className
+          } else {
+            const k = dayKind(record, ymd === today)
+            dayLabel = DAY_KIND_LABEL[k]
+            dayStyle = DAY_KIND_STYLE[future ? 'none' : k]
+          }
+
+          const description = `${dayLabel}${late > 0 ? `, đi muộn ${late} phút` : ''}${level > 0 ? `, mốc ${level}` : ''}`
+
           return (
             <button
               key={ymd}
@@ -56,7 +76,7 @@ export function MonthCalendar({
               onClick={() => onSelect(ymd)}
               className={cn(
                 'flex h-13 min-w-0 flex-col items-center justify-center gap-0.5 rounded-md px-0.5 transition-colors sm:h-16',
-                DAY_KIND_STYLE[future ? 'none' : kind],
+                dayStyle,
                 !future && 'hover:ring-1 hover:ring-primary/50',
                 future && 'cursor-default opacity-50',
                 late > 0 && 'ring-1 ring-amber-500 ring-inset',
@@ -66,9 +86,9 @@ export function MonthCalendar({
               <span className={cn('text-sm font-semibold tabular-nums', ymd === today && 'underline underline-offset-2')}>
                 {day}
               </span>
-              {!future && kind !== 'none' && (
+              {!future && dayLabel && dayLabel !== 'Không có ca' && (
                 <span className="hidden max-w-full truncate text-[11px] leading-tight font-medium sm:block">
-                  {DAY_KIND_LABEL[kind]}
+                  {dayLabel}
                 </span>
               )}
               {late > 0 && (
@@ -81,10 +101,10 @@ export function MonthCalendar({
         })}
       </div>
       <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-        {LEGEND.map(({ kind, swatch }) => (
-          <span key={kind} className="flex items-center gap-1.5">
+        {activeLegend.map(({ label, swatch }) => (
+          <span key={label} className="flex items-center gap-1.5">
             <i className={cn('size-2.5 rounded-sm', swatch)} />
-            {DAY_KIND_LABEL[kind]}
+            {label}
           </span>
         ))}
         <span className="flex items-center gap-1.5">
