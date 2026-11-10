@@ -1,5 +1,6 @@
 import type { WorkSchedule } from '@/features/attendance/attendance.types'
 import type { EmploymentType } from '@/features/auth/auth.types'
+import type { PartTimeMonthSummary, PartTimeSheetRef } from '@/features/part-time/part-time.types'
 
 export interface FullTimeSummary {
   machineWorkdays: number
@@ -58,4 +59,6 @@ export interface MyTimesheet {
   fullTime: FullTimeSummary | null
   partTime: PartTimeSummary | null
   leave: LeaveSummary | null
+  sheet: PartTimeSheetRef | null
+  live: PartTimeMonthSummary | null
 }
