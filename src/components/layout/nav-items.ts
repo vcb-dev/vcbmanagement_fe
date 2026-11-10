@@ -2,6 +2,7 @@ import {
   Building2,
   CalendarClock,
   CalendarDays,
+  ClipboardCheck,
   LayoutDashboard,
   ScanFace,
   ShieldCheck,
@@ -50,6 +51,13 @@ export const NAV_GROUPS: NavGroup[] = [
         url: '/late',
         icon: TriangleAlert,
         description: 'Đi muộn theo ngày và theo mốc của nhân sự',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Công part-time',
+        url: '/part-time-timesheets',
+        icon: ClipboardCheck,
+        description: 'Chốt công và trao đổi với nhân viên part-time',
         roles: ['admin', 'manager'],
       },
       {
