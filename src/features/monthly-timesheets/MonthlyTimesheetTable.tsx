@@ -12,6 +12,9 @@ import {
   STATUS_TONE,
   formatOvertime,
   formatWorkdays,
+  isOverLeave,
+  leaveBalanceText,
+  leaveLockReason,
   manualValue,
   parseWorkdays,
   type FullTimeTimesheetRow,
@@ -198,10 +201,12 @@ export function MonthlyTimesheetTable({
                 <Count value={row.lateCount} warn />
               </td>
               {MANUAL_FIELDS.map((f) => {
-                const disabledHint =
-                  f.field === 'leaveDays' && !row.leave ? 'Chưa có phép năm của nhân sự này, chưa ghi được công phép' : undefined
+                const isLeave = f.field === 'leaveDays'
+                const disabledHint = isLeave ? leaveLockReason(row) : undefined
+                // Ô đang mở thì rê chuột thấy phép năm còn lại (title của ô cha, vì ô nhập không có title riêng).
+                const leaveTitle = isLeave && row.leave && !disabledHint ? leaveBalanceText(row.leave) : undefined
                 return (
-                  <td key={f.field} className={cn(CELL, MANUAL_BG, 'px-1.5')}>
+                  <td key={f.field} title={leaveTitle} className={cn(CELL, MANUAL_BG, 'px-1.5')}>
                     <NumberCell
                       value={manualValue(row, f.field)}
                       navKey={f.field}
@@ -211,7 +216,11 @@ export function MonthlyTimesheetTable({
                       label={`${f.short} của ${displayName(row.user)}`}
                       disabledHint={disabledHint}
                       onSave={(value) => onSave(row, f.field, value)}
-                      className={cn('text-center', !disabledHint && REVEAL_ON_ROW)}
+                      className={cn(
+                        'text-center',
+                        !disabledHint && REVEAL_ON_ROW,
+                        isLeave && isOverLeave(row) && 'font-semibold text-destructive',
+                      )}
                     />
                   </td>
                 )
