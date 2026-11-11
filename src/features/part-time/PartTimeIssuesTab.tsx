@@ -1,5 +1,5 @@
 import { Eye, Loader2, Pencil } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { MonthNav } from '@/components/month-nav'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -42,6 +42,11 @@ export function PartTimeIssuesTab({
   const currentMonth = todayYmd().slice(0, 7)
   const [selectedType, setSelectedType] = useState<string>('all')
   const [editingIssue, setEditingIssue] = useState<PartTimeIssue | null>(null)
+  // Giữ cùng một object để ShiftHoursDialog không reset ô đang nhập mỗi lần tab render lại.
+  const editingShift = useMemo(
+    () => (editingIssue ? issueToShiftView(editingIssue) : null),
+    [editingIssue],
+  )
 
   const { data: issues = [], isLoading } = usePartTimeIssues(month)
 
@@ -118,7 +123,10 @@ export function PartTimeIssuesTab({
             </thead>
             <tbody>
               {filteredIssues.map((issue, idx) => (
-                <tr key={`${issue.type}-${issue.user.id}-${issue.date ?? idx}`} className="border-b hover:bg-muted/20">
+                <tr
+                  key={`${issue.type}-${issue.user.id}-${issue.date ?? idx}-${issue.shift ?? ''}`}
+                  className="border-b hover:bg-muted/20"
+                >
                   <td className="px-4 py-3">
                     <Badge
                       variant="outline"
@@ -176,11 +184,11 @@ export function PartTimeIssuesTab({
         </div>
       )}
 
-      {editingIssue && editingIssue.date && (
+      {editingIssue && editingIssue.date && editingShift && (
         <ShiftHoursDialog
           user={editingIssue.user}
           date={editingIssue.date}
-          shift={issueToShiftView(editingIssue)}
+          shift={editingShift}
           open={Boolean(editingIssue)}
           onOpenChange={(open) => !open && setEditingIssue(null)}
         />
