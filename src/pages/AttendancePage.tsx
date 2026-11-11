@@ -12,7 +12,6 @@ import {
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { UserAvatar } from '@/components/layout/nav-user'
-import { MonthNav } from '@/components/month-nav'
 import { PageHeader } from '@/components/page-header'
 import { StatCard } from '@/components/stat-card'
 import { Badge } from '@/components/ui/badge'
@@ -31,6 +30,7 @@ import {
   formatDuration,
   formatMonth,
   formatWorkDate,
+  shiftMonth,
   shiftYmd,
   todayYmd,
 } from '@/lib/format'
@@ -269,6 +269,26 @@ function TeamBoard() {
         )}
       </CardContent>
     </Card>
+  )
+}
+
+function MonthNav({ month, max, onChange }: { month: string; max: string; onChange: (m: string) => void }) {
+  return (
+    <div className="flex items-center gap-1">
+      <Button variant="outline" size="icon-sm" onClick={() => onChange(shiftMonth(month, -1))} aria-label="Tháng trước">
+        <ChevronLeft />
+      </Button>
+      <span className="min-w-28 text-center text-sm font-medium">{formatMonth(month)}</span>
+      <Button
+        variant="outline"
+        size="icon-sm"
+        onClick={() => onChange(shiftMonth(month, 1))}
+        disabled={month >= max}
+        aria-label="Tháng sau"
+      >
+        <ChevronRight />
+      </Button>
+    </div>
   )
 }
 

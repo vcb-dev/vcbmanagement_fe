@@ -74,10 +74,7 @@ export function ShiftTimes({ shift }: { shift: ShiftRecord }) {
       {((shift.lateMinutes ?? 0) > 0 || (shift.earlyMinutes ?? 0) > 0) && (
         <p className="flex gap-2 text-xs whitespace-nowrap">
           {(shift.lateMinutes ?? 0) > 0 && (
-            <span className="text-amber-600 dark:text-amber-400">
-              Muộn {formatDuration(shift.lateMinutes)}
-              {shift.lateLevel != null && ` · Mốc ${shift.lateLevel}`}
-            </span>
+            <span className="text-amber-600 dark:text-amber-400">Muộn {formatDuration(shift.lateMinutes)}</span>
           )}
           {(shift.earlyMinutes ?? 0) > 0 && (
             <span className="text-orange-600 dark:text-orange-400">Sớm {formatDuration(shift.earlyMinutes)}</span>
