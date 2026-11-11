@@ -1,5 +1,6 @@
 import {
   Building2,
+  CalendarCheck,
   CalendarClock,
   CalendarDays,
   ClipboardCheck,
@@ -58,6 +59,13 @@ export const NAV_GROUPS: NavGroup[] = [
         url: '/part-time-timesheets',
         icon: ClipboardCheck,
         description: 'Chốt công và trao đổi với nhân viên part-time',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Phép năm',
+        url: '/annual-leaves',
+        icon: CalendarCheck,
+        description: 'Phép năm và ngày nghỉ các tháng của nhân sự toàn thời gian',
         roles: ['admin', 'manager'],
       },
       {
