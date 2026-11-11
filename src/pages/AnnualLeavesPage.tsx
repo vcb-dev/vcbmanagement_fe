@@ -1,5 +1,15 @@
-import { CalendarCheck, CalendarDays, CalendarPlus, Plus, Search, TriangleAlert, Users } from 'lucide-react'
+import {
+  CalendarCheck,
+  CalendarDays,
+  CalendarPlus,
+  Plus,
+  Search,
+  TriangleAlert,
+  Users,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { PageContainer } from '@/components/page-container'
 import { PageHeader } from '@/components/page-header'
 import { StatCard } from '@/components/stat-card'
@@ -13,7 +23,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import type { AnnualLeaveRow } from '@/features/annual-leaves/annual-leaves.types'
+import { AddLeaveRowDialog } from '@/features/annual-leaves/AddLeaveRowDialog'
 import { AnnualLeaveTable } from '@/features/annual-leaves/AnnualLeaveTable'
+import { LeaveEditSheet } from '@/features/annual-leaves/LeaveEditSheet'
 import { formatDays } from '@/features/annual-leaves/leave-status'
 import {
   filterLeaveRows,
@@ -22,7 +35,12 @@ import {
   type LeaveFilter,
   type LeaveSort,
 } from '@/features/annual-leaves/leave-table'
-import { useAnnualLeaves } from '@/features/annual-leaves/use-annual-leaves'
+import { RecordLeaveDialog } from '@/features/annual-leaves/RecordLeaveDialog'
+import {
+  useAnnualLeaves,
+  useDeleteLeaveRow,
+} from '@/features/annual-leaves/use-annual-leaves'
+import { getApiErrorMessage } from '@/lib/api-client'
 import { todayYmd } from '@/lib/format'
 
 export function AnnualLeavesPage() {
@@ -32,7 +50,14 @@ export function AnnualLeavesPage() {
   const [search, setSearch] = useState<string>('')
   const [sort, setSort] = useState<LeaveSort>('added')
 
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const [recordDialogOpen, setRecordDialogOpen] = useState(false)
+  const [recordRowId, setRecordRowId] = useState<string | null>(null)
+  const [editingRow, setEditingRow] = useState<AnnualLeaveRow | null>(null)
+  const [deletingRow, setDeletingRow] = useState<AnnualLeaveRow | null>(null)
+
   const { data: rows = [], isLoading } = useAnnualLeaves(year)
+  const deleteMutation = useDeleteLeaveRow()
 
   const stats = useMemo(() => leaveStats(rows), [rows])
 
@@ -66,6 +91,39 @@ export function AnnualLeavesPage() {
     return options
   }, [currentYear])
 
+  const handleOpenRecordTop = () => {
+    if (rows.length === 0) {
+      toast('Chưa có dòng phép năm nào. Hãy thêm trước.')
+      return
+    }
+    setRecordRowId(null)
+    setRecordDialogOpen(true)
+  }
+
+  const handleRecordRow = (row: AnnualLeaveRow) => {
+    setRecordRowId(row.id)
+    setRecordDialogOpen(true)
+  }
+
+  const handleEditRow = (row: AnnualLeaveRow) => {
+    setEditingRow(row)
+  }
+
+  const handleDeleteRow = (row: AnnualLeaveRow) => {
+    setDeletingRow(row)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deletingRow) return
+    try {
+      await deleteMutation.mutateAsync(deletingRow.id)
+      setDeletingRow(null)
+    } catch (err) {
+      toast.error(getApiErrorMessage(err))
+      setDeletingRow(null)
+    }
+  }
+
   return (
     <PageContainer>
       <PageHeader
@@ -89,12 +147,19 @@ export function AnnualLeavesPage() {
               </SelectContent>
             </Select>
 
-            <Button disabled variant="outline" className="gap-1.5">
+            <Button
+              variant="outline"
+              className="gap-1.5"
+              onClick={handleOpenRecordTop}
+            >
               <CalendarPlus className="size-4" />
               <span>Ghi nhận nghỉ phép</span>
             </Button>
 
-            <Button disabled className="gap-1.5">
+            <Button
+              className="gap-1.5"
+              onClick={() => setAddDialogOpen(true)}
+            >
               <Plus className="size-4" />
               <span>Thêm dòng phép</span>
             </Button>
@@ -192,9 +257,46 @@ export function AnnualLeavesPage() {
         <AnnualLeaveTable
           rows={displayedRows}
           year={year}
-          onEdit={() => {}}
-          onRecord={() => {}}
-          onDelete={() => {}}
+          onEdit={handleEditRow}
+          onRecord={handleRecordRow}
+          onDelete={handleDeleteRow}
+        />
+      )}
+
+      {/* Dialog Thêm dòng phép */}
+      <AddLeaveRowDialog
+        year={year}
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+      />
+
+      {/* Dialog Ghi nhận nghỉ phép */}
+      <RecordLeaveDialog
+        rows={rows}
+        year={year}
+        initialRowId={recordRowId}
+        open={recordDialogOpen}
+        onOpenChange={setRecordDialogOpen}
+      />
+
+      {/* Drawer Chỉnh sửa phép */}
+      <LeaveEditSheet
+        row={editingRow}
+        year={year}
+        open={editingRow !== null}
+        onOpenChange={(open) => !open && setEditingRow(null)}
+      />
+
+      {/* Hộp xác nhận xóa */}
+      {deletingRow && (
+        <ConfirmDialog
+          open={deletingRow !== null}
+          title={`Xóa dòng phép năm ${year}?`}
+          description={`Dòng phép năm của ${deletingRow.user.name} và số ngày nghỉ các tháng sẽ bị xóa.`}
+          confirmLabel="Xóa"
+          pending={deleteMutation.isPending}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDeletingRow(null)}
         />
       )}
     </PageContainer>
