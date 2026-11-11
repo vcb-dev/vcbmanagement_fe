@@ -1,60 +1,70 @@
 import { useState } from 'react'
-import { MonthNav } from '@/components/month-nav'
 import { PageContainer } from '@/components/page-container'
 import { PageHeader } from '@/components/page-header'
-import { Skeleton } from '@/components/ui/skeleton'
-import { getApiErrorMessage } from '@/lib/api-client'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PartTimeClosingTab } from '@/features/part-time/PartTimeClosingTab'
+import { PartTimeGridTab } from '@/features/part-time/PartTimeGridTab'
+import { PartTimeIssuesTab } from '@/features/part-time/PartTimeIssuesTab'
+import { usePartTimeIssues } from '@/features/part-time/use-part-time-admin'
 import { todayYmd } from '@/lib/format'
-import { CloseMonthButton } from '@/features/part-time/CloseMonthButton'
-import { PartTimeSheetTable } from '@/features/part-time/PartTimeSheetTable'
-import { PartTimeUserSheet } from '@/features/part-time/PartTimeUserSheet'
-import { usePartTimeSheets } from '@/features/part-time/use-part-time-admin'
 
 export function PartTimeTimesheetsPage() {
   const currentMonth = todayYmd().slice(0, 7)
+  const [activeTab, setActiveTab] = useState('grid')
   const [month, setMonth] = useState(currentMonth)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
-  const { data: rows = [], isPending, isError, error, refetch } = usePartTimeSheets(month)
+  const { data: issues = [] } = usePartTimeIssues(month)
+  const issueCount = issues.length
 
-  const selectedRow = rows.find((r) => r.user.id === selectedUserId) ?? null
+  const handleOpenUser = (userId: string) => {
+    setSelectedUserId(userId)
+    setActiveTab('closing')
+  }
 
   return (
     <PageContainer>
       <PageHeader
         title="Công part-time"
-        description="Quản lý và chốt công nhân sự bán thời gian."
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <MonthNav month={month} max={currentMonth} onChange={setMonth} />
-            <CloseMonthButton month={month} />
-          </div>
-        }
+        description="Bảng chấm công và chốt công nhân sự bán thời gian."
       />
 
-      {isError ? (
-        <p className="py-8 text-center text-sm text-destructive">
-          {getApiErrorMessage(error)}{' '}
-          <button type="button" className="underline" onClick={() => void refetch()}>
-            Thử lại
-          </button>
-        </p>
-      ) : isPending ? (
-        <div className="space-y-2">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-        </div>
-      ) : (
-        <PartTimeSheetTable rows={rows} onSelect={setSelectedUserId} />
-      )}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="grid">Bảng chấm công</TabsTrigger>
+          <TabsTrigger value="closing">Chốt công tháng</TabsTrigger>
+          <TabsTrigger value="issues" className="gap-1.5">
+            Cần đối soát
+            {issueCount > 0 && (
+              <Badge variant="destructive" className="h-5 px-1.5 text-[11px] font-semibold">
+                {issueCount}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
 
-      <PartTimeUserSheet
-        row={selectedRow}
-        month={month}
-        onClose={() => setSelectedUserId(null)}
-      />
+        <TabsContent value="grid" className="space-y-4">
+          <PartTimeGridTab />
+        </TabsContent>
+
+        <TabsContent value="closing" className="space-y-4">
+          <PartTimeClosingTab
+            month={month}
+            onMonthChange={setMonth}
+            selectedUserId={selectedUserId}
+            onSelectUser={setSelectedUserId}
+          />
+        </TabsContent>
+
+        <TabsContent value="issues" className="space-y-4">
+          <PartTimeIssuesTab
+            month={month}
+            onMonthChange={setMonth}
+            onOpenUser={handleOpenUser}
+          />
+        </TabsContent>
+      </Tabs>
     </PageContainer>
   )
 }

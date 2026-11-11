@@ -13,7 +13,19 @@ import { formatMonth } from '@/lib/format'
 import type { CloseMonthResult } from './part-time.types'
 import { useCloseMonth } from './use-part-time-admin'
 
-export function CloseMonthButton({ month }: { month: string }) {
+export function CloseMonthButton({
+  month,
+  label = 'Chốt công tháng',
+  variant = 'default',
+  size = 'default',
+  className = 'gap-2',
+}: {
+  month: string
+  label?: string
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+  size?: 'default' | 'sm' | 'lg' | 'icon' | 'xs'
+  className?: string
+}) {
   const [open, setOpen] = useState(false)
   const [result, setResult] = useState<CloseMonthResult | null>(null)
   const closeMonth = useCloseMonth()
@@ -40,9 +52,14 @@ export function CloseMonthButton({ month }: { month: string }) {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} className="gap-2">
+      <Button
+        onClick={() => setOpen(true)}
+        variant={variant}
+        size={size}
+        className={className}
+      >
         <Lock className="h-4 w-4" />
-        Chốt công tháng
+        {label}
       </Button>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>

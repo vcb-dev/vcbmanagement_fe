@@ -1,4 +1,4 @@
-import { Clock, Globe, Plus, Trash2 } from 'lucide-react'
+import { Clock, Pencil, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Button } from '@/components/ui/button'
@@ -21,7 +21,7 @@ import {
 } from './part-time-day-status'
 import { PartTimeDayDetail } from './PartTimeDayDetail'
 import type { PartTimeShiftView, PartTimeDayView, PartTimeSheetRow } from './part-time.types'
-import { ShiftEntryDialog } from './ShiftEntryDialog'
+import { ShiftHoursDialog } from './ShiftHoursDialog'
 import {
   useClearOnlineTotal,
   useDeleteShiftEntry,
@@ -51,8 +51,7 @@ export function PartTimeUserSheet({
   const [shiftDialog, setShiftDialog] = useState<{
     open: boolean
     shift: PartTimeShiftView | null
-    kind: 'online' | 'manual'
-  }>({ open: false, shift: null, kind: 'manual' })
+  }>({ open: false, shift: null })
 
   const [onlineTotalOpen, setOnlineTotalOpen] = useState(false)
   const [confirmClearOpen, setConfirmClearOpen] = useState(false)
@@ -239,26 +238,8 @@ export function PartTimeUserSheet({
                 thresholds={[]}
                 actions={(shift) => {
                   if (!isPastOrToday) return null
-                  const canMarkOnline = shift.source !== 'machine' && shift.entry?.kind !== 'online'
                   return (
                     <div className="flex items-center gap-1.5">
-                      {canMarkOnline && (
-                        <Button
-                          variant="outline"
-                          size="xs"
-                          onClick={() =>
-                            setShiftDialog({
-                              open: true,
-                              shift,
-                              kind: 'online',
-                            })
-                          }
-                          className="h-6 gap-1 px-2 text-xs"
-                        >
-                          <Globe className="h-3 w-3" />
-                          Online
-                        </Button>
-                      )}
                       <Button
                         variant="outline"
                         size="xs"
@@ -266,13 +247,12 @@ export function PartTimeUserSheet({
                           setShiftDialog({
                             open: true,
                             shift,
-                            kind: 'manual',
                           })
                         }
                         className="h-6 gap-1 px-2 text-xs"
                       >
-                        <Plus className="h-3 w-3" />
-                        Bổ sung giờ
+                        <Pencil className="h-3 w-3" />
+                        Sửa giờ
                       </Button>
                       {shift.entry && (
                         <Button
@@ -280,7 +260,7 @@ export function PartTimeUserSheet({
                           size="xs"
                           onClick={() => setDeletingEntryId(shift.entry!.id)}
                           className="h-6 px-1.5 text-xs text-destructive hover:text-destructive"
-                          title="Xoá ghi tay"
+                          title="Bỏ sửa"
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -306,11 +286,10 @@ export function PartTimeUserSheet({
       </Sheet>
 
       {shiftDialog.shift && (
-        <ShiftEntryDialog
-          userId={row.user.id}
-          workDate={selectedYmd}
+        <ShiftHoursDialog
+          user={{ id: row.user.id, name: row.user.name }}
+          date={selectedYmd}
           shift={shiftDialog.shift}
-          kind={shiftDialog.kind}
           open={shiftDialog.open}
           onOpenChange={(open) =>
             setShiftDialog((prev) => ({ ...prev, open, shift: open ? prev.shift : null }))
@@ -339,9 +318,9 @@ export function PartTimeUserSheet({
 
       <ConfirmDialog
         open={Boolean(deletingEntryId)}
-        title="Xoá ca ghi tay?"
+        title="Bỏ sửa ca này?"
         description="Ca làm việc sẽ trở về trạng thái gốc từ máy chấm công."
-        confirmLabel="Xoá"
+        confirmLabel="Bỏ sửa"
         pending={deleteEntry.isPending}
         onConfirm={handleDeleteEntry}
         onCancel={() => setDeletingEntryId(null)}
