@@ -4,6 +4,7 @@ import { apiClient, getApiErrorMessage } from '@/lib/api-client'
 import type {
   CloseMonthResult,
   PartTimeDayView,
+  PartTimeGridRow,
   PartTimeSheetRow,
   ShiftEntryInput,
 } from './part-time.types'
@@ -18,6 +19,15 @@ export function usePartTimeSheets(month: string) {
   return useQuery({
     queryKey: ['part-time', 'sheets', month],
     queryFn: () => get<PartTimeSheetRow[]>('/timesheets/part-time', { month }),
+    placeholderData: (prev) => prev,
+  })
+}
+
+/** Tải dữ liệu bảng công dạng lưới theo khoảng ngày. */
+export function usePartTimeGrid(from: string, to: string) {
+  return useQuery({
+    queryKey: ['part-time', 'grid', from, to],
+    queryFn: () => get<PartTimeGridRow[]>('/timesheets/part-time/grid', { from, to }),
     placeholderData: (prev) => prev,
   })
 }
