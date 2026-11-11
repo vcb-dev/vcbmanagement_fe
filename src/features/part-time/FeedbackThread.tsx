@@ -19,11 +19,13 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import {
+  formatFeedbackTime,
   managerDefaultStatus,
   staffNextStatus,
 } from '@/features/feedbacks/feedback-format'
-import { useFeedbacks } from '@/features/feedbacks/use-feedbacks'
+import { useFeedbacks, useReplyToFeedback } from '@/features/feedbacks/use-feedbacks'
 import { formatMonth } from '@/lib/format'
+import { ROLE_LABEL } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
 import { DisputeDialog } from './DisputeDialog'
 import {
@@ -31,7 +33,7 @@ import {
   type FeedbackStatus,
   type FeedbackView,
 } from './part-time.types'
-import { useReplyFeedback, useSheetFeedbacks } from './use-part-time'
+import { useSheetFeedbacks } from './use-part-time'
 
 const STATUS_STYLE: Record<FeedbackStatus, string> = {
   open: 'bg-rose-500/10 text-rose-700 dark:text-rose-400',
@@ -39,34 +41,13 @@ const STATUS_STYLE: Record<FeedbackStatus, string> = {
   resolved: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
 }
 
-const ROLE_LABEL: Record<string, string> = {
-  admin: 'Admin',
-  manager: 'Quản lý',
-  staff: 'Nhân sự',
-}
-
-function formatIso(iso: string): string {
-  try {
-    return new Date(iso).toLocaleString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    })
-  } catch {
-    return iso
-  }
-}
 
 function FeedbackCard({
   feedback,
-  sheetId,
   mode,
   readOnly,
 }: {
   feedback: FeedbackView
-  sheetId: string
   mode: 'staff' | 'manager'
   readOnly: boolean
 }) {
@@ -74,19 +55,23 @@ function FeedbackCard({
   const [status, setStatus] = useState<FeedbackStatus>(() =>
     managerDefaultStatus(feedback.status),
   )
-  const reply = useReplyFeedback(sheetId)
+  const reply = useReplyToFeedback()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     const trimmed = content.trim()
     if (!trimmed) return
 
-    await reply.mutateAsync({
-      feedbackId: feedback.id,
-      content: trimmed,
-      status: mode === 'manager' ? status : undefined,
-    })
-    setContent('')
+    try {
+      await reply.mutateAsync({
+        id: feedback.id,
+        content: trimmed,
+        status: mode === 'manager' ? status : undefined,
+      })
+      setContent('')
+    } catch {
+      // Lỗi đã được báo bằng toast trong useReplyToFeedback.
+    }
   }
 
   return (
@@ -95,7 +80,7 @@ function FeedbackCard({
         <Badge variant="secondary" className={cn('font-medium', STATUS_STYLE[feedback.status])}>
           {FEEDBACK_STATUS_LABEL[feedback.status]}
         </Badge>
-        <span className="text-xs text-muted-foreground">{formatIso(feedback.createdAt)}</span>
+        <span className="text-xs text-muted-foreground">{formatFeedbackTime(feedback.createdAt)}</span>
       </div>
 
       <div className="rounded-md bg-muted/40 p-3 text-sm">
@@ -109,9 +94,9 @@ function FeedbackCard({
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-foreground">{r.user.name}</span>
-                  <span>({ROLE_LABEL[r.user.role] || r.user.role})</span>
+                  <span>({ROLE_LABEL[r.user.role]})</span>
                   <span>·</span>
-                  <span>{formatIso(r.createdAt)}</span>
+                  <span>{formatFeedbackTime(r.createdAt)}</span>
                 </div>
                 <span>
                   Trạng thái sau trả lời:{' '}
@@ -193,11 +178,12 @@ export function FeedbackThread({
   const [disputeOpen, setDisputeOpen] = useState(false)
   const { data: feedbacks, isLoading } = useSheetFeedbacks(sheetId, sheetType)
   const { data: allMyFeedbacks } = useFeedbacks({ page: 1 }, mode === 'staff')
+  const myItems = allMyFeedbacks?.items
 
   const otherMonths = useMemo(() => {
-    if (mode !== 'staff' || !allMyFeedbacks?.items || !currentMonth) return []
+    if (mode !== 'staff' || !myItems || !currentMonth) return []
     const map = new Map<string, { count: number; openCount: number }>()
-    for (const item of allMyFeedbacks.items) {
+    for (const item of myItems) {
       const m = item.sheet.month
       if (m === currentMonth) continue
       const cur = map.get(m) ?? { count: 0, openCount: 0 }
@@ -208,7 +194,7 @@ export function FeedbackThread({
     return Array.from(map.entries())
       .map(([month, info]) => ({ month, ...info }))
       .sort((a, b) => b.month.localeCompare(a.month))
-  }, [allMyFeedbacks?.items, currentMonth, mode])
+  }, [myItems, currentMonth, mode])
 
   if (mode === 'manager') {
     if (isLoading && sheetId) {
@@ -227,7 +213,6 @@ export function FeedbackThread({
             <FeedbackCard
               key={fb.id}
               feedback={fb}
-              sheetId={sheetId}
               mode={mode}
               readOnly={readOnly}
             />
@@ -278,7 +263,6 @@ export function FeedbackThread({
             <FeedbackCard
               key={fb.id}
               feedback={fb}
-              sheetId={sheetId}
               mode={mode}
               readOnly={readOnly}
             />

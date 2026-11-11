@@ -1,11 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { apiClient, getApiErrorMessage } from '@/lib/api-client'
-import type {
-  FeedbackStatus,
-  FeedbackView,
-  PartTimeDayView,
-} from './part-time.types'
+import type { FeedbackView, PartTimeDayView } from './part-time.types'
 
 async function get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
   const res = await apiClient.get<{ data: T }>(url, { params })
@@ -29,22 +25,10 @@ export function useSheetFeedbacks(
 ) {
   return useQuery({
     queryKey: ['part-time', 'feedbacks', sheetId, sheetType],
-    queryFn: async (): Promise<FeedbackView[]> => {
-      if (!sheetId) return []
-      if (sheetType === 'part_time') {
-        return get<FeedbackView[]>(`/timesheets/part-time/${sheetId}/feedbacks`)
-      }
-      const list = await get<{
-        items: Array<{ id: string; createdAt: string; sheet: { id: string } }>
-      }>('/feedbacks', { sheetType: 'full_time', page: 1 })
-      const matching = list.items
-        .filter((item) => item.sheet.id === sheetId)
-        .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-      const details = await Promise.all(
-        matching.map((item) => get<FeedbackView>(`/feedbacks/${item.id}`)),
-      )
-      return details
-    },
+    queryFn: () =>
+      get<FeedbackView[]>(
+        `/timesheets/${sheetType === 'part_time' ? 'part-time' : 'full-time'}/${sheetId}/feedbacks`,
+      ),
     enabled: Boolean(sheetId),
   })
 }
@@ -84,38 +68,6 @@ export function useDisputeSheet() {
       void queryClient.invalidateQueries({ queryKey: ['attendance', 'my-timesheet'] })
       void queryClient.invalidateQueries({ queryKey: ['part-time'] })
       void queryClient.invalidateQueries({ queryKey: ['feedbacks'] })
-    },
-    onError: (err) => toast.error(getApiErrorMessage(err)),
-  })
-}
-
-/** Trả lời feedback (dùng cho cả nhân viên và quản lý). */
-export function useReplyFeedback(sheetId?: string) {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async ({
-      feedbackId,
-      content,
-      status,
-    }: {
-      feedbackId: string
-      content: string
-      status?: FeedbackStatus
-    }) => {
-      const res = await apiClient.post<{ message?: string; data: unknown }>(
-        `/feedbacks/${feedbackId}/replies`,
-        { content, status },
-      )
-      return res.data
-    },
-    onSuccess: (data) => {
-      toast.success(data.message || 'Đã gửi trả lời')
-      void queryClient.invalidateQueries({ queryKey: ['attendance', 'my-timesheet'] })
-      void queryClient.invalidateQueries({ queryKey: ['part-time'] })
-      void queryClient.invalidateQueries({ queryKey: ['feedbacks'] })
-      if (sheetId) {
-        void queryClient.invalidateQueries({ queryKey: ['part-time', 'feedbacks', sheetId] })
-      }
     },
     onError: (err) => toast.error(getApiErrorMessage(err)),
   })
