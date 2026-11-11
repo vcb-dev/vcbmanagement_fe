@@ -11,7 +11,7 @@ import type {
   SheetType,
 } from './feedbacks.types'
 
-export function useFeedbacks(params: FeedbackListParams) {
+export function useFeedbacks(params: FeedbackListParams, enabled = true) {
   return useQuery({
     queryKey: ['feedbacks', 'list', params],
     queryFn: async () => {
@@ -31,17 +31,19 @@ export function useFeedbacks(params: FeedbackListParams) {
       }>(`/feedbacks?${search.toString()}`)
       return res.data.data
     },
+    enabled,
     placeholderData: (prev) => prev,
   })
 }
 
-export function useFeedbackCounts() {
+export function useFeedbackCounts(enabled = true) {
   return useQuery({
     queryKey: ['feedbacks', 'counts'],
     queryFn: async () => {
       const res = await apiClient.get<{ data: FeedbackCounts }>('/feedbacks/counts')
       return res.data.data
     },
+    enabled,
     staleTime: 30_000,
   })
 }
@@ -136,3 +138,4 @@ export function useDeleteFeedback() {
     },
   })
 }
+

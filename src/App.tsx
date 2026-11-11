@@ -48,9 +48,9 @@ export default function App() {
             <Route path="/my-timesheet" element={<MyTimesheetPage />} />
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/assistant" element={<AssistantPage />} />
-            <Route path="/feedbacks" element={<FeedbacksPage />} />
             <Route path="/face" element={<FacePage />} />
             <Route element={<ProtectedRoute roles={['admin', 'manager']} />}>
+              <Route path="/feedbacks" element={<FeedbacksPage />} />
               <Route path="/face/review" element={<FaceReviewPage />} />
               <Route path="/late" element={<LatePage />} />
               <Route path="/part-time-timesheets" element={<PartTimeTimesheetsPage />} />
