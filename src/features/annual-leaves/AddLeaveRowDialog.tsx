@@ -1,5 +1,5 @@
 import { AlertCircle } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -39,19 +39,25 @@ export function AddLeaveRowDialog({
   const [entitledDays, setEntitledDays] = useState<number>(12)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
+  // Chỉ điền mặc định một lần mỗi lần mở, để refetch không ghi đè lựa chọn đang nhập.
+  const initializedRef = useRef(false)
   useEffect(() => {
-    if (open) {
-      setErrorMessage(null)
-      if (candidates.length > 0) {
-        const first = candidates[0]
-        setSelectedUserId(first.id)
-        setEntitledDays(first.suggestion ? first.suggestion.days : 12)
-      } else {
-        setSelectedUserId('')
-        setEntitledDays(12)
-      }
+    if (!open) {
+      initializedRef.current = false
+      return
     }
-  }, [open, candidates])
+    if (initializedRef.current || isLoading) return
+    initializedRef.current = true
+    setErrorMessage(null)
+    if (candidates.length > 0) {
+      const first = candidates[0]
+      setSelectedUserId(first.id)
+      setEntitledDays(first.suggestion ? first.suggestion.days : 12)
+    } else {
+      setSelectedUserId('')
+      setEntitledDays(12)
+    }
+  }, [open, isLoading, candidates])
 
   const selectedCandidate = candidates.find((c) => c.id === selectedUserId)
 
