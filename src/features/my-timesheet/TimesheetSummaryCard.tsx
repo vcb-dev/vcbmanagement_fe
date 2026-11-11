@@ -153,7 +153,7 @@ export function TimesheetSummaryCard({ data }: { data: MyTimesheet }) {
         </CardAction>
       </CardHeader>
       <CardContent className="space-y-4">
-        {partTime && <PartTimeSheetPanel data={data} />}
+        {(partTime || data.sheet) && <PartTimeSheetPanel data={data} />}
         <div
           className={cn(
             'grid divide-y rounded-lg border md:divide-x md:divide-y-0',

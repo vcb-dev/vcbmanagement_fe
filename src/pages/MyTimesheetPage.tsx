@@ -135,13 +135,17 @@ export function MyTimesheetPage() {
       ) : summaryReady ? (
         <div className="space-y-4">
           <TimesheetSummaryCard data={sheet.data!} />
-          {isPartTime && sheet.data!.sheet && (
-            <FeedbackThread
-              sheetId={sheet.data!.sheet.id}
-              mode="staff"
-              readOnly={sheet.data!.sheet.status === 'confirmed'}
-            />
-          )}
+          <FeedbackThread
+            sheetId={sheet.data!.sheet?.id ?? null}
+            sheetType={isPartTime ? 'part_time' : 'full_time'}
+            mode="staff"
+            readOnly={sheet.data!.sheet?.status === 'confirmed'}
+            currentMonth={month}
+            onSelectMonth={(next) => {
+              setMonth(next)
+              setPicked(null)
+            }}
+          />
         </div>
       ) : (
         <Skeleton className="h-52 w-full rounded-xl" />

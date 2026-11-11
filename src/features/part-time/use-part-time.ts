@@ -23,10 +23,28 @@ export function useMyPartTimeDays(month: string, enabled: boolean) {
 }
 
 /** Tải danh sách feedback cùng các phản hồi của một bản chốt. */
-export function useSheetFeedbacks(sheetId: string | null) {
+export function useSheetFeedbacks(
+  sheetId: string | null,
+  sheetType: 'part_time' | 'full_time' = 'part_time',
+) {
   return useQuery({
-    queryKey: ['part-time', 'feedbacks', sheetId],
-    queryFn: () => get<FeedbackView[]>(`/timesheets/part-time/${sheetId}/feedbacks`),
+    queryKey: ['part-time', 'feedbacks', sheetId, sheetType],
+    queryFn: async (): Promise<FeedbackView[]> => {
+      if (!sheetId) return []
+      if (sheetType === 'part_time') {
+        return get<FeedbackView[]>(`/timesheets/part-time/${sheetId}/feedbacks`)
+      }
+      const list = await get<{
+        items: Array<{ id: string; createdAt: string; sheet: { id: string } }>
+      }>('/feedbacks', { sheetType: 'full_time', page: 1 })
+      const matching = list.items
+        .filter((item) => item.sheet.id === sheetId)
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      const details = await Promise.all(
+        matching.map((item) => get<FeedbackView>(`/feedbacks/${item.id}`)),
+      )
+      return details
+    },
     enabled: Boolean(sheetId),
   })
 }

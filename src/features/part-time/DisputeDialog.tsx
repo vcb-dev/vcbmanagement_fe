@@ -9,21 +9,26 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
+import { useCreateFeedback } from '@/features/feedbacks/use-feedbacks'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { useDisputeSheet } from './use-part-time'
 
 export function DisputeDialog({
   sheetId,
+  sheetType = 'part_time',
   open,
   onOpenChange,
 }: {
   sheetId: string
+  sheetType?: 'part_time' | 'full_time'
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
   const [content, setContent] = useState('')
   const [error, setError] = useState<string | null>(null)
   const dispute = useDisputeSheet()
+  const createFeedback = useCreateFeedback()
+  const isPending = dispute.isPending || createFeedback.isPending
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -39,7 +44,15 @@ export function DisputeDialog({
 
     try {
       setError(null)
-      await dispute.mutateAsync({ id: sheetId, content: trimmed })
+      if (sheetType === 'part_time') {
+        await dispute.mutateAsync({ id: sheetId, content: trimmed })
+      } else {
+        await createFeedback.mutateAsync({
+          sheetType: 'full_time',
+          sheetId,
+          content: trimmed,
+        })
+      }
       setContent('')
       onOpenChange(false)
     } catch (err) {
@@ -85,12 +98,12 @@ export function DisputeDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={dispute.isPending}
+              disabled={isPending}
             >
               Huỷ
             </Button>
-            <Button type="submit" variant="destructive" disabled={dispute.isPending}>
-              {dispute.isPending ? 'Đang gửi...' : 'Gửi báo sai'}
+            <Button type="submit" variant="destructive" disabled={isPending}>
+              {isPending ? 'Đang gửi...' : 'Gửi báo sai'}
             </Button>
           </DialogFooter>
         </form>
