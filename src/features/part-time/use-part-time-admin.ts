@@ -5,7 +5,9 @@ import type {
   CloseMonthResult,
   PartTimeDayView,
   PartTimeGridRow,
+  PartTimeIssue,
   PartTimeSheetRow,
+  PartTimeShiftView,
   ShiftEntryInput,
 } from './part-time.types'
 
@@ -30,6 +32,34 @@ export function usePartTimeGrid(from: string, to: string) {
     queryFn: () => get<PartTimeGridRow[]>('/timesheets/part-time/grid', { from, to }),
     placeholderData: (prev) => prev,
   })
+}
+
+/** Tải danh sách vấn đề cần đối soát trong tháng. */
+export function usePartTimeIssues(month: string) {
+  return useQuery({
+    queryKey: ['part-time', 'issues', month],
+    queryFn: () => get<PartTimeIssue[]>('/timesheets/part-time/issues', { month }),
+    placeholderData: (prev) => prev,
+  })
+}
+
+/** Chuyển issue dạng thiếu / muộn / sớm thành PartTimeShiftView để mở ShiftHoursDialog. */
+export function issueToShiftView(issue: PartTimeIssue): PartTimeShiftView {
+  return {
+    shift: issue.shift ?? 'morning',
+    window: issue.window ?? { start: '08:00', end: '12:00' },
+    mode: 'offline',
+    source: 'machine',
+    inAt: issue.inAt,
+    outAt: issue.outAt,
+    minutes: issue.minutes,
+    lateMinutes: issue.lateMinutes,
+    lateLevel: issue.lateLevel,
+    earlyMinutes: issue.earlyMinutes,
+    missing: issue.type === 'missing',
+    inProgress: false,
+    entry: null,
+  }
 }
 
 /** Chốt công tháng cho nhân sự part-time. */
