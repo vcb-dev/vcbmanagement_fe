@@ -24,6 +24,8 @@ import { cn } from '@/lib/utils'
 /** Radix Select không nhận giá trị rỗng. */
 const ALL = 'all'
 const UNASSIGNED = 'unassigned'
+/** Tiêu đề bảng canh giữa, chữ đậm, cùng kiểu với các bảng khác. */
+const HEAD = 'text-center text-sm font-semibold'
 
 export function UsersPage() {
   const { data: me } = useMe()
@@ -46,40 +48,9 @@ export function UsersPage() {
     })
   }, [users, query, departmentFilter, typeFilter])
 
-  const active = users?.filter((u) => u.isActive) ?? []
-  const stats = [
-    { label: 'nhân sự', value: active.length },
-    { label: 'toàn thời gian', value: active.filter((u) => u.employmentType === 'full_time').length },
-    { label: 'part-time', value: active.filter((u) => u.employmentType === 'part_time').length },
-    { label: 'chưa gán bộ phận', value: active.filter((u) => !u.department).length, warn: true },
-  ]
-
   return (
     <PageContainer>
-      <PageHeader
-        title="Nhân sự"
-        description={
-          users ? (
-            <span className="flex flex-wrap gap-x-3 gap-y-1">
-              {stats.map((s) => (
-                <span key={s.label}>
-                  <b
-                    className={cn(
-                      'font-semibold text-foreground tabular-nums',
-                      s.warn && s.value > 0 && 'text-amber-600 dark:text-amber-400',
-                    )}
-                  >
-                    {s.value}
-                  </b>{' '}
-                  {s.label}
-                </span>
-              ))}
-            </span>
-          ) : (
-            'Bộ phận quyết định giờ làm và mốc đi muộn của từng người.'
-          )
-        }
-      />
+      <PageHeader title="Nhân sự" description="Bộ phận quyết định giờ làm và mốc đi muộn của từng người." />
 
       <Card>
         <CardContent className="space-y-4">
@@ -142,11 +113,11 @@ export function UsersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nhân sự</TableHead>
-                  <TableHead>Loại</TableHead>
-                  <TableHead>Bộ phận</TableHead>
-                  <TableHead className="hidden lg:table-cell">Ca làm</TableHead>
-                  <TableHead className="hidden md:table-cell">Ngày ký HĐ</TableHead>
+                  <TableHead className={HEAD}>Nhân sự</TableHead>
+                  <TableHead className={HEAD}>Loại</TableHead>
+                  <TableHead className={HEAD}>Bộ phận</TableHead>
+                  <TableHead className={cn(HEAD, 'hidden lg:table-cell')}>Ca làm</TableHead>
+                  <TableHead className={cn(HEAD, 'hidden md:table-cell')}>Ngày ký HĐ</TableHead>
                   {canEdit && <TableHead className="w-20" />}
                 </TableRow>
               </TableHeader>
@@ -171,7 +142,7 @@ export function UsersPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         <Badge
                           variant="secondary"
                           className={cn(
@@ -181,7 +152,7 @@ export function UsersPage() {
                           {EMPLOYMENT_LABEL[u.employmentType]}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         {u.department ? (
                           u.department.name
                         ) : (
@@ -190,14 +161,14 @@ export function UsersPage() {
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="hidden text-muted-foreground tabular-nums lg:table-cell">
+                      <TableCell className="hidden text-center text-muted-foreground tabular-nums lg:table-cell">
                         {department ? shiftLabel(department) : 'Giờ mặc định'}
                       </TableCell>
-                      <TableCell className="hidden tabular-nums md:table-cell">
+                      <TableCell className="hidden text-center tabular-nums md:table-cell">
                         {u.contractStartDate ? formatDate(u.contractStartDate) : <span className="text-muted-foreground">—</span>}
                       </TableCell>
                       {canEdit && (
-                        <TableCell className="text-right">
+                        <TableCell className="text-center">
                           <Button variant="outline" size="sm" onClick={() => setEditing(u)}>
                             <Pencil />
                             Sửa
