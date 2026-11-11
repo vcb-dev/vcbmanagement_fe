@@ -88,7 +88,8 @@ export function usePartTimeUserDays(userId: string | null, month: string) {
     queryKey: ['part-time', 'days', userId, month],
     queryFn: () => get<PartTimeDayView[]>(`/timesheets/part-time/users/${userId}/days`, { month }),
     enabled: Boolean(userId),
-    placeholderData: (prev) => prev,
+    // Chỉ giữ dữ liệu cũ khi đổi tháng của cùng nhân viên, không hiện ca của người khác.
+    placeholderData: (prev, prevQuery) => (prevQuery?.queryKey[2] === userId ? prev : undefined),
   })
 }
 
