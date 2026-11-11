@@ -17,6 +17,7 @@ const MyTimesheetPage = lazy(() => import('@/pages/MyTimesheetPage').then((m) =>
 const DepartmentsPage = lazy(() => import('@/pages/DepartmentsPage').then((m) => ({ default: m.DepartmentsPage })))
 const UsersPage = lazy(() => import('@/pages/UsersPage').then((m) => ({ default: m.UsersPage })))
 const LatePage = lazy(() => import('@/pages/LatePage').then((m) => ({ default: m.LatePage })))
+const OvertimePage = lazy(() => import('@/pages/OvertimePage').then((m) => ({ default: m.OvertimePage })))
 const MonthlyTimesheetsPage = lazy(() =>
   import('@/pages/MonthlyTimesheetsPage').then((m) => ({ default: m.MonthlyTimesheetsPage })),
 )
@@ -52,6 +53,7 @@ export default function App() {
             <Route element={<ProtectedRoute roles={['admin', 'manager']} />}>
               <Route path="/face/review" element={<FaceReviewPage />} />
               <Route path="/monthly-timesheets" element={<MonthlyTimesheetsPage />} />
+              <Route path="/overtime" element={<OvertimePage />} />
               <Route path="/late" element={<LatePage />} />
               <Route path="/departments" element={<DepartmentsPage />} />
               <Route path="/users" element={<UsersPage />} />

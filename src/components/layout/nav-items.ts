@@ -3,6 +3,7 @@ import {
   CalendarCheck,
   CalendarClock,
   CalendarDays,
+  ClockPlus,
   LayoutDashboard,
   ScanFace,
   ShieldCheck,
@@ -51,6 +52,13 @@ export const NAV_GROUPS: NavGroup[] = [
         url: '/monthly-timesheets',
         icon: CalendarCheck,
         description: 'Công tháng của nhân sự toàn thời gian, tự cập nhật theo chấm công',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Tăng ca',
+        url: '/overtime',
+        icon: ClockPlus,
+        description: 'Tăng ca theo ngày của nhân sự toàn thời gian',
         roles: ['admin', 'manager'],
       },
       {
