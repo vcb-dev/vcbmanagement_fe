@@ -84,3 +84,11 @@ export function formatMonth(month: string): string {
   const [y, m] = month.split('-')
   return `Tháng ${Number(m)}/${y}`
 }
+
+/** ISO → "15:20 · 10/11/2026" theo giờ Việt Nam. */
+export function formatDateTime(iso: string): string {
+  const date = new Date(iso)
+  const time = date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: TZ })
+  const day = date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: TZ })
+  return `${time} · ${day}`
+}
