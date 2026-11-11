@@ -3,6 +3,7 @@ import {
   CalendarCheck,
   CalendarClock,
   CalendarDays,
+  CalendarRange,
   ClockPlus,
   LayoutDashboard,
   ScanFace,
@@ -45,6 +46,13 @@ export const NAV_GROUPS: NavGroup[] = [
         url: '/face/review',
         icon: ShieldCheck,
         description: 'Duyệt đăng ký khuôn mặt nhân viên',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Bảng chấm công',
+        url: '/attendance-board',
+        icon: CalendarRange,
+        description: 'Giờ vào, giờ ra từng ngày của mọi nhân sự, bổ sung giờ cho ngày đã qua',
         roles: ['admin', 'manager'],
       },
       {

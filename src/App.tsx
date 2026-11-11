@@ -10,6 +10,9 @@ import { setSessionExpiredHandler } from '@/lib/api-client'
 
 const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 const AttendancePage = lazy(() => import('@/pages/AttendancePage').then((m) => ({ default: m.AttendancePage })))
+const AttendanceBoardPage = lazy(() =>
+  import('@/pages/AttendanceBoardPage').then((m) => ({ default: m.AttendanceBoardPage })),
+)
 const AssistantPage = lazy(() => import('@/pages/AssistantPage').then((m) => ({ default: m.AssistantPage })))
 const FacePage = lazy(() => import('@/pages/FacePage').then((m) => ({ default: m.FacePage })))
 const FaceReviewPage = lazy(() => import('@/pages/FaceReviewPage').then((m) => ({ default: m.FaceReviewPage })))
@@ -52,6 +55,7 @@ export default function App() {
             <Route path="/face" element={<FacePage />} />
             <Route element={<ProtectedRoute roles={['admin', 'manager']} />}>
               <Route path="/face/review" element={<FaceReviewPage />} />
+              <Route path="/attendance-board" element={<AttendanceBoardPage />} />
               <Route path="/monthly-timesheets" element={<MonthlyTimesheetsPage />} />
               <Route path="/overtime" element={<OvertimePage />} />
               <Route path="/late" element={<LatePage />} />
