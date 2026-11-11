@@ -10,6 +10,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
@@ -17,6 +18,7 @@ import {
 import { SLOT_LABEL } from '@/features/attendance/attendance.types'
 import { useAttendanceToday } from '@/features/attendance/use-attendance'
 import type { User } from '@/features/auth/auth.types'
+import { useFeedbackCounts } from '@/features/feedbacks/use-feedbacks'
 import { formatTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { NAV_GROUPS } from './nav-items'
@@ -24,6 +26,7 @@ import { NavUser } from './nav-user'
 
 export function AppSidebar({ user }: { user: User }) {
   const { pathname } = useLocation()
+  const { data: feedbackCounts } = useFeedbackCounts()
   const groups = NAV_GROUPS.map((g) => ({
     ...g,
     items: g.items.filter((item) => !item.roles || item.roles.includes(user.role)),
@@ -53,21 +56,31 @@ export function AppSidebar({ user }: { user: User }) {
             <SidebarGroupLabel className="text-[11px] tracking-wider uppercase">{group.label}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {group.items.map((item) => (
-                  <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname === item.url}
-                      tooltip={item.title}
-                      className="h-9 data-[active=true]:font-semibold data-[active=true]:shadow-sm data-[active=true]:ring-1 data-[active=true]:ring-border/60"
-                    >
-                      <NavLink to={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {group.items.map((item) => {
+                  const showFeedbackBadge =
+                    item.badge === 'feedbackOpen' &&
+                    typeof feedbackCounts?.open === 'number' &&
+                    feedbackCounts.open > 0
+
+                  return (
+                    <SidebarMenuItem key={item.url}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={pathname === item.url}
+                        tooltip={item.title}
+                        className="h-9 data-[active=true]:font-semibold data-[active=true]:shadow-sm data-[active=true]:ring-1 data-[active=true]:ring-border/60"
+                      >
+                        <NavLink to={item.url}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                      {showFeedbackBadge && (
+                        <SidebarMenuBadge>{feedbackCounts.open}</SidebarMenuBadge>
+                      )}
+                    </SidebarMenuItem>
+                  )
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

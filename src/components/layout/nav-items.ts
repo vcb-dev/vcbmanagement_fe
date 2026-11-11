@@ -5,6 +5,7 @@ import {
   CalendarDays,
   ClipboardCheck,
   LayoutDashboard,
+  MessageSquare,
   ScanFace,
   ShieldCheck,
   Sparkles,
@@ -20,6 +21,7 @@ export interface NavItem {
   icon: LucideIcon
   description?: string
   roles?: UserRole[]
+  badge?: 'feedbackOpen'
 }
 
 export interface NavGroup {
@@ -86,7 +88,16 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     label: 'Tiện ích',
-    items: [{ title: 'Trợ lý AI', url: '/assistant', icon: Sparkles, description: 'Hỏi đáp với AI nội bộ' }],
+    items: [
+      {
+        title: 'Feedback',
+        url: '/feedbacks',
+        icon: MessageSquare,
+        description: 'Trao đổi về bản chốt công các tháng',
+        badge: 'feedbackOpen',
+      },
+      { title: 'Trợ lý AI', url: '/assistant', icon: Sparkles, description: 'Hỏi đáp với AI nội bộ' },
+    ],
   },
 ]
 
