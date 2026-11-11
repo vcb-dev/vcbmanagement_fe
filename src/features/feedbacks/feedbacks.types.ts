@@ -1,4 +1,4 @@
-import type { EmploymentType, UserRole } from '@/features/auth/auth.types'
+import type { EmploymentType } from '@/features/auth/auth.types'
 import type { FeedbackReplyView, FeedbackStatus } from '@/features/part-time/part-time.types'
 
 export type { FeedbackReplyView, FeedbackStatus }
@@ -16,8 +16,7 @@ export interface FeedbackAuthor {
   id: string
   name: string
   departmentName: string | null
-  role: UserRole
-  employmentType: EmploymentType | null
+  employmentType: EmploymentType
 }
 
 export interface FeedbackListItem {

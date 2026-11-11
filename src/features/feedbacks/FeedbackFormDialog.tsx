@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -69,16 +69,25 @@ export function FeedbackFormDialog({
     return options.filter((opt) => opt.user.id === effectiveUserId)
   }, [options, effectiveUserId])
 
-  // Reset form when dialog opens
+  // Xoá form mỗi lần mở dialog.
   useEffect(() => {
     if (open) {
       setContent('')
       setErrorMessage(null)
-      if (!isStaff && uniqueUsers.length > 0) {
-        setSelectedUserId(uniqueUsers[0].id)
-      }
     }
-  }, [open, isStaff, uniqueUsers])
+  }, [open])
+
+  // Chọn nhân sự mặc định một lần sau khi tải xong, để danh sách tải lại không xoá lựa chọn đang có.
+  const userPickedRef = useRef(false)
+  useEffect(() => {
+    if (!open) {
+      userPickedRef.current = false
+      return
+    }
+    if (userPickedRef.current || isLoading || isStaff) return
+    userPickedRef.current = true
+    setSelectedUserId(uniqueUsers[0]?.id ?? '')
+  }, [open, isLoading, isStaff, uniqueUsers])
 
   // Auto-select first available sheet for effective user
   useEffect(() => {

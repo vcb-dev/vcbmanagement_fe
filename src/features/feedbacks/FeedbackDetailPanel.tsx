@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useMe } from '@/features/auth/use-auth'
+import { getApiErrorMessage } from '@/lib/api-client'
 import {
   FEEDBACK_STATUS_LABEL,
   type FeedbackStatus,
@@ -34,7 +35,7 @@ interface FeedbackDetailPanelProps {
 
 export function FeedbackDetailPanel({ id, onDeleted }: FeedbackDetailPanelProps) {
   const { data: me } = useMe()
-  const { data: detail, isLoading } = useFeedbackDetail(id)
+  const { data: detail, isLoading, isError, error } = useFeedbackDetail(id)
   const replyMutation = useReplyToFeedback()
   const deleteMutation = useDeleteFeedback()
 
@@ -51,6 +52,14 @@ export function FeedbackDetailPanel({ id, onDeleted }: FeedbackDetailPanelProps)
         <p className="text-xs text-muted-foreground mt-1">
           Chọn một mục ở danh sách bên trái để xem chi tiết và trả lời.
         </p>
+      </div>
+    )
+  }
+
+  if (isError && !detail) {
+    return (
+      <div className="flex h-full min-h-[360px] items-center justify-center rounded-xl border bg-card p-8 text-center text-sm text-destructive">
+        {getApiErrorMessage(error)}
       </div>
     )
   }
