@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { apiClient, getApiErrorMessage } from '@/lib/api-client'
+import type { Paginated } from '@/lib/pagination'
 import type {
   CloseMonthResult,
   PartTimeDayView,
   PartTimeGridRow,
   PartTimeIssue,
+  PartTimeIssueType,
   PartTimeSheetRow,
   PartTimeShiftView,
   ShiftEntryInput,
@@ -16,29 +18,62 @@ async function get<T>(url: string, params?: Record<string, unknown>): Promise<T>
   return res.data.data
 }
 
-/** Tải danh sách bảng công part-time trong tháng (dành cho quản lý). */
-export function usePartTimeSheets(month: string) {
+/** Tải một trang bảng công part-time trong tháng (dành cho quản lý). */
+export function usePartTimeSheets(month: string, page: number) {
   return useQuery({
-    queryKey: ['part-time', 'sheets', month],
-    queryFn: () => get<PartTimeSheetRow[]>('/timesheets/part-time', { month }),
+    queryKey: ['part-time', 'sheets', month, page],
+    queryFn: () => get<Paginated<PartTimeSheetRow>>('/timesheets/part-time', { month, page }),
     placeholderData: (prev) => prev,
   })
 }
 
-/** Tải dữ liệu bảng công dạng lưới theo khoảng ngày. */
-export function usePartTimeGrid(from: string, to: string) {
+/** Dòng chốt công của một người, khi mở chi tiết người không nằm ở trang đang xem. */
+export function usePartTimeSheetRow(month: string, userId: string | null, enabled: boolean) {
   return useQuery({
-    queryKey: ['part-time', 'grid', from, to],
-    queryFn: () => get<PartTimeGridRow[]>('/timesheets/part-time/grid', { from, to }),
+    queryKey: ['part-time', 'sheets', month, 'user', userId],
+    queryFn: async () => {
+      const data = await get<Paginated<PartTimeSheetRow>>('/timesheets/part-time', { month, userId })
+      return data.items[0] ?? null
+    },
+    enabled: enabled && Boolean(userId),
+  })
+}
+
+export interface PartTimeGridParams {
+  from: string
+  to: string
+  page: number
+  q?: string
+  departmentId?: string
+}
+
+/** Tải một trang bảng công dạng lưới theo khoảng ngày; tìm kiếm và lọc bộ phận làm ở BE. */
+export function usePartTimeGrid(params: PartTimeGridParams) {
+  return useQuery({
+    queryKey: ['part-time', 'grid', params],
+    queryFn: () => get<Paginated<PartTimeGridRow>>('/timesheets/part-time/grid', { ...params }),
     placeholderData: (prev) => prev,
   })
 }
 
-/** Tải danh sách vấn đề cần đối soát trong tháng. */
-export function usePartTimeIssues(month: string) {
+export interface PartTimeIssuesPage extends Paginated<PartTimeIssue> {
+  /** Đếm trên cả tháng theo từng loại, không phụ thuộc loại đang lọc. */
+  counts: Record<PartTimeIssueType | 'all', number>
+}
+
+/** Tải một trang việc cần đối soát trong tháng. Bỏ trống type/page = tất cả, trang 1 (dùng chung cache với số trên tab). */
+export function usePartTimeIssues({
+  month,
+  type,
+  page = 1,
+}: {
+  month: string
+  type?: PartTimeIssueType
+  page?: number
+}) {
   return useQuery({
-    queryKey: ['part-time', 'issues', month],
-    queryFn: () => get<PartTimeIssue[]>('/timesheets/part-time/issues', { month }),
+    queryKey: ['part-time', 'issues', month, type ?? 'all', page],
+    queryFn: () => get<PartTimeIssuesPage>('/timesheets/part-time/issues', { month, type, page }),
     placeholderData: (prev) => prev,
   })
 }

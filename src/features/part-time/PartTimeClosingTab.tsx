@@ -1,11 +1,13 @@
+import { useState } from 'react'
 import { MonthNav } from '@/components/month-nav'
+import { PaginationFooter } from '@/components/pagination-footer'
 import { Skeleton } from '@/components/ui/skeleton'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { todayYmd } from '@/lib/format'
 import { CloseMonthButton } from './CloseMonthButton'
 import { PartTimeSheetTable } from './PartTimeSheetTable'
 import { PartTimeUserSheet } from './PartTimeUserSheet'
-import { usePartTimeSheets } from './use-part-time-admin'
+import { usePartTimeSheetRow, usePartTimeSheets } from './use-part-time-admin'
 
 export function PartTimeClosingTab({
   month,
@@ -19,9 +21,21 @@ export function PartTimeClosingTab({
   onSelectUser: (id: string | null) => void
 }) {
   const currentMonth = todayYmd().slice(0, 7)
-  const { data: rows = [], isPending, isError, error, refetch } = usePartTimeSheets(month)
+  // Đổi tháng thì về trang 1: trang gắn với tháng, khác tháng là bỏ.
+  const [paging, setPaging] = useState({ month, page: 1 })
+  const page = paging.month === month ? paging.page : 1
 
-  const selectedRow = rows.find((r) => r.user.id === selectedUserId) ?? null
+  const { data, isPending, isError, error, refetch } = usePartTimeSheets(month, page)
+  const rows = data?.items ?? []
+
+  // Mở từ tab "Cần đối soát" có thể là người ở trang khác: khi đó tải riêng dòng của người đó.
+  const rowInPage = rows.find((r) => r.user.id === selectedUserId) ?? null
+  const { data: rowElsewhere = null } = usePartTimeSheetRow(
+    month,
+    selectedUserId,
+    !isPending && rowInPage === null,
+  )
+  const selectedRow = rowInPage ?? rowElsewhere
 
   return (
     <div className="space-y-4">
@@ -50,7 +64,14 @@ export function PartTimeClosingTab({
           <Skeleton className="h-16 w-full" />
         </div>
       ) : (
-        <PartTimeSheetTable rows={rows} onSelect={onSelectUser} />
+        <div className="space-y-3">
+          <PartTimeSheetTable rows={rows} onSelect={onSelectUser} />
+          <PaginationFooter
+            data={data}
+            unit="nhân sự"
+            onPageChange={(p) => setPaging({ month, page: p })}
+          />
+        </div>
       )}
 
       <PartTimeUserSheet

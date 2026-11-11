@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Loader2, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { PaginationFooter } from '@/components/pagination-footer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -10,7 +11,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useDepartments } from '@/features/departments/use-departments'
-import { normalizeSearch, shiftYmd, todayYmd } from '@/lib/format'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { shiftYmd, todayYmd } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import {
   monthLabel,
@@ -64,21 +66,23 @@ export function PartTimeGridTab() {
     [today, anchorMonth],
   )
 
-  const { data: rows = [], isLoading } = usePartTimeGrid(range.from, range.to)
+  // Tìm, lọc bộ phận và phân trang làm ở BE. Đổi kỳ xem hoặc bộ lọc thì về trang 1.
+  const q = useDebouncedValue(search.trim())
+  const departmentId = selectedDeptId === 'all' ? undefined : selectedDeptId
+  const filterKey = [range.from, range.to, q, selectedDeptId].join('|')
+  const [paging, setPaging] = useState({ key: filterKey, page: 1 })
+  const page = paging.key === filterKey ? paging.page : 1
+
+  const { data, isLoading } = usePartTimeGrid({
+    from: range.from,
+    to: range.to,
+    page,
+    q: q || undefined,
+    departmentId,
+  })
+  const rows = data?.items ?? []
 
   const isNextDisabled = rangeFor(mode, moveAnchor(mode, anchor, 1)).from > today
-
-  const filteredRows = useMemo(() => {
-    const q = normalizeSearch(search.trim())
-    return rows.filter((r) => {
-      const matchDept = selectedDeptId === 'all' || r.department?.id === selectedDeptId
-      if (!matchDept) return false
-      if (!q) return true
-      return (
-        normalizeSearch(r.user.name).includes(q) || normalizeSearch(r.user.email).includes(q)
-      )
-    })
-  }, [rows, search, selectedDeptId])
 
   const handleModeChange = (next: GridMode) => {
     setMode(next)
@@ -209,18 +213,19 @@ export function PartTimeGridTab() {
         ) : (
           <PartTimeGrid
             key={`${range.from}_${range.to}`}
-            rows={filteredRows}
+            rows={rows}
             dates={dates}
             onEdit={(row, date, shift) => setEditingCell({ row, date, shift })}
           />
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-2.5 text-xs text-muted-foreground">
-          <span>
-            Hiển thị {filteredRows.length} trên {rows.length} nhân viên
-          </span>
-          <span>Bấm ô để nhập hoặc sửa số giờ · di chuột để xem giờ vào / ra</span>
-        </div>
+        <PaginationFooter
+          data={data}
+          unit="nhân viên"
+          hint="Bấm ô để nhập hoặc sửa số giờ · di chuột để xem giờ vào / ra"
+          onPageChange={(p) => setPaging({ key: filterKey, page: p })}
+          className="border-t px-4 py-2"
+        />
       </div>
 
       {editingCell && (
