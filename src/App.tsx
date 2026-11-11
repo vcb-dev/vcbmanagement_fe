@@ -52,7 +52,9 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<DashboardPage />} />
-            <Route path="/my-timesheet" element={<MyTimesheetPage />} />
+            <Route element={<ProtectedRoute roles={['staff']} />}>
+              <Route path="/my-timesheet" element={<MyTimesheetPage />} />
+            </Route>
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/assistant" element={<AssistantPage />} />
             <Route path="/face" element={<FacePage />} />
