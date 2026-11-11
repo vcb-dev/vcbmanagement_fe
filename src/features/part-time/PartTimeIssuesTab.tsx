@@ -1,6 +1,7 @@
 import { Eye, Loader2, Pencil } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { MonthNav } from '@/components/month-nav'
+import { PaginationFooter } from '@/components/pagination-footer'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,6 +23,9 @@ import {
 import { ShiftHoursDialog } from './ShiftHoursDialog'
 import { issueToShiftView, usePartTimeIssues } from './use-part-time-admin'
 
+/** Thứ tự loại trong ô lọc. */
+const ISSUE_TYPE_OPTIONS: readonly PartTimeIssueType[] = ['missing', 'late', 'early', 'disputed', 'outdated']
+
 const ISSUE_BADGE_STYLE: Record<PartTimeIssueType, string> = {
   missing: 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400 border-rose-200 dark:border-rose-800',
   late: 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400 border-amber-200 dark:border-amber-800',
@@ -40,7 +44,7 @@ export function PartTimeIssuesTab({
   onOpenUser: (userId: string) => void
 }) {
   const currentMonth = todayYmd().slice(0, 7)
-  const [selectedType, setSelectedType] = useState<string>('all')
+  const [selectedType, setSelectedType] = useState<'all' | PartTimeIssueType>('all')
   const [editingIssue, setEditingIssue] = useState<PartTimeIssue | null>(null)
   // Giữ cùng một object để ShiftHoursDialog không reset ô đang nhập mỗi lần tab render lại.
   const editingShift = useMemo(
@@ -48,11 +52,18 @@ export function PartTimeIssuesTab({
     [editingIssue],
   )
 
-  const { data: issues = [], isLoading } = usePartTimeIssues(month)
+  // Lọc loại và phân trang làm ở BE. Đổi tháng hoặc loại thì về trang 1.
+  const filterKey = `${month}|${selectedType}`
+  const [paging, setPaging] = useState({ key: filterKey, page: 1 })
+  const page = paging.key === filterKey ? paging.page : 1
 
-  const filteredIssues = issues.filter(
-    (i) => selectedType === 'all' || i.type === selectedType,
-  )
+  const { data, isLoading } = usePartTimeIssues({
+    month,
+    type: selectedType === 'all' ? undefined : selectedType,
+    page,
+  })
+  const issues = data?.items ?? []
+  const counts = data?.counts
 
   const renderDetail = (issue: PartTimeIssue) => {
     switch (issue.type) {
@@ -78,23 +89,29 @@ export function PartTimeIssuesTab({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <MonthNav month={month} max={currentMonth} onChange={onMonthChange} />
-          <Select value={selectedType} onValueChange={setSelectedType}>
-            <SelectTrigger className="h-9 w-44 text-xs">
+          <Select
+            value={selectedType}
+            onValueChange={(v) => setSelectedType(v as 'all' | PartTimeIssueType)}
+          >
+            <SelectTrigger className="h-9 w-48 text-xs">
               <SelectValue placeholder="Tất cả các loại" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả các loại</SelectItem>
-              <SelectItem value="missing">Thiếu chấm</SelectItem>
-              <SelectItem value="late">Đi muộn</SelectItem>
-              <SelectItem value="early">Về sớm</SelectItem>
-              <SelectItem value="disputed">Báo sai</SelectItem>
-              <SelectItem value="outdated">Lệch sau chốt</SelectItem>
+              <SelectItem value="all">
+                Tất cả các loại{counts ? ` (${counts.all})` : ''}
+              </SelectItem>
+              {ISSUE_TYPE_OPTIONS.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {ISSUE_TYPE_LABEL[type]}
+                  {counts ? ` (${counts[type]})` : ''}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
         <div className="text-xs text-muted-foreground">
-          {filteredIssues.length} việc cần đối soát
+          {data?.total ?? 0} việc cần đối soát
         </div>
       </div>
 
@@ -103,7 +120,7 @@ export function PartTimeIssuesTab({
           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           <span>Đang tải danh sách đối soát...</span>
         </div>
-      ) : filteredIssues.length === 0 ? (
+      ) : issues.length === 0 ? (
         <div className="rounded-lg border border-dashed py-16 text-center text-sm text-muted-foreground">
           Không có việc cần đối soát trong tháng {formatMonth(month)}.
         </div>
@@ -122,7 +139,7 @@ export function PartTimeIssuesTab({
               </tr>
             </thead>
             <tbody>
-              {filteredIssues.map((issue, idx) => (
+              {issues.map((issue, idx) => (
                 <tr
                   key={`${issue.type}-${issue.user.id}-${issue.date ?? idx}-${issue.shift ?? ''}`}
                   className="border-b hover:bg-muted/20"
@@ -182,6 +199,14 @@ export function PartTimeIssuesTab({
             </tbody>
           </table>
         </div>
+      )}
+
+      {!isLoading && (
+        <PaginationFooter
+          data={data}
+          unit="việc"
+          onPageChange={(p) => setPaging({ key: filterKey, page: p })}
+        />
       )}
 
       {editingIssue && editingIssue.date && editingShift && (

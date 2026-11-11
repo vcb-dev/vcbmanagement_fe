@@ -28,8 +28,8 @@ export function PartTimeTimesheetsPage() {
   })
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
-  const { data: issues = [] } = usePartTimeIssues(month)
-  const issueCount = issues.length
+  const { data: issuesPage } = usePartTimeIssues({ month })
+  const issueCount = issuesPage?.counts.all ?? 0
 
   const handleOpenUser = (userId: string) => {
     setSelectedUserId(userId)
