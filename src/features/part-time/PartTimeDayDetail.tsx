@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AttendancePhotos } from '@/features/attendance/AttendancePhoto'
 import type { AttendanceRecord } from '@/features/attendance/attendance.types'
-import { formatDuration, formatTime, formatWorkDate } from '@/lib/format'
+import { formatDuration, formatHours, formatTime, formatWorkDate } from '@/lib/format'
 import { lateLevelLabel, lateLevelTone } from '@/lib/late-levels'
 import { cn } from '@/lib/utils'
 import { PART_TIME_DAY_LABEL, PART_TIME_DAY_STYLE, partTimeDayKind } from './part-time-day-status'
@@ -43,8 +43,21 @@ function ShiftSection({
   const Icon = SHIFT_ICONS[shift.shift]
   const isNone = shift.mode === 'none'
   const isOnline = shift.mode === 'online'
+  const hasEntry = Boolean(shift.entry)
   const late = shift.lateMinutes ?? 0
   const early = shift.earlyMinutes ?? 0
+
+  const statusText = hasEntry
+    ? `${formatHours(shift.minutes)} giờ`
+    : shift.missing
+      ? 'Thiếu mốc'
+      : shift.inProgress
+        ? 'Đang làm'
+        : isOnline
+          ? 'Online'
+          : shift.minutes > 0
+            ? formatDuration(shift.minutes)
+            : ''
 
   return (
     <section className="rounded-lg bg-muted/40 p-3">
@@ -57,17 +70,7 @@ function ShiftSection({
           </span>
         </span>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {shift.missing
-              ? 'Thiếu mốc'
-              : shift.inProgress
-                ? 'Đang làm'
-                : isOnline
-                  ? 'Online'
-                  : shift.minutes > 0
-                    ? formatDuration(shift.minutes)
-                    : ''}
-          </span>
+          <span className="text-xs text-muted-foreground tabular-nums">{statusText}</span>
           {actions && <div>{actions(shift)}</div>}
         </div>
       </div>
@@ -76,6 +79,29 @@ function ShiftSection({
         <p className="rounded-lg border border-dashed px-3 py-2 text-sm text-muted-foreground">
           Không có ca này trong ngày.
         </p>
+      ) : hasEntry && shift.entry ? (
+        <div className="space-y-2">
+          <div className="rounded-lg border bg-card px-3 py-2">
+            <p className="text-xs text-muted-foreground">
+              {shift.entry.kind === 'online' ? 'Hình thức làm việc' : 'Số giờ làm việc'}
+            </p>
+            <p
+              className={cn(
+                'font-semibold',
+                shift.entry.kind === 'online' && 'text-sky-600 dark:text-sky-400',
+              )}
+            >
+              {shift.entry.kind === 'online'
+                ? `Online (${formatHours(shift.minutes)} giờ)`
+                : `${formatHours(shift.minutes)} giờ`}
+            </p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {shift.entry.kind === 'online'
+              ? `Online · sửa bởi ${shift.entry.recordedBy.name}: ${shift.entry.note}`
+              : `Sửa bởi ${shift.entry.recordedBy.name}: ${shift.entry.note}`}
+          </p>
+        </div>
       ) : isOnline ? (
         <div className="space-y-2">
           <div className="rounded-lg border bg-card px-3 py-2">
@@ -84,11 +110,6 @@ function ShiftSection({
               Online ({formatDuration(shift.minutes)})
             </p>
           </div>
-          {shift.entry && (
-            <p className="text-xs text-muted-foreground">
-              Ghi online bởi {shift.entry.recordedBy.name}: {shift.entry.note}
-            </p>
-          )}
         </div>
       ) : (
         <>
@@ -103,7 +124,10 @@ function ShiftSection({
                 Giờ vào chuẩn {shift.window.start}, vào muộn {formatDuration(late)}.
               </span>
               {shift.lateLevel != null && (
-                <Badge variant="secondary" className={cn('font-medium', lateLevelTone(shift.lateLevel, thresholds))}>
+                <Badge
+                  variant="secondary"
+                  className={cn('font-medium', lateLevelTone(shift.lateLevel, thresholds))}
+                >
                   {lateLevelLabel(shift.lateLevel, thresholds)}
                 </Badge>
               )}
@@ -113,12 +137,6 @@ function ShiftSection({
           {early > 0 && (
             <p className="mt-2 text-xs text-orange-700 dark:text-orange-400">
               Về sớm {formatDuration(early)}.
-            </p>
-          )}
-
-          {shift.entry && (
-            <p className="mt-2 text-xs text-muted-foreground">
-              Bổ sung bởi {shift.entry.recordedBy.name}: {shift.entry.note}
             </p>
           )}
         </>

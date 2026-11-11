@@ -14,6 +14,11 @@ export function formatDuration(minutes: number | null | undefined): string {
   return m ? `${h}g ${m}p` : `${h}g`
 }
 
+/** 240 → "4", 226 → "3.77", 210 → "3.5" */
+export function formatHours(minutes: number): string {
+  return String(Math.round((minutes / 60) * 100) / 100)
+}
+
 /** 9 → "00:09", 75 → "01:15" */
 export function formatClockMinutes(minutes: number): string {
   return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
