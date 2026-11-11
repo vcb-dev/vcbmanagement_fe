@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
-import type { AttendanceRecord } from '@/features/attendance/attendance.types'
 import { DAY_KIND_LABEL, DAY_KIND_STYLE, dayKind, daysOfMonth, leadingBlanks, type DayKind } from './day-status'
+import type { DayRecord } from './my-timesheet.types'
 
 const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
 const LEGEND: { kind: DayKind; swatch: string }[] = [
@@ -19,7 +19,7 @@ export function MonthCalendar({
   onSelect,
 }: {
   month: string
-  records: Map<string, AttendanceRecord>
+  records: Map<string, DayRecord>
   today: string
   selected: string
   onSelect: (ymd: string) => void

@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import type { MyTimesheet } from './my-timesheet.types'
+import type { ConfirmationStatus, MyTimesheet } from './my-timesheet.types'
 
 /** Key nằm dưới `attendance` để chấm công xong số liệu tháng tự tải lại. */
 export function useMyTimesheet(month: string) {
@@ -11,5 +11,24 @@ export function useMyTimesheet(month: string) {
       return res.data.data
     },
     placeholderData: (prev) => prev,
+  })
+}
+
+/** Xác nhận công tháng của chính mình. Lỗi (vd số vừa đổi) cũng tải lại để thấy số mới nhất. */
+export function useConfirmMyTimesheet() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (input: { month: string; version: string }) => {
+      const res = await apiClient.post<{ data: { status: ConfirmationStatus; confirmedAt: string } }>(
+        '/timesheets/me/confirm',
+        input,
+      )
+      return res.data.data
+    },
+    onSettled: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['attendance', 'my-timesheet'] }),
+        queryClient.invalidateQueries({ queryKey: ['attendance', 'full-time-timesheets'] }),
+      ]),
   })
 }
