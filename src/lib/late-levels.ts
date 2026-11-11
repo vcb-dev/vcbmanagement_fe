@@ -9,10 +9,12 @@ export function lateLevelRange(level: number, thresholds: readonly number[]): st
   return from === to ? `${to} phút` : `${from}–${to} phút`
 }
 
-/** Tên mốc khi đứng một mình, vd ở đầu cột: "1–15 phút", "Trên 60 phút". */
-export function lateLevelName(level: number, thresholds: readonly number[]): string {
-  const range = lateLevelRange(level, thresholds)
-  return range.charAt(0).toUpperCase() + range.slice(1)
+/** Khoảng phút viết gọn cho nhãn nhỏ, cùng kiểu số phút muộn trên lịch: "1–15'", "16–60'", ">60'". */
+export function lateLevelShort(level: number, thresholds: readonly number[]): string {
+  const to = thresholds[level - 1]
+  if (to === undefined) return `>${thresholds[thresholds.length - 1]}'`
+  const from = (level === 1 ? 0 : thresholds[level - 2]) + 1
+  return from === to ? `${to}'` : `${from}–${to}'`
 }
 
 /** "Mốc 2 · 16–60 phút", hoặc chỉ "Mốc 2" khi chưa có bộ mốc để tính khoảng. */
@@ -20,37 +22,20 @@ export function lateLevelLabel(level: number, thresholds: readonly number[]): st
   return thresholds.length ? `Mốc ${level} · ${lateLevelRange(level, thresholds)}` : `Mốc ${level}`
 }
 
-export type LateSeverity = 'low' | 'mid' | 'high'
+type LateSeverity = 'low' | 'mid' | 'high'
 
-export const LATE_SEVERITIES: LateSeverity[] = ['low', 'mid', 'high']
-
-export const LATE_SEVERITY_LABEL: Record<LateSeverity, string> = {
-  low: 'Muộn ít',
-  mid: 'Muộn vừa',
-  high: 'Muộn nhiều',
-}
-
-const SEVERITY_STYLE: Record<LateSeverity, { bg: string; text: string; dot: string }> = {
-  low: { bg: 'bg-emerald-500/10', text: 'text-emerald-700 dark:text-emerald-400', dot: 'bg-emerald-500' },
-  mid: { bg: 'bg-amber-500/10', text: 'text-amber-700 dark:text-amber-400', dot: 'bg-amber-500' },
-  high: { bg: 'bg-rose-500/10', text: 'text-rose-700 dark:text-rose-400', dot: 'bg-rose-500' },
+const SEVERITY_TONE: Record<LateSeverity, string> = {
+  low: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
+  mid: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
+  high: 'bg-rose-500/10 text-rose-700 dark:text-rose-400',
 }
 
 /** Độ nặng theo vị trí trong bộ mốc: mốc đầu là ít, mốc cuối là nhiều, các mốc giữa là vừa. `thresholds` có n mốc thì có n + 1 mức. */
-export function lateSeverity(level: number, thresholds: readonly number[]): LateSeverity {
+function lateSeverity(level: number, thresholds: readonly number[]): LateSeverity {
   if (level <= 1) return 'low'
   return level > thresholds.length ? 'high' : 'mid'
 }
 
-export function lateSeverityDot(severity: LateSeverity): string {
-  return SEVERITY_STYLE[severity].dot
-}
-
 export function lateLevelTone(level: number, thresholds: readonly number[]): string {
-  const { bg, text } = SEVERITY_STYLE[lateSeverity(level, thresholds)]
-  return `${bg} ${text}`
-}
-
-export function lateLevelText(level: number, thresholds: readonly number[]): string {
-  return SEVERITY_STYLE[lateSeverity(level, thresholds)].text
+  return SEVERITY_TONE[lateSeverity(level, thresholds)]
 }

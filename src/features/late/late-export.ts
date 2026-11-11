@@ -1,54 +1,46 @@
-import { daysOfMonth } from '@/features/my-timesheet/day-status'
-import { formatClockMinutes, formatDayMonth } from '@/lib/format'
+import { rangeLabel, type WeekRange } from '@/features/attendance-board/attendance-board.types'
+import { toCsv } from '@/lib/csv'
+import { formatDayMonth } from '@/lib/format'
 import { EMPLOYMENT_LABEL, displayName } from '@/lib/user-display'
-import { lateColumns, levelInColumn, type LateReportRow } from './late.types'
+import { LATE_SHIFTS, lateByShift, lateTotal, type LateReportRow } from './late.types'
 
-/** Tên do người dùng nhập nên chặn ô bị Excel hiểu thành công thức. */
-function csvCell(value: string | number): string {
-  const text = String(value)
-  const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text
-  return /[",\n\r]/.test(safe) ? `"${safe.replaceAll('"', '""')}"` : safe
+const PERSON_HEAD = ['Họ tên', 'Email', 'Bộ phận', 'Loại nhân sự', 'Buổi']
+const personCells = (row: LateReportRow, shift: string) => [
+  displayName(row.user),
+  row.user.email,
+  row.department?.name ?? 'Chưa gán bộ phận',
+  EMPLOYMENT_LABEL[row.employmentType],
+  shift,
+]
+
+/** Theo ngày: mỗi người hai dòng Sáng, Chiều, ô là số phút muộn của ngày; cuối dòng là số lần và tổng phút trong các ngày đang xem. */
+export function buildLateDayCsv(rows: LateReportRow[], days: string[]): string {
+  const inRange = new Set(days)
+  const header = [...PERSON_HEAD, ...days.map(formatDayMonth), 'Số lần', 'Tổng phút']
+  const lines = rows.flatMap((row) => {
+    const byShift = lateByShift(row.events)
+    return LATE_SHIFTS.map(({ key, label }) => {
+      const total = lateTotal(row.events, inRange, key)
+      return [...personCells(row, label), ...days.map((d) => byShift[key].get(d) ?? ''), total.count, total.minutes]
+    })
+  })
+  return toCsv([header, ...lines])
 }
 
-export function buildLateCsv(month: string, rows: LateReportRow[]): string {
-  const days = daysOfMonth(month)
-  const columns = lateColumns(rows)
-  const header = [
-    'Họ tên',
-    'Email',
-    'Bộ phận',
-    'Loại nhân sự',
-    ...days.map(formatDayMonth),
-    ...columns.map((c) => c.name),
-    'Tổng lần',
-    'Tổng phút',
-  ]
-  const lines = rows.map((row) => [
-    displayName(row.user),
-    row.user.email,
-    row.department?.name ?? 'Chưa gán bộ phận',
-    EMPLOYMENT_LABEL[row.employmentType],
-    ...days.map((ymd) =>
-      row.events
-        .filter((e) => e.date === ymd)
-        .map((e) => formatClockMinutes(e.minutes))
-        .join(' / '),
-    ),
-    ...columns.map((c) => levelInColumn(row, c)?.count ?? ''),
-    row.lateCount,
-    row.lateMinutes,
-  ])
-  return [header, ...lines].map((cells) => cells.map(csvCell).join(',')).join('\r\n')
-}
-
-/** BOM để Excel đọc đúng tiếng Việt. */
-export function downloadLateCsv(month: string, rows: LateReportRow[]) {
-  const blob = new Blob(['﻿', buildLateCsv(month, rows)], { type: 'text/csv;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `di-muon-${month}.csv`
-  link.click()
-  // Thu hồi ngay có thể làm trình duyệt huỷ lượt tải vừa bắt đầu.
-  setTimeout(() => URL.revokeObjectURL(url), 10_000)
+/** Tổng hợp tuần: số lần đi muộn từng tuần của mỗi ca, và tổng cả tháng. */
+export function buildLateWeekCsv(rows: LateReportRow[], weeks: WeekRange[]): string {
+  const weekDays = weeks.map((w) => new Set(w.days))
+  const header = [...PERSON_HEAD, ...weeks.map((w) => `Tuần ${w.index + 1} (${rangeLabel(w.days)})`), 'Số lần', 'Tổng phút']
+  const lines = rows.flatMap((row) =>
+    LATE_SHIFTS.map(({ key, label }) => {
+      const month = lateTotal(row.events, undefined, key)
+      return [
+        ...personCells(row, label),
+        ...weekDays.map((days) => lateTotal(row.events, days, key).count),
+        month.count,
+        month.minutes,
+      ]
+    }),
+  )
+  return toCsv([header, ...lines])
 }
