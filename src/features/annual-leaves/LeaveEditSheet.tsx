@@ -163,6 +163,7 @@ export function LeaveEditSheet({
                   min={0}
                   max={60}
                   step={1}
+                  disabled={row.user.contractStartDate === null}
                   value={isNaN(entitledDays) ? '' : entitledDays}
                   onChange={(e) => {
                     const v = parseInt(e.target.value, 10)
@@ -192,7 +193,7 @@ export function LeaveEditSheet({
                 </div>
               ) : (
                 <p className="text-xs text-amber-600 dark:text-amber-400">
-                  Chưa có ngày ký HĐ của {row.user.name}. Nhập ở Danh sách nhân sự.
+                  Chưa có ngày ký HĐ của {row.user.name} nên chưa có phép. Nhập ngày ký ở Danh sách nhân sự.
                 </p>
               )}
             </div>
@@ -225,7 +226,7 @@ export function LeaveEditSheet({
                           </span>
                         ) : isBeforeContract ? (
                           <span className="text-[10px] text-muted-foreground">
-                            Trước ngày ký HĐ
+                            {row.user.contractStartDate ? 'Trước ngày ký HĐ' : 'Chưa ký HĐ'}
                           </span>
                         ) : isThisMonth ? (
                           <span className="text-[10px] text-primary font-medium">

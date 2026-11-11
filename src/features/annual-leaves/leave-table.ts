@@ -4,6 +4,16 @@ import type { AnnualLeaveRow } from './annual-leaves.types'
 export type LeaveFilter = 'all' | 'low' | 'none' | 'nocontract'
 export type LeaveSort = 'added' | 'name' | 'remain' | 'used'
 
+/** Có tháng nào được tính phép trong năm không. Chưa ký HĐ (hoặc ký sau năm) thì chưa có phép. */
+export function hasLeaveThisYear(row: Pick<AnnualLeaveRow, 'startMonth'>): boolean {
+  return row.startMonth <= 12
+}
+
+/** Sắp hết phép: đang có phép năm này và còn từ 2 ngày trở xuống. */
+export function isLowOnLeave(row: AnnualLeaveRow): boolean {
+  return hasLeaveThisYear(row) && row.remainingDays <= 2
+}
+
 function vnNameKey(name: string): string {
   const parts = name.trim().split(/\s+/)
   if (parts.length <= 1) return name
@@ -19,7 +29,7 @@ export function filterLeaveRows(
   const q = normalizeSearch(query.trim())
 
   return rows.filter((row) => {
-    if (filter === 'low' && row.remainingDays > 2) {
+    if (filter === 'low' && !isLowOnLeave(row)) {
       return false
     }
     if (filter === 'none' && row.usedDays !== 0) {
@@ -58,28 +68,4 @@ export function sortLeaveRows(
     }
     return 0
   })
-}
-
-export function leaveStats(rows: AnnualLeaveRow[]): {
-  people: number
-  used: number
-  remaining: number
-  low: number
-} {
-  let used = 0
-  let remaining = 0
-  let low = 0
-  for (const r of rows) {
-    used += r.usedDays
-    remaining += r.remainingDays
-    if (r.remainingDays <= 2) {
-      low++
-    }
-  }
-  return {
-    people: rows.length,
-    used,
-    remaining,
-    low,
-  }
 }

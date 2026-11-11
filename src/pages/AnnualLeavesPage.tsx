@@ -1,18 +1,9 @@
-import {
-  CalendarCheck,
-  CalendarDays,
-  CalendarPlus,
-  Plus,
-  Search,
-  TriangleAlert,
-  Users,
-} from 'lucide-react'
+import { CalendarPlus, Plus, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { PageContainer } from '@/components/page-container'
 import { PageHeader } from '@/components/page-header'
-import { StatCard } from '@/components/stat-card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -27,10 +18,10 @@ import type { AnnualLeaveRow } from '@/features/annual-leaves/annual-leaves.type
 import { AddLeaveRowDialog } from '@/features/annual-leaves/AddLeaveRowDialog'
 import { AnnualLeaveTable } from '@/features/annual-leaves/AnnualLeaveTable'
 import { LeaveEditSheet } from '@/features/annual-leaves/LeaveEditSheet'
-import { formatDays } from '@/features/annual-leaves/leave-status'
 import {
   filterLeaveRows,
-  leaveStats,
+  hasLeaveThisYear,
+  isLowOnLeave,
   sortLeaveRows,
   type LeaveFilter,
   type LeaveSort,
@@ -59,14 +50,14 @@ export function AnnualLeavesPage() {
   const { data: rows = [], isLoading } = useAnnualLeaves(year)
   const deleteMutation = useDeleteLeaveRow()
 
-  const stats = useMemo(() => leaveStats(rows), [rows])
+  const recordableRows = useMemo(() => rows.filter(hasLeaveThisYear), [rows])
 
   const tabCounts = useMemo(() => {
     let low = 0
     let none = 0
     let nocontract = 0
     for (const r of rows) {
-      if (r.remainingDays <= 2) low++
+      if (isLowOnLeave(r)) low++
       if (r.usedDays === 0) none++
       if (r.user.contractStartDate === null) nocontract++
     }
@@ -94,6 +85,10 @@ export function AnnualLeavesPage() {
   const handleOpenRecordTop = () => {
     if (rows.length === 0) {
       toast('Chưa có dòng phép năm nào. Hãy thêm trước.')
+      return
+    }
+    if (recordableRows.length === 0) {
+      toast(`Chưa có nhân sự nào có phép năm ${year}.`)
       return
     }
     setRecordRowId(null)
@@ -128,7 +123,7 @@ export function AnnualLeavesPage() {
     <PageContainer>
       <PageHeader
         title={`Phép năm ${year}`}
-        description="Mỗi người một dòng phép năm: số ngày được hưởng và số ngày nghỉ từng tháng. Số còn lại hệ thống tự tính. Tháng trước ngày ký hợp đồng hiện sọc chéo. Chỉ áp dụng cho nhân sự toàn thời gian."
+        description="Mỗi người một dòng phép năm: số ngày được hưởng và số ngày nghỉ từng tháng. Số còn lại hệ thống tự tính. Tháng trước ngày ký hợp đồng hiện sọc chéo; chưa có ngày ký hợp đồng thì chưa có phép. Chỉ áp dụng cho nhân sự toàn thời gian."
         actions={
           <div className="flex items-center gap-2">
             <Select
@@ -166,39 +161,6 @@ export function AnnualLeavesPage() {
           </div>
         }
       />
-
-      {/* 4 Thẻ thống kê */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          icon={Users}
-          label="Nhân sự trong bảng"
-          value={stats.people}
-          tone="indigo"
-          loading={isLoading}
-        />
-        <StatCard
-          icon={CalendarCheck}
-          label="Tổng ngày phép đã dùng"
-          value={`${formatDays(stats.used)} ngày`}
-          tone="emerald"
-          loading={isLoading}
-        />
-        <StatCard
-          icon={CalendarDays}
-          label="Tổng ngày phép còn lại"
-          value={`${formatDays(stats.remaining)} ngày`}
-          tone="sky"
-          loading={isLoading}
-        />
-        <StatCard
-          icon={TriangleAlert}
-          label="Sắp hết phép"
-          value={stats.low}
-          hint="Còn từ 2 ngày trở xuống"
-          tone="amber"
-          loading={isLoading}
-        />
-      </div>
 
       {/* Bộ lọc và Tìm kiếm */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -245,7 +207,11 @@ export function AnnualLeavesPage() {
       </div>
 
       {/* Bảng dữ liệu hoặc Trạng thái trống */}
-      {rows.length === 0 ? (
+      {isLoading ? (
+        <div className="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
+          <p>Đang tải phép năm {year}...</p>
+        </div>
+      ) : rows.length === 0 ? (
         <div className="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
           <p>Chưa có dòng phép năm {year}. Bấm "Thêm dòng phép" để bắt đầu.</p>
         </div>
@@ -272,7 +238,7 @@ export function AnnualLeavesPage() {
 
       {/* Dialog Ghi nhận nghỉ phép */}
       <RecordLeaveDialog
-        rows={rows}
+        rows={recordableRows}
         year={year}
         initialRowId={recordRowId}
         open={recordDialogOpen}

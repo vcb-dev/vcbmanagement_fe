@@ -19,7 +19,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { getApiErrorMessage } from '@/lib/api-client'
+import type { LeaveCandidate } from './annual-leaves.types'
 import { useCreateLeaveRow, useLeaveCandidates } from './use-annual-leaves'
+
+/** Số điền sẵn: theo gợi ý; chưa có ngày ký HĐ thì chưa có phép nên là 0. */
+function defaultEntitledDays(candidate: LeaveCandidate): number {
+  return candidate.suggestion?.days ?? 0
+}
 
 interface AddLeaveRowDialogProps {
   year: number
@@ -52,7 +58,7 @@ export function AddLeaveRowDialog({
     if (candidates.length > 0) {
       const first = candidates[0]
       setSelectedUserId(first.id)
-      setEntitledDays(first.suggestion ? first.suggestion.days : 12)
+      setEntitledDays(defaultEntitledDays(first))
     } else {
       setSelectedUserId('')
       setEntitledDays(12)
@@ -60,12 +66,13 @@ export function AddLeaveRowDialog({
   }, [open, isLoading, candidates])
 
   const selectedCandidate = candidates.find((c) => c.id === selectedUserId)
+  const noContract = selectedCandidate?.contractStartDate === null
 
   const handleSelectUser = (userId: string) => {
     setSelectedUserId(userId)
     const cand = candidates.find((c) => c.id === userId)
     if (cand) {
-      setEntitledDays(cand.suggestion ? cand.suggestion.days : 12)
+      setEntitledDays(defaultEntitledDays(cand))
     }
   }
 
@@ -129,6 +136,7 @@ export function AddLeaveRowDialog({
                     min={0}
                     max={60}
                     step={1}
+                    disabled={noContract}
                     value={isNaN(entitledDays) ? '' : entitledDays}
                     onChange={(e) => {
                       const v = parseInt(e.target.value, 10)
@@ -145,7 +153,7 @@ export function AddLeaveRowDialog({
                   </p>
                 ) : selectedCandidate ? (
                   <p className="text-xs text-amber-600 dark:text-amber-400 pt-1">
-                    Chưa có ngày ký HĐ của {selectedCandidate.name}. Nhập ở Danh sách nhân sự.
+                    Chưa có ngày ký HĐ của {selectedCandidate.name} nên chưa có phép. Nhập ngày ký ở Danh sách nhân sự.
                   </p>
                 ) : null}
               </div>

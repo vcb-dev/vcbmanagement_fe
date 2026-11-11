@@ -19,6 +19,7 @@ import { formatDate, todayYmd } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { AnnualLeaveRow } from './annual-leaves.types'
 import { formatDays, LEAVE_STATUS_LABEL } from './leave-status'
+import { hasLeaveThisYear } from './leave-table'
 
 interface AnnualLeaveTableProps {
   rows: AnnualLeaveRow[]
@@ -61,6 +62,7 @@ export function AnnualLeaveTable({
               const contractStr = row.user.contractStartDate
                 ? formatDate(row.user.contractStartDate)
                 : null
+              const hasLeave = hasLeaveThisYear(row)
               const pct =
                 row.entitledDays > 0
                   ? Math.min(100, Math.round((row.usedDays / row.entitledDays) * 100))
@@ -124,7 +126,7 @@ export function AnnualLeaveTable({
                     if (isBeforeContract) {
                       tooltipText = contractStr
                         ? `Chưa tính phép · ký HĐ ${contractStr}`
-                        : 'Chưa tính phép'
+                        : 'Chưa ký HĐ, chưa có phép'
                     } else if (days > 0) {
                       tooltipText = `Tháng ${m}/${year} · Nghỉ ${formatDays(days)} ngày`
                     } else {
@@ -170,12 +172,17 @@ export function AnnualLeaveTable({
                           {LEAVE_STATUS_LABEL.over}
                         </span>
                       )}
-                      {row.status === 'zero' && (
+                      {!hasLeave && row.status !== 'over' && (
+                        <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-muted text-muted-foreground">
+                          Chưa có phép
+                        </span>
+                      )}
+                      {hasLeave && row.status === 'zero' && (
                         <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400">
                           {LEAVE_STATUS_LABEL.zero}
                         </span>
                       )}
-                      {row.status === 'low' && (
+                      {hasLeave && row.status === 'low' && (
                         <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400">
                           {LEAVE_STATUS_LABEL.low}
                         </span>
@@ -186,16 +193,22 @@ export function AnnualLeaveTable({
                     <div className="flex items-center justify-end gap-1">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-7"
-                            onClick={() => onRecord(row)}
-                          >
-                            <CalendarPlus className="size-3.5" />
-                          </Button>
+                          {/* span giữ tooltip khi nút bị khoá */}
+                          <span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-7"
+                              disabled={!hasLeave}
+                              onClick={() => onRecord(row)}
+                            >
+                              <CalendarPlus className="size-3.5" />
+                            </Button>
+                          </span>
                         </TooltipTrigger>
-                        <TooltipContent>Ghi nhận nghỉ phép</TooltipContent>
+                        <TooltipContent>
+                          {hasLeave ? 'Ghi nhận nghỉ phép' : 'Chưa có phép năm, không ghi nghỉ được'}
+                        </TooltipContent>
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
