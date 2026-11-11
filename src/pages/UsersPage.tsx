@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { UserAvatar } from '@/components/layout/nav-user'
 import { PageContainer } from '@/components/page-container'
 import { PageHeader } from '@/components/page-header'
+import { PaginationBar } from '@/components/pagination-bar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -24,6 +25,7 @@ import { cn } from '@/lib/utils'
 /** Radix Select không nhận giá trị rỗng. */
 const ALL = 'all'
 const UNASSIGNED = 'unassigned'
+const PAGE_SIZE = 15
 /** Tiêu đề bảng canh giữa, chữ đậm, cùng kiểu với các bảng khác. */
 const HEAD = 'text-center text-sm font-semibold'
 
@@ -35,6 +37,7 @@ export function UsersPage() {
   const [query, setQuery] = useState('')
   const [departmentFilter, setDepartmentFilter] = useState(ALL)
   const [typeFilter, setTypeFilter] = useState(ALL)
+  const [page, setPage] = useState(1)
   const [editing, setEditing] = useState<UserProfile | null>(null)
 
   const filtered = useMemo(() => {
@@ -48,6 +51,17 @@ export function UsersPage() {
     })
   }, [users, query, departmentFilter, typeFilter])
 
+  // Sửa hồ sơ làm danh sách ngắn lại (vd đổi bộ phận khi đang lọc) thì giữ ở trang cuối còn dòng.
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, pageCount)
+  const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
+  /** Đổi từ khoá hoặc bộ lọc thì quay về trang đầu. */
+  function resetPageAfter(change: () => void) {
+    change()
+    setPage(1)
+  }
+
   return (
     <PageContainer>
       <PageHeader title="Nhân sự" description="Bộ phận quyết định giờ làm và mốc đi muộn của từng người." />
@@ -59,13 +73,13 @@ export function UsersPage() {
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => resetPageAfter(() => setQuery(e.target.value))}
                 placeholder="Tìm tên hoặc email…"
                 aria-label="Tìm nhân sự"
                 className="pl-9"
               />
             </div>
-            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+            <Select value={departmentFilter} onValueChange={(next) => resetPageAfter(() => setDepartmentFilter(next))}>
               <SelectTrigger aria-label="Lọc theo bộ phận" className="min-w-44">
                 <SelectValue />
               </SelectTrigger>
@@ -79,7 +93,7 @@ export function UsersPage() {
                 <SelectItem value={UNASSIGNED}>Chưa gán bộ phận</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <Select value={typeFilter} onValueChange={(next) => resetPageAfter(() => setTypeFilter(next))}>
               <SelectTrigger aria-label="Lọc theo loại nhân sự" className="min-w-40">
                 <SelectValue />
               </SelectTrigger>
@@ -122,7 +136,7 @@ export function UsersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((u) => {
+                {pageRows.map((u) => {
                   const department = departments.find((d) => d.id === u.department?.id)
                   return (
                     <TableRow key={u.id} className={cn(!u.isActive && 'opacity-60')}>
@@ -182,9 +196,14 @@ export function UsersPage() {
             </Table>
           )}
           {users && filtered.length > 0 && (
-            <p className="text-xs text-muted-foreground">
-              Hiển thị {filtered.length} trên {users.length} tài khoản
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+              <span>
+                Hiển thị {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} trong{' '}
+                {filtered.length}
+                {filtered.length < users.length && ` (tổng ${users.length})`} tài khoản
+              </span>
+              <PaginationBar page={currentPage} pageCount={pageCount} onChange={setPage} />
+            </div>
           )}
         </CardContent>
       </Card>
