@@ -1,5 +1,6 @@
 import {
   Building2,
+  CalendarCheck,
   CalendarClock,
   CalendarDays,
   LayoutDashboard,
@@ -43,6 +44,13 @@ export const NAV_GROUPS: NavGroup[] = [
         url: '/face/review',
         icon: ShieldCheck,
         description: 'Duyệt đăng ký khuôn mặt nhân viên',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Chốt công tháng',
+        url: '/monthly-timesheets',
+        icon: CalendarCheck,
+        description: 'Công tháng của nhân sự toàn thời gian, tự cập nhật theo chấm công',
         roles: ['admin', 'manager'],
       },
       {
