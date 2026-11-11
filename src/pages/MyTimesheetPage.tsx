@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { UserAvatar } from '@/components/layout/nav-user'
 import { MonthNav } from '@/components/month-nav'
 import { PageContainer } from '@/components/page-container'
@@ -64,10 +64,16 @@ function ProfileLine({ data }: { data: MyTimesheet }) {
 }
 
 export function MyTimesheetPage() {
+  const [searchParams] = useSearchParams()
   const { data: user } = useMe()
   const today = todayYmd()
   const currentMonth = today.slice(0, 7)
-  const [month, setMonth] = useState(currentMonth)
+  const initialMonth = searchParams.get('month')
+  const [month, setMonth] = useState(() => {
+    return initialMonth && /^\d{4}-(0[1-9]|1[0-2])$/.test(initialMonth)
+      ? initialMonth
+      : currentMonth
+  })
   const [picked, setPicked] = useState<string | null>(null)
 
   const sheet = useMyTimesheet(month)

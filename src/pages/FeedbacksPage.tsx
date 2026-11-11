@@ -23,8 +23,10 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useMe } from '@/features/auth/use-auth'
 import { FeedbackDetailPanel } from '@/features/feedbacks/FeedbackDetailPanel'
+import { FeedbackFormDialog } from '@/features/feedbacks/FeedbackFormDialog'
 import { FeedbackListPanel } from '@/features/feedbacks/FeedbackListPanel'
 import type {
+  FeedbackDetail,
   FeedbackStatus,
   SheetType,
 } from '@/features/feedbacks/feedbacks.types'
@@ -44,6 +46,7 @@ export function FeedbacksPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [formOpen, setFormOpen] = useState(false)
 
   const detailRef = useRef<HTMLDivElement | null>(null)
 
@@ -97,13 +100,22 @@ export function FeedbacksPage() {
     setSelectedId(null)
   }
 
+  const handleCreated = (detail: FeedbackDetail) => {
+    setStatusTab('all')
+    setSheetType('all')
+    setSearch('')
+    setDebouncedSearch('')
+    setPage(1)
+    setSelectedId(detail.id)
+  }
+
   return (
     <PageContainer>
       <PageHeader
         title="Feedback"
         description="Mỗi feedback gắn với một bản chốt công tháng (toàn thời gian hoặc part-time). Mỗi câu trả lời ghi lại trạng thái sau khi trả lời, nên biết ai đổi trạng thái và lúc nào."
         actions={
-          <Button disabled className="gap-1.5 shadow-xs">
+          <Button onClick={() => setFormOpen(true)} className="gap-1.5 shadow-xs">
             <Plus className="size-4" />
             {isStaff ? 'Gửi feedback' : 'Ghi nhận feedback'}
           </Button>
@@ -212,6 +224,12 @@ export function FeedbacksPage() {
           <FeedbackDetailPanel id={activeSelectedId} onDeleted={handleDeleted} />
         </div>
       </div>
+
+      <FeedbackFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        onCreated={handleCreated}
+      />
     </PageContainer>
   )
 }
