@@ -65,6 +65,7 @@ export function useDisputeSheet() {
       toast.success(data.message || 'Đã gửi báo sai')
       void queryClient.invalidateQueries({ queryKey: ['attendance', 'my-timesheet'] })
       void queryClient.invalidateQueries({ queryKey: ['part-time'] })
+      void queryClient.invalidateQueries({ queryKey: ['feedbacks'] })
     },
     onError: (err) => toast.error(getApiErrorMessage(err)),
   })
@@ -93,6 +94,7 @@ export function useReplyFeedback(sheetId?: string) {
       toast.success(data.message || 'Đã gửi trả lời')
       void queryClient.invalidateQueries({ queryKey: ['attendance', 'my-timesheet'] })
       void queryClient.invalidateQueries({ queryKey: ['part-time'] })
+      void queryClient.invalidateQueries({ queryKey: ['feedbacks'] })
       if (sheetId) {
         void queryClient.invalidateQueries({ queryKey: ['part-time', 'feedbacks', sheetId] })
       }

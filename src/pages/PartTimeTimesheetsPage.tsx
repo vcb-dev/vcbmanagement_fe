@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { PageContainer } from '@/components/page-container'
 import { PageHeader } from '@/components/page-header'
 import { Badge } from '@/components/ui/badge'
@@ -10,9 +11,21 @@ import { usePartTimeIssues } from '@/features/part-time/use-part-time-admin'
 import { todayYmd } from '@/lib/format'
 
 export function PartTimeTimesheetsPage() {
+  const [searchParams] = useSearchParams()
   const currentMonth = todayYmd().slice(0, 7)
-  const [activeTab, setActiveTab] = useState('grid')
-  const [month, setMonth] = useState(currentMonth)
+  const initialTab = searchParams.get('tab')
+  const initialMonth = searchParams.get('month')
+
+  const [activeTab, setActiveTab] = useState<'grid' | 'closing' | 'issues'>(() => {
+    return initialTab === 'grid' || initialTab === 'closing' || initialTab === 'issues'
+      ? initialTab
+      : 'grid'
+  })
+  const [month, setMonth] = useState(() => {
+    return initialMonth && /^\d{4}-(0[1-9]|1[0-2])$/.test(initialMonth)
+      ? initialMonth
+      : currentMonth
+  })
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   const { data: issues = [] } = usePartTimeIssues(month)
@@ -30,7 +43,7 @@ export function PartTimeTimesheetsPage() {
         description="Bảng chấm công và chốt công nhân sự bán thời gian."
       />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'grid' | 'closing' | 'issues')} className="space-y-4">
         <TabsList>
           <TabsTrigger value="grid">Bảng chấm công</TabsTrigger>
           <TabsTrigger value="closing">Chốt công tháng</TabsTrigger>
