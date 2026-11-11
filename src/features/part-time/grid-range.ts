@@ -1,12 +1,17 @@
-import { shiftMonth, shiftYmd } from '@/lib/format'
+import { formatDayMonth, shiftMonth, shiftYmd } from '@/lib/format'
 
 export type GridMode = 'week' | 'month'
+
+export interface DateRange {
+  from: string
+  to: string
+}
 
 /**
  * Tính khoảng ngày cho chế độ tuần hoặc tháng dựa vào ngày mốc `anchor` (YYYY-MM-DD).
  * Chỉ tính toán chuỗi, không dùng `new Date(ymd)` theo giờ trình duyệt.
  */
-export function rangeFor(mode: GridMode, anchor: string): { from: string; to: string } {
+export function rangeFor(mode: GridMode, anchor: string): DateRange {
   if (mode === 'month') {
     const month = anchor.slice(0, 7)
     const from = `${month}-01`
@@ -39,33 +44,42 @@ export function moveAnchor(mode: GridMode, anchor: string, delta: 1 | -1): strin
 }
 
 /**
- * Nhãn hiển thị cho khoảng ngày.
- * Ví dụ:
- * - Tuần cùng tháng: "07 – 13 tháng 09, 2026"
- * - Tuần vắt tháng: "28/09 – 04/10/2026"
- * - Tháng: "Tháng 09/2026"
+ * Các tuần (thứ Hai – Chủ nhật) có ít nhất một ngày thuộc tháng `month` (YYYY-MM).
+ * Tuần 1 là tuần chứa ngày 01, kể cả khi tuần đó bắt đầu từ tháng trước.
  */
-export function rangeLabel(mode: GridMode, range: { from: string; to: string }): string {
-  if (mode === 'month') {
-    const [y, m] = range.from.slice(0, 7).split('-')
-    return `Tháng ${m}/${y}`
+export function weeksOfMonth(month: string): DateRange[] {
+  const lastDay = shiftYmd(`${shiftMonth(month, 1)}-01`, -1)
+  const weeks: DateRange[] = []
+  let week = rangeFor('week', `${month}-01`)
+  while (week.from <= lastDay) {
+    weeks.push(week)
+    week = { from: shiftYmd(week.from, 7), to: shiftYmd(week.to, 7) }
   }
+  return weeks
+}
 
-  const fromYear = range.from.slice(0, 4)
-  const fromMonth = range.from.slice(5, 7)
-  const fromDay = range.from.slice(8, 10)
+/**
+ * Nhãn tuần trong danh sách chọn.
+ * - Tuần cùng tháng: "Tuần 3 · 09 – 15/11"
+ * - Tuần vắt tháng: "Tuần 1 · 26/10 – 01/11"
+ */
+export function weekLabel(index: number, week: DateRange): string {
+  const sameMonth = week.from.slice(0, 7) === week.to.slice(0, 7)
+  const fromPart = sameMonth ? week.from.slice(8, 10) : formatDayMonth(week.from)
+  return `Tuần ${index + 1} · ${fromPart} – ${formatDayMonth(week.to)}`
+}
 
-  const toYear = range.to.slice(0, 4)
-  const toMonth = range.to.slice(5, 7)
-  const toDay = range.to.slice(8, 10)
+/** "2026-11" → "Tháng 11/2026" */
+export function monthLabel(month: string): string {
+  return `Tháng ${month.slice(5, 7)}/${month.slice(0, 4)}`
+}
 
-  if (fromYear === toYear && fromMonth === toMonth) {
-    return `${fromDay} – ${toDay} tháng ${fromMonth}, ${fromYear}`
-  }
-
-  if (fromYear === toYear) {
-    return `${fromDay}/${fromMonth} – ${toDay}/${toMonth}/${toYear}`
-  }
-
-  return `${fromDay}/${fromMonth}/${fromYear} – ${toDay}/${toMonth}/${toYear}`
+/**
+ * 12 tháng gần nhất tính đến `currentMonth` (mới nhất trước).
+ * Nếu `selectedMonth` cũ hơn (đã bấm lùi nhiều lần) thì thêm nó vào cuối để ô chọn vẫn hiển thị được.
+ */
+export function recentMonths(currentMonth: string, selectedMonth: string, count = 12): string[] {
+  const months = Array.from({ length: count }, (_, i) => shiftMonth(currentMonth, -i))
+  if (!months.includes(selectedMonth)) months.push(selectedMonth)
+  return months
 }
