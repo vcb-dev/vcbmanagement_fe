@@ -32,6 +32,7 @@ export function PartTimeSheetPanel({ data }: { data: MyTimesheet }) {
   const isPending = sheet.status === 'pending'
   const isDisputed = sheet.status === 'disputed'
   const isConfirmed = sheet.status === 'confirmed'
+  const sheetType = data.profile.employmentType === 'part_time' ? 'part_time' : 'full_time'
 
   // So khớp số liệu live với số liệu trong bản chốt
   const isOutdated =
@@ -64,7 +65,7 @@ export function PartTimeSheetPanel({ data }: { data: MyTimesheet }) {
         </div>
 
         <div className="flex items-center gap-2">
-          {isPending && (
+          {isPending && sheetType === 'part_time' && (
             <Button
               size="sm"
               variant="default"
@@ -101,6 +102,7 @@ export function PartTimeSheetPanel({ data }: { data: MyTimesheet }) {
 
       <DisputeDialog
         sheetId={sheet.id}
+        sheetType={sheetType}
         open={disputeOpen}
         onOpenChange={setDisputeOpen}
       />

@@ -94,6 +94,7 @@ export const NAV_GROUPS: NavGroup[] = [
         url: '/feedbacks',
         icon: MessageSquare,
         description: 'Trao đổi về bản chốt công các tháng',
+        roles: ['admin', 'manager'],
         badge: 'feedbackOpen',
       },
       { title: 'Trợ lý AI', url: '/assistant', icon: Sparkles, description: 'Hỏi đáp với AI nội bộ' },

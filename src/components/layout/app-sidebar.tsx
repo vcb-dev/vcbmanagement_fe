@@ -26,7 +26,8 @@ import { NavUser } from './nav-user'
 
 export function AppSidebar({ user }: { user: User }) {
   const { pathname } = useLocation()
-  const { data: feedbackCounts } = useFeedbackCounts()
+  const isManagerOrAdmin = user.role === 'admin' || user.role === 'manager'
+  const { data: feedbackCounts } = useFeedbackCounts(isManagerOrAdmin)
   const groups = NAV_GROUPS.map((g) => ({
     ...g,
     items: g.items.filter((item) => !item.roles || item.roles.includes(user.role)),
