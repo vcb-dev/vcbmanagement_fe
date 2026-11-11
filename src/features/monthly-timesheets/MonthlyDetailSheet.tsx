@@ -18,6 +18,9 @@ import {
   STATUS_TONE,
   formatOvertime,
   formatWorkdays,
+  isOverLeave,
+  leaveBalanceText,
+  leaveLockReason,
   manualValue,
   parseWorkdays,
   type FullTimeTimesheetRow,
@@ -52,13 +55,14 @@ function ManualForm({ month, row }: { month: string; row: FullTimeTimesheetRow }
     Object.fromEntries(MANUAL_FIELDS.map((f) => [f.field, formatWorkdays(manualValue(row, f.field))])),
   )
   const [error, setError] = useState('')
+  const leaveLock = leaveLockReason(row)
 
   function submit(e: FormEvent) {
     e.preventDefault()
     setError('')
     const input: ManualInput = {}
     for (const f of MANUAL_FIELDS) {
-      if (f.field === 'leaveDays' && !row.leave) continue
+      if (f.field === 'leaveDays' && leaveLock) continue
       const value = parseWorkdays(values[f.field], f.field)
       if (value === null) {
         setError(
@@ -77,7 +81,14 @@ function ManualForm({ month, row }: { month: string; row: FullTimeTimesheetRow }
     update.mutate(
       { id: row.id, input },
       {
-        onSuccess: () => toast.success(`Đã lưu công quản lý nhập của ${displayName(row.user)}`),
+        onSuccess: (saved) => {
+          const text = `Đã lưu công quản lý nhập của ${displayName(row.user)}`
+          if (input.leaveDays !== undefined && saved.leave && isOverLeave(saved)) {
+            toast.warning(`${text}. ${leaveBalanceText(saved.leave)}`)
+          } else {
+            toast.success(text)
+          }
+        },
         onError: (err) => setError(getApiErrorMessage(err)),
       },
     )
@@ -87,7 +98,8 @@ function ManualForm({ month, row }: { month: string; row: FullTimeTimesheetRow }
     <form onSubmit={submit} noValidate className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
         {MANUAL_FIELDS.map((f) => {
-          const locked = f.field === 'leaveDays' && !row.leave
+          const isLeave = f.field === 'leaveDays'
+          const locked = isLeave && !!leaveLock
           const id = `manual-${f.field}`
           return (
             <Field key={f.field} className="gap-1.5">
@@ -98,16 +110,12 @@ function ManualForm({ month, row }: { month: string; row: FullTimeTimesheetRow }
                 autoComplete="off"
                 disabled={locked}
                 value={locked ? '' : values[f.field]}
-                placeholder={locked ? 'Chưa có phép năm' : '0'}
+                placeholder={locked ? (row.leave ? 'Chưa có phép' : 'Chưa có phép năm') : '0'}
                 onChange={(e) => setValues((v) => ({ ...v, [f.field]: e.target.value }))}
                 className="tabular-nums"
               />
-              <FieldDescription className="text-xs">
-                {f.field === 'leaveDays' && row.leave
-                  ? `Phép năm ${row.leave.year} còn ${formatWorkdays(row.leave.remainingDays)} / ${row.leave.entitledDays} ngày`
-                  : locked
-                    ? 'Cần tạo phép năm trước khi ghi công phép'
-                    : f.hint}
+              <FieldDescription className={cn('text-xs', isLeave && !locked && isOverLeave(row) && 'text-destructive')}>
+                {locked ? leaveLock : isLeave && row.leave ? leaveBalanceText(row.leave) : f.hint}
               </FieldDescription>
             </Field>
           )

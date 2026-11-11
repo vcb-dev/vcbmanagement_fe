@@ -31,10 +31,12 @@ async function applyRow(queryClient: QueryClient, month: string, row: FullTimeTi
   queryClient.setQueryData<FullTimeTimesheetReport>(reportKey(month), (prev) =>
     prev ? { ...prev, rows: prev.rows.map((r) => (r.id === row.id ? row : r)) } : prev,
   )
-  // Màn Tăng ca và Công của tôi của chính người đó (nếu quản lý đang sửa dòng của mình).
+  // Màn Tăng ca, Công của tôi của chính người đó (nếu quản lý đang sửa dòng của mình),
+  // và màn Phép năm vì công phép ghi thẳng vào phép tháng của phép năm.
   await Promise.all([
     queryClient.invalidateQueries({ queryKey: ['attendance', 'full-time-overtime-report', month] }),
     queryClient.invalidateQueries({ queryKey: ['attendance', 'my-timesheet'] }),
+    queryClient.invalidateQueries({ queryKey: ['annual-leaves'] }),
   ])
 }
 

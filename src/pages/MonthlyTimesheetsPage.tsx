@@ -17,6 +17,8 @@ import {
   MANUAL_FIELDS,
   STATUS_LABEL,
   formatWorkdays,
+  isOverLeave,
+  leaveBalanceText,
   type ConfirmationStatus,
   type FullTimeTimesheetRow,
   type ManualField,
@@ -45,6 +47,7 @@ const EXTRA_FILTERS: { value: string; label: string; match: (r: FullTimeTimeshee
   { value: 'excused', label: 'Có xin phép', match: (r) => r.excusedWorkdays > 0 },
   { value: 'leave', label: 'Có nghỉ phép', match: (r) => r.leaveWorkdays > 0 },
   { value: 'no-leave-balance', label: 'Chưa có phép năm', match: (r) => !r.leave },
+  { value: 'over-leave', label: 'Nghỉ quá phép năm', match: isOverLeave },
 ]
 
 const updatedAt = (time: number) =>
@@ -93,7 +96,13 @@ export function MonthlyTimesheetsPage() {
     const name = MANUAL_FIELDS.find((f) => f.field === field)!.short.toLowerCase()
     return update
       .mutateAsync({ id: row.id, input: { [field]: value } })
-      .then(() => toast.success(`Đã lưu ${name} của ${displayName(row.user)}: ${formatWorkdays(value)}`))
+      .then((saved) => {
+        const text = `Đã lưu ${name} của ${displayName(row.user)}: ${formatWorkdays(value)}`
+        // Công phép tự trừ vào phép năm: báo luôn số còn lại, nghỉ quá thì cảnh báo.
+        if (field !== 'leaveDays' || !saved.leave) return toast.success(text)
+        const balance = `${text}. ${leaveBalanceText(saved.leave)}`
+        return isOverLeave(saved) ? toast.warning(balance) : toast.success(balance)
+      })
       .catch((err: unknown) => toast.error(getApiErrorMessage(err)))
   }
 

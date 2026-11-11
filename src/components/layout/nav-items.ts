@@ -37,7 +37,14 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Tổng quan',
     items: [
       { title: 'Bảng điều khiển', url: '/', icon: LayoutDashboard, description: 'Tổng quan hoạt động' },
-      { title: 'Công của tôi', url: '/my-timesheet', icon: CalendarDays, description: 'Lịch chấm công và công tháng của bạn' },
+      {
+        title: 'Công của tôi',
+        url: '/my-timesheet',
+        icon: CalendarDays,
+        description: 'Lịch chấm công và công tháng của bạn',
+        // Admin và quản lý chỉ dùng các màn quản lý.
+        roles: ['staff'],
+      },
     ],
   },
   {

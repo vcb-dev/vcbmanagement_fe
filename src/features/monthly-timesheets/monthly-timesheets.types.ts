@@ -19,8 +19,15 @@ export interface FullTimeTimesheetRow {
   overtimeWorkdays: number
   /** Công máy + từ xa + lễ, bù + phép. */
   totalWorkdays: number
-  /** null = chưa có dòng phép năm, chưa ghi được công phép. */
-  leave: { year: number; entitledDays: number; remainingDays: number } | null
+  /** Phép năm của năm bản chốt; null = chưa có dòng phép năm, chưa ghi được công phép. */
+  leave: {
+    year: number
+    entitledDays: number
+    /** Được hưởng trừ phép các tháng, âm khi đã nghỉ quá. Công phép lưu xong thì server tự trừ. */
+    remainingDays: number
+    /** Lý do chưa ghi thêm được công phép tháng này (chưa ký HĐ, tháng trước ngày ký HĐ); null = ghi được. */
+    blockedReason: string | null
+  } | null
   confirmationStatus: ConfirmationStatus
   /** Thời điểm nhân viên xác nhận, chỉ có khi đang ở trạng thái đã xác nhận. */
   confirmedAt: string | null
@@ -53,13 +60,30 @@ export const MANUAL_FIELDS: { field: ManualField; label: string; short: string; 
   { field: 'offsiteWorkdays', label: 'Làm ở nhà / cửa hàng', short: 'Từ xa', hint: 'Cộng vào tổng công' },
   { field: 'holidayWorkdays', label: 'Công nghỉ lễ + nghỉ bù', short: 'Lễ + bù', hint: 'Cộng vào tổng công' },
   { field: 'excusedWorkdays', label: 'Xin muộn / về sớm / ra ngoài', short: 'Xin phép', hint: 'Không cộng vào tổng công' },
-  { field: 'leaveDays', label: 'Công phép', short: 'Phép', hint: 'Ghi vào phép năm, cộng vào tổng công' },
+  { field: 'leaveDays', label: 'Công phép', short: 'Phép', hint: 'Tự trừ vào phép năm, cộng vào tổng công' },
 ]
 
 /** Giá trị đang lưu của ô quản lý nhập. Công phép đọc từ phép tháng. */
 export function manualValue(row: FullTimeTimesheetRow, field: ManualField): number {
   return field === 'leaveDays' ? row.leaveWorkdays : row[field]
 }
+
+/** Lý do khoá ô công phép, undefined khi sửa được. Tháng đã có phép thì vẫn mở để giảm hoặc bỏ. */
+export function leaveLockReason(row: FullTimeTimesheetRow): string | undefined {
+  if (!row.leave) return 'Chưa có phép năm của nhân sự này, thêm ở màn Phép năm trước khi ghi công phép'
+  if (row.leave.blockedReason && row.leaveWorkdays === 0) return row.leave.blockedReason
+  return undefined
+}
+
+/** "Phép năm 2026 còn 4 / 12 ngày", hoặc "đã nghỉ quá 1,5 ngày" khi còn lại âm. */
+export function leaveBalanceText(leave: NonNullable<FullTimeTimesheetRow['leave']>): string {
+  const head = `Phép năm ${leave.year}`
+  return leave.remainingDays < 0
+    ? `${head}: ${leave.entitledDays} ngày, đã nghỉ quá ${formatWorkdays(-leave.remainingDays)} ngày`
+    : `${head} còn ${formatWorkdays(leave.remainingDays)} / ${leave.entitledDays} ngày`
+}
+
+export const isOverLeave = (row: FullTimeTimesheetRow) => !!row.leave && row.leave.remainingDays < 0
 
 export const STATUS_LABEL: Record<ConfirmationStatus, string> = {
   confirmed: 'Đã xác nhận',
