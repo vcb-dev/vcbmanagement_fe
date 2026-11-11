@@ -3,6 +3,7 @@ import {
   CalendarCheck,
   CalendarClock,
   CalendarDays,
+  CalendarHeart,
   CalendarRange,
   ClipboardCheck,
   ClockPlus,
@@ -89,7 +90,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         title: 'Phép năm',
         url: '/annual-leaves',
-        icon: CalendarCheck,
+        icon: CalendarHeart,
         description: 'Phép năm và ngày nghỉ các tháng của nhân sự toàn thời gian',
         roles: ['admin', 'manager'],
       },

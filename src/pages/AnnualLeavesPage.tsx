@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { PageContainer } from '@/components/page-container'
 import { PageHeader } from '@/components/page-header'
+import { PaginationFooter } from '@/components/pagination-footer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -14,23 +15,21 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import type { AnnualLeaveRow } from '@/features/annual-leaves/annual-leaves.types'
+import type {
+  AnnualLeaveRow,
+  LeaveFilter,
+  LeaveSort,
+} from '@/features/annual-leaves/annual-leaves.types'
 import { AddLeaveRowDialog } from '@/features/annual-leaves/AddLeaveRowDialog'
 import { AnnualLeaveTable } from '@/features/annual-leaves/AnnualLeaveTable'
 import { LeaveEditSheet } from '@/features/annual-leaves/LeaveEditSheet'
-import {
-  filterLeaveRows,
-  hasLeaveThisYear,
-  isLowOnLeave,
-  sortLeaveRows,
-  type LeaveFilter,
-  type LeaveSort,
-} from '@/features/annual-leaves/leave-table'
 import { RecordLeaveDialog } from '@/features/annual-leaves/RecordLeaveDialog'
 import {
   useAnnualLeaves,
   useDeleteLeaveRow,
+  useRecordableLeaves,
 } from '@/features/annual-leaves/use-annual-leaves'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { todayYmd } from '@/lib/format'
 
@@ -47,32 +46,19 @@ export function AnnualLeavesPage() {
   const [editingRow, setEditingRow] = useState<AnnualLeaveRow | null>(null)
   const [deletingRow, setDeletingRow] = useState<AnnualLeaveRow | null>(null)
 
-  const { data: rows = [], isLoading } = useAnnualLeaves(year)
+  // Lọc tab, tìm, sắp xếp và phân trang làm ở BE. Đổi năm hoặc bộ lọc thì về trang 1.
+  const q = useDebouncedValue(search.trim())
+  const filterKey = [year, filter, sort, q].join('|')
+  const [paging, setPaging] = useState({ key: filterKey, page: 1 })
+  const page = paging.key === filterKey ? paging.page : 1
+
+  const { data, isLoading } = useAnnualLeaves({ year, page, filter, sort, q: q || undefined })
+  const rows = data?.items ?? []
+  const counts = data?.counts
   const deleteMutation = useDeleteLeaveRow()
 
-  const recordableRows = useMemo(() => rows.filter(hasLeaveThisYear), [rows])
-
-  const tabCounts = useMemo(() => {
-    let low = 0
-    let none = 0
-    let nocontract = 0
-    for (const r of rows) {
-      if (isLowOnLeave(r)) low++
-      if (r.usedDays === 0) none++
-      if (r.user.contractStartDate === null) nocontract++
-    }
-    return {
-      all: rows.length,
-      low,
-      none,
-      nocontract,
-    }
-  }, [rows])
-
-  const displayedRows = useMemo(() => {
-    const filtered = filterLeaveRows(rows, filter, search)
-    return sortLeaveRows(filtered, sort)
-  }, [rows, filter, search, sort])
+  const recordable = useRecordableLeaves(year, recordDialogOpen)
+  const recordableRows = recordable.data ?? []
 
   const yearOptions = useMemo(() => {
     const options: number[] = []
@@ -83,11 +69,12 @@ export function AnnualLeavesPage() {
   }, [currentYear])
 
   const handleOpenRecordTop = () => {
-    if (rows.length === 0) {
+    if (!counts) return
+    if (counts.all === 0) {
       toast('Chưa có dòng phép năm nào. Hãy thêm trước.')
       return
     }
-    if (recordableRows.length === 0) {
+    if (counts.recordable === 0) {
       toast(`Chưa có nhân sự nào có phép năm ${year}.`)
       return
     }
@@ -170,10 +157,10 @@ export function AnnualLeavesPage() {
           className="w-full lg:w-auto"
         >
           <TabsList className="grid grid-cols-2 sm:grid-cols-4">
-            <TabsTrigger value="all">Tất cả ({tabCounts.all})</TabsTrigger>
-            <TabsTrigger value="low">Sắp hết phép ({tabCounts.low})</TabsTrigger>
-            <TabsTrigger value="none">Chưa nghỉ ngày nào ({tabCounts.none})</TabsTrigger>
-            <TabsTrigger value="nocontract">Chưa có ngày ký HĐ ({tabCounts.nocontract})</TabsTrigger>
+            <TabsTrigger value="all">Tất cả ({counts?.all ?? 0})</TabsTrigger>
+            <TabsTrigger value="low">Sắp hết phép ({counts?.low ?? 0})</TabsTrigger>
+            <TabsTrigger value="none">Chưa nghỉ ngày nào ({counts?.none ?? 0})</TabsTrigger>
+            <TabsTrigger value="nocontract">Chưa có ngày ký HĐ ({counts?.nocontract ?? 0})</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -211,22 +198,29 @@ export function AnnualLeavesPage() {
         <div className="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
           <p>Đang tải phép năm {year}...</p>
         </div>
-      ) : rows.length === 0 ? (
+      ) : counts?.all === 0 ? (
         <div className="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
           <p>Chưa có dòng phép năm {year}. Bấm "Thêm dòng phép" để bắt đầu.</p>
         </div>
-      ) : displayedRows.length === 0 ? (
+      ) : rows.length === 0 ? (
         <div className="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
           <p>Không có nhân sự phù hợp</p>
         </div>
       ) : (
-        <AnnualLeaveTable
-          rows={displayedRows}
-          year={year}
-          onEdit={handleEditRow}
-          onRecord={handleRecordRow}
-          onDelete={handleDeleteRow}
-        />
+        <div className="space-y-3">
+          <AnnualLeaveTable
+            rows={rows}
+            year={year}
+            onEdit={handleEditRow}
+            onRecord={handleRecordRow}
+            onDelete={handleDeleteRow}
+          />
+          <PaginationFooter
+            data={data}
+            unit="nhân sự"
+            onPageChange={(p) => setPaging({ key: filterKey, page: p })}
+          />
+        </div>
       )}
 
       {/* Dialog Thêm dòng phép */}

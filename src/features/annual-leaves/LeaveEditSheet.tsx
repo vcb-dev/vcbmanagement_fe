@@ -95,15 +95,18 @@ export function LeaveEditSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="right" className="flex flex-col sm:max-w-md w-full overflow-y-auto">
-          <SheetHeader>
+        {/* Độ rộng phải đi kèm data-[side=right]: lớp gốc của Sheet có data-[side=right]:sm:max-w-sm,
+            selector mạnh hơn nên `sm:max-w-md` trơn bị lấn, sheet kẹt ở 384px. */}
+        <SheetContent className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md">
+          <SheetHeader className="border-b pr-12">
             <SheetTitle>{row.user.name}</SheetTitle>
             <SheetDescription>
               Phép năm {year} · sửa số được hưởng và số ngày đã nghỉ từng tháng.
             </SheetDescription>
           </SheetHeader>
 
-          <div className="space-y-6 py-2">
+          {/* Thân cuộn riêng, đầu và chân (nút Lưu) luôn hiện. */}
+          <div className="flex-1 space-y-6 overflow-y-auto p-4">
             {/* Khối tóm tắt */}
             <div className="rounded-lg border bg-muted/40 p-4 space-y-3">
               <div className="flex items-center justify-between">
@@ -257,7 +260,7 @@ export function LeaveEditSheet({
                             const parsed = parseFloat(e.target.value)
                             handleMonthChange(m - 1, isNaN(parsed) ? 0 : parsed)
                           }}
-                          className="h-7 text-center text-xs p-1"
+                          className="h-7 p-1 text-center text-xs tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
                         <Button
                           type="button"
@@ -285,7 +288,7 @@ export function LeaveEditSheet({
             )}
           </div>
 
-          <SheetFooter className="mt-auto border-t pt-4">
+          <SheetFooter className="border-t">
             <div className="flex w-full items-center justify-between gap-2">
               <Button
                 type="button"

@@ -1,15 +1,49 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { apiClient } from '@/lib/api-client'
-import type { AnnualLeaveRow, LeaveCandidate } from './annual-leaves.types'
+import type {
+  AnnualLeavePage,
+  AnnualLeaveRow,
+  LeaveCandidate,
+  LeaveFilter,
+  LeaveSort,
+} from './annual-leaves.types'
 
-export function useAnnualLeaves(year: number) {
+export interface AnnualLeaveListParams {
+  year: number
+  page: number
+  filter: LeaveFilter
+  sort: LeaveSort
+  q?: string
+}
+
+/** Một trang dòng phép năm; lọc tab, tìm kiếm và sắp xếp làm ở BE. */
+export function useAnnualLeaves(params: AnnualLeaveListParams) {
   return useQuery({
-    queryKey: ['annual-leaves', year],
+    queryKey: ['annual-leaves', 'list', params],
     queryFn: async () => {
-      const res = await apiClient.get<{ data: AnnualLeaveRow[] }>(`/annual-leaves?year=${year}`)
+      const res = await apiClient.get<{ data: AnnualLeavePage }>('/annual-leaves', { params })
       return res.data.data
     },
+    // Giữ trang cũ khi đổi trang / bộ lọc cho đỡ nháy, nhưng không đem dòng năm khác sang năm mới.
+    placeholderData: (prev, prevQuery) =>
+      (prevQuery?.queryKey[2] as AnnualLeaveListParams | undefined)?.year === params.year
+        ? prev
+        : undefined,
+  })
+}
+
+/** Các dòng ghi nghỉ phép được trong năm, chỉ tải khi mở hộp "Ghi nhận nghỉ phép". */
+export function useRecordableLeaves(year: number, enabled: boolean) {
+  return useQuery({
+    queryKey: ['annual-leaves', 'recordable', year],
+    queryFn: async () => {
+      const res = await apiClient.get<{ data: AnnualLeaveRow[] }>('/annual-leaves/recordable', {
+        params: { year },
+      })
+      return res.data.data
+    },
+    enabled,
   })
 }
 

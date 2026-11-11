@@ -34,3 +34,17 @@ export interface LeaveCandidate {
   startMonth: number
   suggestion: LeaveSuggestion | null
 }
+
+export type LeaveFilter = 'all' | 'low' | 'none' | 'nocontract'
+export type LeaveSort = 'added' | 'name' | 'remain' | 'used'
+
+/** Số dòng theo từng tab trên cả năm; `recordable` = số dòng ghi nghỉ phép được (có phép năm đó). */
+export type LeaveCounts = Record<LeaveFilter | 'recordable', number>
+
+export interface AnnualLeavePage {
+  items: AnnualLeaveRow[]
+  total: number
+  page: number
+  pageSize: number
+  counts: LeaveCounts
+}
