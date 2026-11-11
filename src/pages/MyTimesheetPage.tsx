@@ -6,7 +6,6 @@ import { PageContainer } from '@/components/page-container'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useAttendanceMonth } from '@/features/attendance/use-attendance'
 import { useMe } from '@/features/auth/use-auth'
 import { DayDetailCard } from '@/features/my-timesheet/DayDetailCard'
 import { MonthCalendar } from '@/features/my-timesheet/MonthCalendar'
@@ -77,8 +76,7 @@ export function MyTimesheetPage() {
   const [picked, setPicked] = useState<string | null>(null)
 
   const sheet = useMyTimesheet(month)
-  const attendance = useAttendanceMonth(month)
-  const monthReady = attendance.data?.month === month
+  const monthReady = sheet.data?.month === month
 
   const isPartTime = sheet.data?.profile.employmentType === 'part_time'
   const ptDays = useMyPartTimeDays(
@@ -87,8 +85,8 @@ export function MyTimesheetPage() {
   )
 
   const records = useMemo(
-    () => new Map((monthReady ? attendance.data!.records : []).map((r) => [r.workDate, r])),
-    [attendance.data, monthReady],
+    () => new Map((monthReady ? sheet.data!.records : []).map((r) => [r.workDate, r])),
+    [sheet.data, monthReady],
   )
 
   const ptDaysMap = useMemo(
@@ -96,10 +94,8 @@ export function MyTimesheetPage() {
     [ptDays.data],
   )
 
-  const defaultDay =
-    month === currentMonth ? today : (monthReady && attendance.data!.records[0]?.workDate) || `${month}-01`
+  const defaultDay = month === currentMonth ? today : (monthReady && sheet.data!.records[0]?.workDate) || `${month}-01`
   const selected = picked?.startsWith(month) ? picked : defaultDay
-  const summaryReady = sheet.data?.month === month
 
   if (!user) return null
 
@@ -132,7 +128,7 @@ export function MyTimesheetPage() {
             </button>
           </CardContent>
         </Card>
-      ) : summaryReady ? (
+      ) : monthReady ? (
         <div className="space-y-4">
           <TimesheetSummaryCard data={sheet.data!} />
           <FeedbackThread
@@ -164,10 +160,10 @@ export function MyTimesheetPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {attendance.isError ? (
+            {sheet.isError ? (
               <p className="py-8 text-center text-sm text-destructive">
-                {getApiErrorMessage(attendance.error)}{' '}
-                <button type="button" className="underline" onClick={() => void attendance.refetch()}>
+                {getApiErrorMessage(sheet.error)}{' '}
+                <button type="button" className="underline" onClick={() => void sheet.refetch()}>
                   Thử lại
                 </button>
               </p>
@@ -200,7 +196,7 @@ export function MyTimesheetPage() {
             <PartTimeDayDetail
               ymd={selected}
               day={ptDaysMap.get(selected)}
-              thresholds={sheet.data?.schedule.lateThresholds ?? []}
+              thresholds={sheet.data!.schedule.lateThresholds}
               record={records.get(selected)}
             />
           ) : (
@@ -208,7 +204,7 @@ export function MyTimesheetPage() {
               ymd={selected}
               record={records.get(selected)}
               today={today}
-              thresholds={sheet.data?.schedule.lateThresholds ?? []}
+              thresholds={sheet.data!.schedule.lateThresholds}
             />
           )
         ) : (

@@ -2,11 +2,13 @@ import { Sun, Sunset, type LucideIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AttendancePhotos } from '@/features/attendance/AttendancePhoto'
-import type { AttendanceRecord, ShiftRecord } from '@/features/attendance/attendance.types'
-import { formatDuration, formatTime, formatWorkDate } from '@/lib/format'
+import type { ShiftRecord } from '@/features/attendance/attendance.types'
+import { formatDateTime, formatDuration, formatTime, formatWorkDate } from '@/lib/format'
 import { lateLevelLabel, lateLevelTone } from '@/lib/late-levels'
+import { displayName } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
 import { DAY_KIND_LABEL, DAY_KIND_STYLE, dayKind, isShiftMissing, isWholeDayWithoutLunch } from './day-status'
+import type { DayRecord, DayShift } from './my-timesheet.types'
 
 /** Giờ chuẩn của ca lúc chấm: giờ vào trừ số phút muộn đã ghi, nên vẫn đúng khi bộ phận đổi giờ sau đó. */
 function standardStart(shift: ShiftRecord): string {
@@ -37,7 +39,7 @@ function SessionCard({
 }: {
   icon: LucideIcon
   name: string
-  shift: ShiftRecord
+  shift: DayShift
   missing: boolean
   thresholds: readonly number[]
 }) {
@@ -89,7 +91,7 @@ export function DayDetailCard({
   thresholds,
 }: {
   ymd: string
-  record: AttendanceRecord | undefined
+  record: DayRecord | undefined
   today: string
   /** Bộ mốc đi muộn áp dụng cho người dùng, để hiện khoảng phút của mốc. */
   thresholds: readonly number[]
@@ -105,6 +107,7 @@ export function DayDetailCard({
     record?.workedMinutes != null && `Tổng giờ làm: ${formatDuration(record.workedMinutes)}.`,
     punchNotes.length > 0 && `Ghi chú: ${punchNotes.join(' · ')}`,
   ].filter((note): note is string => !!note)
+  const adjustment = record?.adjustment
 
   return (
     <Card>
@@ -134,6 +137,15 @@ export function DayDetailCard({
               missing={isShiftMissing(record.afternoon, record, live)}
               thresholds={thresholds}
             />
+            {adjustment && (
+              <div className="space-y-0.5 rounded-lg bg-sky-500/10 p-3 text-xs text-sky-900 dark:text-sky-200">
+                <p>
+                  Giờ ngày này do <b className="font-medium">{displayName(adjustment.adjustedBy)}</b> bổ sung lúc{' '}
+                  <span className="tabular-nums">{formatDateTime(adjustment.adjustedAt)}</span>.
+                </p>
+                <p className="break-words">“{adjustment.note}”</p>
+              </div>
+            )}
             {notes.length > 0 && (
               <div className="space-y-1 rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground">
                 {notes.map((note) => (

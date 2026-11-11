@@ -10,6 +10,9 @@ import { setSessionExpiredHandler } from '@/lib/api-client'
 
 const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 const AttendancePage = lazy(() => import('@/pages/AttendancePage').then((m) => ({ default: m.AttendancePage })))
+const AttendanceBoardPage = lazy(() =>
+  import('@/pages/AttendanceBoardPage').then((m) => ({ default: m.AttendanceBoardPage })),
+)
 const AssistantPage = lazy(() => import('@/pages/AssistantPage').then((m) => ({ default: m.AssistantPage })))
 const FacePage = lazy(() => import('@/pages/FacePage').then((m) => ({ default: m.FacePage })))
 const FaceReviewPage = lazy(() => import('@/pages/FaceReviewPage').then((m) => ({ default: m.FaceReviewPage })))
@@ -20,6 +23,10 @@ const LatePage = lazy(() => import('@/pages/LatePage').then((m) => ({ default: m
 const PartTimeTimesheetsPage = lazy(() => import('@/pages/PartTimeTimesheetsPage').then((m) => ({ default: m.PartTimeTimesheetsPage })))
 const AnnualLeavesPage = lazy(() => import('@/pages/AnnualLeavesPage').then((m) => ({ default: m.AnnualLeavesPage })))
 const FeedbacksPage = lazy(() => import('@/pages/FeedbacksPage').then((m) => ({ default: m.FeedbacksPage })))
+const OvertimePage = lazy(() => import('@/pages/OvertimePage').then((m) => ({ default: m.OvertimePage })))
+const MonthlyTimesheetsPage = lazy(() =>
+  import('@/pages/MonthlyTimesheetsPage').then((m) => ({ default: m.MonthlyTimesheetsPage })),
+)
 
 function useSessionExpiredRedirect() {
   const navigate = useNavigate()
@@ -52,6 +59,9 @@ export default function App() {
             <Route element={<ProtectedRoute roles={['admin', 'manager']} />}>
               <Route path="/feedbacks" element={<FeedbacksPage />} />
               <Route path="/face/review" element={<FaceReviewPage />} />
+              <Route path="/attendance-board" element={<AttendanceBoardPage />} />
+              <Route path="/monthly-timesheets" element={<MonthlyTimesheetsPage />} />
+              <Route path="/overtime" element={<OvertimePage />} />
               <Route path="/late" element={<LatePage />} />
               <Route path="/part-time-timesheets" element={<PartTimeTimesheetsPage />} />
               <Route path="/annual-leaves" element={<AnnualLeavesPage />} />

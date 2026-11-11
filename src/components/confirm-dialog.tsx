@@ -7,6 +7,7 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel = 'Xoá',
+  variant = 'destructive',
   pending,
   onConfirm,
   onCancel,
@@ -15,6 +16,8 @@ export function ConfirmDialog({
   title: string
   description: string
   confirmLabel?: string
+  /** `default` cho thao tác không xoá, vd xác nhận công. */
+  variant?: 'destructive' | 'default'
   pending?: boolean
   onConfirm: () => void
   onCancel: () => void
@@ -30,7 +33,7 @@ export function ConfirmDialog({
           <Button variant="outline" onClick={onCancel} disabled={pending}>
             Huỷ
           </Button>
-          <Button variant="destructive" onClick={onConfirm} disabled={pending}>
+          <Button variant={variant} onClick={onConfirm} disabled={pending}>
             {pending && <Loader2 className="animate-spin" />}
             {confirmLabel}
           </Button>

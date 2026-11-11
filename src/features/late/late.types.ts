@@ -1,76 +1,60 @@
 import type { EmploymentType } from '@/features/auth/auth.types'
-import type { LateLevelCount } from '@/features/my-timesheet/my-timesheet.types'
-import { lateLevelName } from '@/lib/late-levels'
 
-/** Một lần đi muộn: mỗi ca đi muộn tính là một lần. */
+export type LateShift = 'morning' | 'afternoon'
+
+/** Một lần đi muộn: mỗi ca vào sau giờ vào ca là một lần, một ngày có thể có hai lần. */
 export interface LateEvent {
   date: string
-  shift: 'morning' | 'afternoon'
+  shift: LateShift
   minutes: number
-  /** Null khi người này chưa có bộ mốc. */
-  level: number | null
 }
 
 export interface LateReportRow {
   user: { id: string; email: string; fullName: string | null; isActive: boolean }
   department: { id: string; name: string } | null
   employmentType: EmploymentType
-  /** Bộ mốc đang áp dụng cho người này, tăng dần. Rỗng = chưa có mốc. */
-  thresholds: number[]
   lateCount: number
   lateMinutes: number
-  levels: LateLevelCount[]
+  /** Các lần đi muộn trong tháng, tăng dần theo ngày. */
   events: LateEvent[]
-}
-
-export interface LateRules {
-  /** Bộ mốc chung áp dụng trong tháng, tăng dần. */
-  general: number[]
-  customSetCount: number
 }
 
 export interface LateReport {
   month: string
-  rules: LateRules
   summary: { totalPeople: number; latePeople: number; lateCount: number; lateMinutes: number }
   rows: LateReportRow[]
 }
 
-export const SHIFT_LABEL: Record<LateEvent['shift'], string> = {
+/** Hai dòng của mỗi nhân sự trên bảng. */
+export const LATE_SHIFTS = [
+  { key: 'morning', label: 'Sáng' },
+  { key: 'afternoon', label: 'Chiều' },
+] as const satisfies readonly { key: LateShift; label: string }[]
+
+export const SHIFT_LABEL: Record<LateShift, string> = {
   morning: 'Ca sáng',
   afternoon: 'Ca chiều',
 }
 
-export interface LateColumn {
-  key: string
-  name: string
-  fromMinutes: number
-  toMinutes: number | null
+export interface LateTotal {
+  count: number
+  minutes: number
 }
 
-const columnKey = (l: Pick<LateLevelCount, 'fromMinutes' | 'toMinutes'>) => `${l.fromMinutes}-${l.toMinutes ?? ''}`
-
-/** Cột tổng theo mốc: mỗi khoảng phút một cột, sắp tăng dần. Các dòng dùng bộ mốc khác nhau thì có thêm cột của từng bộ. */
-export function lateColumns(rows: LateReportRow[]): LateColumn[] {
-  const columns = new Map<string, LateColumn>()
-  for (const row of rows) {
-    for (const level of row.levels) {
-      const key = columnKey(level)
-      if (columns.has(key)) continue
-      columns.set(key, {
-        key,
-        name: lateLevelName(level.level, row.thresholds),
-        fromMinutes: level.fromMinutes,
-        toMinutes: level.toMinutes,
-      })
-    }
+/** Số lần và tổng phút đi muộn, chỉ tính các ngày trong `days` và ca `shift` khi có truyền. */
+export function lateTotal(events: readonly LateEvent[], days?: ReadonlySet<string>, shift?: LateShift): LateTotal {
+  const total: LateTotal = { count: 0, minutes: 0 }
+  for (const e of events) {
+    if ((shift && e.shift !== shift) || (days && !days.has(e.date))) continue
+    total.count += 1
+    total.minutes += e.minutes
   }
-  return [...columns.values()].sort(
-    (a, b) => a.fromMinutes - b.fromMinutes || (a.toMinutes ?? Infinity) - (b.toMinutes ?? Infinity),
-  )
+  return total
 }
 
-/** Số lần của một người trong cột; không có nghĩa là bộ mốc của người này không có khoảng đó. */
-export function levelInColumn(row: LateReportRow, column: LateColumn): LateLevelCount | undefined {
-  return row.levels.find((l) => columnKey(l) === column.key)
+/** Phút muộn theo ngày của từng ca, để tra ô trên bảng. */
+export function lateByShift(events: readonly LateEvent[]): Record<LateShift, Map<string, number>> {
+  const index = { morning: new Map<string, number>(), afternoon: new Map<string, number>() }
+  for (const e of events) index[e.shift].set(e.date, e.minutes)
+  return index
 }
