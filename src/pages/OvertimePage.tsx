@@ -22,7 +22,7 @@ import { FEATURES } from '@/lib/features'
 import { formatDayMonth, formatMonth, normalizeSearch, todayYmd } from '@/lib/format'
 import { displayName } from '@/lib/user-display'
 
-const PAGE_SIZE = 15
+const PAGE_SIZE = 12
 /** Radix Select không nhận giá trị rỗng. */
 const ALL = 'all'
 const UNASSIGNED = 'unassigned'
@@ -105,7 +105,8 @@ export function OvertimePage() {
       </div>
 
       <Card className="gap-0 py-0">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b px-3 pt-2 pb-[5px]">
+        {/* Tab và bộ lọc chung một hàng. Hẹp không đủ chỗ thì bộ lọc lên trên (wrap-reverse) để tab vẫn sát đường kẻ. */}
+        <div className="flex flex-wrap-reverse items-center justify-between gap-x-4 gap-y-2 border-b px-3 pt-2 pb-[5px]">
           <Tabs value={tab} onValueChange={(next) => resetPageAfter(() => setTab(next))}>
             <TabsList variant="line" className="flex-wrap justify-start gap-y-1.5 group-data-horizontal/tabs:h-auto">
               <TabsTrigger value={ALL} className={TAB_TRIGGER}>
@@ -121,40 +122,36 @@ export function OvertimePage() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <p className="hidden text-xs text-muted-foreground lg:block">
-            Bấm vào ô của ngày để nhập số công tăng ca, ví dụ 0,5 hoặc 0,375 · Xoá trống để bỏ · Enter, ↑, ↓ để chuyển dòng
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-2 p-3">
-          <div className="relative min-w-56 flex-1 sm:max-w-sm">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => resetPageAfter(() => setQuery(e.target.value))}
-              placeholder="Tìm tên hoặc email…"
-              aria-label="Tìm nhân sự tăng ca"
-              className="pl-9"
-            />
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+            <div className="relative min-w-48 flex-1 sm:w-48 sm:flex-none">
+              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => resetPageAfter(() => setQuery(e.target.value))}
+                placeholder="Tìm tên hoặc email…"
+                aria-label="Tìm nhân sự tăng ca"
+                className="pl-9"
+              />
+            </div>
+            <Select value={department} onValueChange={(next) => resetPageAfter(() => setDepartment(next))}>
+              <SelectTrigger aria-label="Lọc theo bộ phận" className="min-w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Tất cả bộ phận</SelectItem>
+                {departments.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.name}
+                  </SelectItem>
+                ))}
+                <SelectItem value={UNASSIGNED}>Chưa gán bộ phận</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={department} onValueChange={(next) => resetPageAfter(() => setDepartment(next))}>
-            <SelectTrigger aria-label="Lọc theo bộ phận" className="min-w-44">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Tất cả bộ phận</SelectItem>
-              {departments.map((d) => (
-                <SelectItem key={d.id} value={d.id}>
-                  {d.name}
-                </SelectItem>
-              ))}
-              <SelectItem value={UNASSIGNED}>Chưa gán bộ phận</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
         {isPending ? (
-          <div className="space-y-2 p-3 pt-0">
+          <div className="space-y-2 p-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} className="h-12 w-full" />
             ))}
@@ -167,7 +164,7 @@ export function OvertimePage() {
             </button>
           </p>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 border-t py-14 text-center">
+          <div className="flex flex-col items-center gap-2 py-14 text-center">
             <Users className="size-8 text-muted-foreground/60" />
             <p className="text-sm text-muted-foreground">
               {rows.length === 0
@@ -182,11 +179,14 @@ export function OvertimePage() {
         )}
 
         {filtered.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t px-3 py-2 text-xs text-muted-foreground">
             <span>
               Hiển thị {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} trong{' '}
               {filtered.length} nhân sự
             </span>
+            <p className="hidden min-w-0 flex-1 text-center lg:block">
+              Bấm vào ô của ngày để nhập số công tăng ca, ví dụ 0,5 hoặc 0,375 · Xoá trống để bỏ · Enter, ↑, ↓ để chuyển dòng
+            </p>
             <PaginationBar page={currentPage} pageCount={pageCount} onChange={setPage} />
           </div>
         )}

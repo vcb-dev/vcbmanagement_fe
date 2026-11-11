@@ -54,9 +54,10 @@ export function LateWeekSummaryTable({
   }, [rows, weeks])
 
   return (
-    <div className="max-h-[max(22rem,calc(100svh-17rem))] overflow-auto">
+    // Chỉ cuộn ngang; cuộn dọc đi theo trang để không có hai thanh cuộn.
+    <div className="overflow-x-auto">
       <table className="w-max min-w-full border-separate border-spacing-0 text-sm">
-        <thead className="sticky top-0 z-10">
+        <thead>
           <tr>
             <th rowSpan={2} scope="col" className={cn(HEAD, PERSON_COL, PERSON_RIGHT, 'sticky left-0 z-20')}>
               Nhân sự

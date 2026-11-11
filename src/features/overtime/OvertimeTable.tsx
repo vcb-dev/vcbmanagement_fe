@@ -8,11 +8,11 @@ import { displayName } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
 import { overtimeOn, parseOvertime, type OvertimeRow } from './overtime.types'
 
-// Tiêu đề canh giữa hai chiều, chữ đậm. Header dính nên mọi ô header phải có nền đặc.
+// Tiêu đề canh giữa hai chiều, chữ đậm. Mọi ô header có nền đặc để ô Nhân sự dính trái che được các cột cuộn ngang bên dưới.
 const HEAD = cn(
   LINE_BOTTOM,
   LINE_RIGHT,
-  'sticky top-0 z-10 bg-muted px-1 py-2 text-center align-middle text-sm leading-5 font-semibold text-foreground',
+  'bg-muted px-1 py-2 text-center align-middle text-sm leading-5 font-semibold text-foreground',
 )
 const SUB = 'block text-[11px] leading-4 font-normal text-muted-foreground'
 /** Ô Chủ nhật trên header: nền đặc, đậm hơn bg-muted một chút. */
@@ -35,11 +35,12 @@ export function OvertimeTable({
   const days = daysOfMonth(month)
 
   return (
-    <div className="max-h-[max(22rem,calc(100svh-17rem))] overflow-auto">
+    // Chỉ cuộn ngang; cuộn dọc đi theo trang để không có hai thanh cuộn.
+    <div className="overflow-x-auto">
       <table className="w-max min-w-full border-separate border-spacing-0 text-sm">
         <thead>
           <tr>
-            <th scope="col" className={cn(HEAD, PERSON_RIGHT, 'left-0 z-20 max-w-44 min-w-44 px-3 sm:max-w-56 sm:min-w-56')}>
+            <th scope="col" className={cn(HEAD, PERSON_RIGHT, 'sticky left-0 z-20 max-w-44 min-w-44 px-3 sm:max-w-56 sm:min-w-56')}>
               Nhân sự
             </th>
             <th scope="col" className={cn(HEAD, 'hidden min-w-28 px-3 md:table-cell')}>

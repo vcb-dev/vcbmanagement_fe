@@ -14,7 +14,7 @@ import { displayName } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
 import { LATE_SHIFTS, SHIFT_LABEL, lateByShift, lateTotal, type LateReportRow, type LateShift } from './late.types'
 
-// Tiêu đề canh giữa hai chiều, chữ đậm. Header dính nên mọi ô header phải có nền đặc.
+// Tiêu đề canh giữa hai chiều, chữ đậm. Mọi ô header có nền đặc để ô dính trái che được các cột cuộn ngang bên dưới.
 const HEAD = cn(
   LINE_BOTTOM,
   LINE_RIGHT,
@@ -89,9 +89,10 @@ export function LateDayTable({
   }, [rows, days])
 
   return (
-    <div className="max-h-[max(22rem,calc(100svh-17rem))] overflow-auto">
+    // Chỉ cuộn ngang; cuộn dọc đi theo trang để không có hai thanh cuộn.
+    <div className="overflow-x-auto">
       <table className="w-max min-w-full border-separate border-spacing-0 text-sm">
-        <thead className="sticky top-0 z-10">
+        <thead>
           <tr>
             <th scope="col" className={cn(HEAD, PERSON_COL, 'sticky left-0 z-20 border-r border-r-border px-2.5')}>
               Nhân sự

@@ -26,7 +26,7 @@ const INVALID: Record<'leave' | 'other', string> = {
   other: 'Nhập số từ 0 đến 31, tối đa 2 chữ số thập phân, ví dụ 1 hoặc 1,5',
 }
 
-// Header dính phải có nền đặc, nền trong suốt sẽ để lộ các dòng đang cuộn bên dưới.
+// Header phải có nền đặc: ô Nhân sự dính trái, nền trong suốt sẽ để lộ các cột đang cuộn ngang bên dưới.
 // Mọi tiêu đề canh giữa theo cả hai chiều; cột không thuộc nhóm gộp hai tầng để nằm giữa chiều cao header.
 // Mỗi ô kẻ đậm bên phải, riêng cột cuối bỏ kẻ vì đã sát mép thẻ.
 const GROUP = cn(
@@ -104,9 +104,10 @@ export function MonthlyTimesheetTable({
   onSave: (row: FullTimeTimesheetRow, field: ManualField, value: number) => Promise<unknown>
 }) {
   return (
-    <div className="max-h-[max(22rem,calc(100svh-17rem))] overflow-auto">
+    // Chỉ cuộn ngang; cuộn dọc đi theo trang để không có hai thanh cuộn.
+    <div className="overflow-x-auto">
       <table className="w-max min-w-full border-separate border-spacing-0 text-sm">
-        <thead className="sticky top-0 z-10">
+        <thead>
           <tr>
             <th
               rowSpan={2}

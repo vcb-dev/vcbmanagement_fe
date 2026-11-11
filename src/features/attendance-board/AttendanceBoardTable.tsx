@@ -6,7 +6,7 @@ import { EMPLOYMENT_LABEL, displayName } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
 import { SLOT_NAMES, dayIndex, missingSlots, type BoardDay, type BoardPerson, type BoardRow } from './attendance-board.types'
 
-// Tiêu đề canh giữa hai chiều, chữ đậm. Header dính nên mọi ô header phải có nền đặc.
+// Tiêu đề canh giữa hai chiều, chữ đậm. Mọi ô header có nền đặc để ô dính trái che được các cột cuộn ngang bên dưới.
 const HEAD = 'border-b bg-muted px-2 py-1.5 text-center align-middle text-sm leading-5 font-semibold whitespace-nowrap text-foreground'
 /** Hàng tiêu đề thứ hai: Vào / Ra dưới mỗi ngày. */
 const SUB_HEAD = 'border-b bg-muted px-0 py-1 text-center text-[11px] leading-4 font-medium whitespace-nowrap text-muted-foreground'
@@ -161,9 +161,10 @@ export function AttendanceBoardTable({
   const indexed = useMemo(() => rows.map((row) => ({ row, byDate: dayIndex(row) })), [rows])
 
   return (
-    <div className="max-h-[max(22rem,calc(100svh-17rem))] overflow-auto">
+    // Chỉ cuộn ngang; cuộn dọc đi theo trang để không có hai thanh cuộn.
+    <div className="overflow-x-auto">
       <table className="w-max min-w-full border-separate border-spacing-0 text-sm">
-        <thead className="sticky top-0 z-10">
+        <thead>
           <tr>
             <th rowSpan={2} scope="col" className={cn(HEAD, PERSON_COL, LINE_BOTTOM, 'sticky left-0 z-20 border-r px-2.5')}>
               Nhân sự

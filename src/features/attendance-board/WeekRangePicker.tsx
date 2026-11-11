@@ -29,7 +29,7 @@ export function WeekRangePicker({
         <ChevronLeft />
       </Button>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger aria-label="Khoảng ngày" className="min-w-48">
+        <SelectTrigger aria-label="Khoảng ngày" className="min-w-44">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

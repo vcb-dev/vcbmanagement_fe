@@ -32,7 +32,7 @@ import { downloadCsv } from '@/lib/csv'
 import { formatMonth, normalizeSearch, todayYmd } from '@/lib/format'
 import { displayName } from '@/lib/user-display'
 
-const PAGE_SIZE = 15
+const PAGE_SIZE = 12
 /** Radix Select không nhận giá trị rỗng. */
 const ALL = 'all'
 const UNASSIGNED = 'unassigned'
@@ -51,9 +51,10 @@ function personDay(row: BoardRow, days: string[], today: string): string {
   return past.find((d) => (byDate.get(d)?.missingCount ?? 0) > 0) ?? past[past.length - 1] ?? today
 }
 
+/** Nằm giữa dòng phân trang, dưới bảng. */
 function Legend() {
   return (
-    <div className="hidden items-center gap-3 text-xs text-muted-foreground xl:flex">
+    <div className="hidden min-w-0 flex-1 flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground xl:flex">
       <span className="flex items-center gap-1.5">
         <b className="font-semibold text-amber-600 tabular-nums dark:text-amber-400">08:41</b>vào muộn / ra sớm
       </span>
@@ -160,7 +161,8 @@ export function AttendanceBoardPage() {
       </div>
 
       <Card className="gap-0 py-0">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b px-3 pt-2 pb-[5px]">
+        {/* Tab và bộ lọc chung một hàng. Hẹp không đủ chỗ thì bộ lọc lên trên (wrap-reverse) để tab vẫn sát đường kẻ. */}
+        <div className="flex flex-wrap-reverse items-center justify-between gap-x-4 gap-y-2 border-b px-3 pt-2 pb-[5px]">
           <Tabs value={mode} onValueChange={(next) => resetPageAfter(() => setMode(next as Mode))}>
             <TabsList variant="line" className="flex-wrap justify-start gap-y-1.5 group-data-horizontal/tabs:h-auto">
               <TabsTrigger value="day" className={TAB_TRIGGER}>
@@ -171,41 +173,39 @@ export function AttendanceBoardPage() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          {mode !== 'week' && <Legend />}
-        </div>
-
-        <div className="flex flex-wrap gap-2 p-3">
-          <div className="relative min-w-56 flex-1 sm:max-w-sm">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => resetPageAfter(() => setQuery(e.target.value))}
-              placeholder="Tìm tên hoặc email…"
-              aria-label="Tìm nhân sự"
-              className="pl-9"
-            />
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+            <div className="relative min-w-48 flex-1 sm:w-48 sm:flex-none">
+              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => resetPageAfter(() => setQuery(e.target.value))}
+                placeholder="Tìm tên hoặc email…"
+                aria-label="Tìm nhân sự"
+                className="pl-9"
+              />
+            </div>
+            <Select value={department} onValueChange={(next) => resetPageAfter(() => setDepartment(next))}>
+              <SelectTrigger aria-label="Lọc theo bộ phận" className="min-w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Tất cả bộ phận</SelectItem>
+                {departments.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.name}
+                  </SelectItem>
+                ))}
+                <SelectItem value={UNASSIGNED}>Chưa gán bộ phận</SelectItem>
+              </SelectContent>
+            </Select>
+            {mode !== 'week' && (
+              <WeekRangePicker month={month} weeks={weeks} value={range} onChange={(next) => resetPageAfter(() => setRange(next))} />
+            )}
           </div>
-          <Select value={department} onValueChange={(next) => resetPageAfter(() => setDepartment(next))}>
-            <SelectTrigger aria-label="Lọc theo bộ phận" className="min-w-44">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Tất cả bộ phận</SelectItem>
-              {departments.map((d) => (
-                <SelectItem key={d.id} value={d.id}>
-                  {d.name}
-                </SelectItem>
-              ))}
-              <SelectItem value={UNASSIGNED}>Chưa gán bộ phận</SelectItem>
-            </SelectContent>
-          </Select>
-          {mode !== 'week' && (
-            <WeekRangePicker month={month} weeks={weeks} value={range} onChange={(next) => resetPageAfter(() => setRange(next))} />
-          )}
         </div>
 
         {isPending ? (
-          <div className="space-y-2 p-3 pt-0">
+          <div className="space-y-2 p-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} className="h-12 w-full" />
             ))}
@@ -218,7 +218,7 @@ export function AttendanceBoardPage() {
             </button>
           </p>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 border-t py-14 text-center">
+          <div className="flex flex-col items-center gap-2 py-14 text-center">
             <Users className="size-8 text-muted-foreground/60" />
             <p className="text-sm text-muted-foreground">
               {rows.length === 0 ? 'Tháng này chưa có nhân sự nào.' : 'Không có nhân sự phù hợp. Thử đổi từ khoá hoặc bộ lọc.'}
@@ -237,11 +237,12 @@ export function AttendanceBoardPage() {
         )}
 
         {filtered.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t px-3 py-2 text-xs text-muted-foreground">
             <span>
               Hiển thị {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} trong{' '}
               {filtered.length} nhân sự
             </span>
+            {mode !== 'week' && <Legend />}
             <PaginationBar page={currentPage} pageCount={pageCount} onChange={setPage} />
           </div>
         )}
