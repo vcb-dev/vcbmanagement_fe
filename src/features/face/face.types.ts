@@ -28,7 +28,7 @@ export interface FaceAdminRow {
   photoCount: number
   photoLabels: string[]
   photoUrls: string[]
-  user: User
+  user: Pick<User, 'id' | 'email' | 'fullName' | 'role' | 'isActive' | 'createdAt' | 'updatedAt'>
 }
 
 export type ScanKind = 'enroll' | 'liveness'

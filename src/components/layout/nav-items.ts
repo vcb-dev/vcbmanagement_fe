@@ -1,4 +1,21 @@
-import { CalendarClock, LayoutDashboard, ScanFace, ShieldCheck, Sparkles, type LucideIcon } from 'lucide-react'
+import {
+  Building2,
+  CalendarCheck,
+  CalendarClock,
+  CalendarDays,
+  CalendarHeart,
+  CalendarRange,
+  ClipboardCheck,
+  ClockPlus,
+  LayoutDashboard,
+  MessageSquare,
+  ScanFace,
+  ShieldCheck,
+  Sparkles,
+  TriangleAlert,
+  Users,
+  type LucideIcon,
+} from 'lucide-react'
 import type { UserRole } from '@/features/auth/auth.types'
 
 export interface NavItem {
@@ -7,6 +24,7 @@ export interface NavItem {
   icon: LucideIcon
   description?: string
   roles?: UserRole[]
+  badge?: 'feedbackOpen'
 }
 
 export interface NavGroup {
@@ -17,7 +35,17 @@ export interface NavGroup {
 export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Tổng quan',
-    items: [{ title: 'Bảng điều khiển', url: '/', icon: LayoutDashboard, description: 'Tổng quan hoạt động' }],
+    items: [
+      { title: 'Bảng điều khiển', url: '/', icon: LayoutDashboard, description: 'Tổng quan hoạt động' },
+      {
+        title: 'Công của tôi',
+        url: '/my-timesheet',
+        icon: CalendarDays,
+        description: 'Lịch chấm công và công tháng của bạn',
+        // Admin và quản lý chỉ dùng các màn quản lý.
+        roles: ['staff'],
+      },
+    ],
   },
   {
     label: 'Nhân sự',
@@ -31,11 +59,77 @@ export const NAV_GROUPS: NavGroup[] = [
         description: 'Duyệt đăng ký khuôn mặt nhân viên',
         roles: ['admin', 'manager'],
       },
+      {
+        title: 'Bảng chấm công',
+        url: '/attendance-board',
+        icon: CalendarRange,
+        description: 'Giờ vào, giờ ra từng ngày của mọi nhân sự, bổ sung giờ cho ngày đã qua',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Chốt công tháng',
+        url: '/monthly-timesheets',
+        icon: CalendarCheck,
+        description: 'Công tháng của nhân sự toàn thời gian, tự cập nhật theo chấm công',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Tăng ca',
+        url: '/overtime',
+        icon: ClockPlus,
+        description: 'Tăng ca theo ngày của nhân sự toàn thời gian',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Đi muộn',
+        url: '/late',
+        icon: TriangleAlert,
+        description: 'Đi muộn theo ngày và theo mốc của nhân sự',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Công part-time',
+        url: '/part-time-timesheets',
+        icon: ClipboardCheck,
+        description: 'Chốt công và trao đổi với nhân viên part-time',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Phép năm',
+        url: '/annual-leaves',
+        icon: CalendarHeart,
+        description: 'Phép năm và ngày nghỉ các tháng của nhân sự toàn thời gian',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Bộ phận & giờ làm',
+        url: '/departments',
+        icon: Building2,
+        description: 'Giờ ca của bộ phận và mốc đi muộn',
+        roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Danh sách nhân sự',
+        url: '/users',
+        icon: Users,
+        description: 'Bộ phận, loại nhân sự và ngày ký hợp đồng',
+        roles: ['admin', 'manager'],
+      },
     ],
   },
   {
     label: 'Tiện ích',
-    items: [{ title: 'Trợ lý AI', url: '/assistant', icon: Sparkles, description: 'Hỏi đáp với AI nội bộ' }],
+    items: [
+      {
+        title: 'Feedback',
+        url: '/feedbacks',
+        icon: MessageSquare,
+        description: 'Trao đổi về bản chốt công các tháng',
+        roles: ['admin', 'manager'],
+        badge: 'feedbackOpen',
+      },
+      { title: 'Trợ lý AI', url: '/assistant', icon: Sparkles, description: 'Hỏi đáp với AI nội bộ' },
+    ],
   },
 ]
 

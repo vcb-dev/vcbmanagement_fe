@@ -1,6 +1,6 @@
 import { ChevronsUpDown, LogOut, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,10 +20,9 @@ import type { User } from '@/features/auth/auth.types'
 import { useLogout } from '@/features/auth/use-auth'
 import { ROLE_LABEL, displayName, initials } from '@/lib/user-display'
 
-export function UserAvatar({ user, className }: { user: User; className?: string }) {
+export function UserAvatar({ user, className }: { user: Pick<User, 'fullName' | 'email'>; className?: string }) {
   return (
     <Avatar className={className}>
-      {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={displayName(user)} />}
       <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-semibold text-white">
         {initials(user)}
       </AvatarFallback>
