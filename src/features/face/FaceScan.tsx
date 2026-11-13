@@ -9,6 +9,8 @@ import { STEP_LABEL, type LivenessStep } from './face.types'
 import { useScanFrame, useStartScan, type ScanFrameResult } from './use-face'
 
 const TICK_GAP_MS = 50
+/** Camera vừa mở thường tối (AE chưa ổn) — đợi rồi mới lấy ảnh nhìn thẳng. */
+const CAMERA_WARMUP_MS = 1100
 
 export function FaceScan({
   kind,
@@ -50,16 +52,14 @@ export function FaceScan({
 
   useEffect(() => {
     const video = videoRef.current
-    if (!live || !video || !streamRef.current) return
+    if (!live || !sessionId || !video || !streamRef.current) return
+    let cancelled = false
     prepareVideoEl(video)
     video.srcObject = streamRef.current
-    void video.play().catch(() => undefined)
-  }, [live])
-
-  useEffect(() => {
-    if (!live || !sessionId) return
-    let cancelled = false
     const loop = async () => {
+      await video.play().catch(() => undefined)
+      setHint('Đang chỉnh sáng camera…')
+      await new Promise((r) => window.setTimeout(r, CAMERA_WARMUP_MS))
       while (!cancelled && liveRef.current && sessionRef.current) {
         await tick()
         if (cancelled || !liveRef.current) break
