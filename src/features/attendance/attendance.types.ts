@@ -18,10 +18,12 @@ export interface AttendancePunch {
   note: string | null
   /** Khoảng cách tới công ty lúc chấm (mét), null nếu không kiểm tra GPS. */
   distanceMeters: number | null
-  /** Giờ / ngày đọc được trên màn hình trong ảnh, vd "09:18" và "04/11". */
+  /** Giờ / ngày máy tính lúc chấm, vd "09:18" và "04/11". */
   screenTime: string | null
   screenDate: string | null
   faceScore: number | null
+  sceneScore: number | null
+  floorNote: string | null
 }
 
 export interface AttendanceRecord {

@@ -53,17 +53,24 @@ export interface PhotoCheckResult {
   screenTime: string | null
   screenDate: string | null
   faceScore: number | null
+  sceneScore: number | null
+  floorNote: string | null
+  replayScore: number | null
 }
 
-/** Kiểm tra ảnh ngay sau khi chụp (giờ/ngày trên màn hình + khớp khuôn mặt), không lưu ảnh. */
+function appendClientTime(form: FormData) {
+  // iOS/Android/web: Date.now() là đồng hồ thiết bị đang mở trang (PWA hay Safari/Chrome đều vậy).
+  form.append('clientTime', new Date().toISOString())
+}
+
+/** Kiểm tra ảnh ngay sau khi chụp (ngày giờ máy + khuôn mặt + nền), không lưu ảnh. */
 export function usePhotoCheck() {
   return useMutation({
     mutationFn: async (photo: Blob) => {
       const form = new FormData()
       form.append('photo', photo, 'check.jpg')
-      const res = await apiClient.post<{ data: PhotoCheckResult }>('/attendance/photo-check', form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      appendClientTime(form)
+      const res = await apiClient.post<{ data: PhotoCheckResult }>('/attendance/photo-check', form)
       return res.data.data
     },
   })
@@ -91,12 +98,11 @@ export function usePunch() {
         form.append('accuracy', String(location.accuracy))
       }
       form.append('photo', photo, `${slot}.jpg`)
+      appendClientTime(form)
       if (note) form.append('note', note)
-      // Phải ghi đè Content-Type mặc định (JSON) — nếu không axios sẽ chuyển FormData thành JSON.
       const res = await apiClient.post<{ data: { slot: AttendanceSlot; record: AttendanceRecord } }>(
         '/attendance/punch',
         form,
-        { headers: { 'Content-Type': 'multipart/form-data' } },
       )
       return res.data.data
     },

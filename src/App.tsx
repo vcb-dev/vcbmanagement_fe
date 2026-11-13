@@ -1,10 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { lazy, useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/app-layout'
 import { Toaster } from '@/components/ui/sonner'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
+import { toast } from 'sonner'
 import { markLoggedOut } from '@/features/auth/use-auth'
 import { setSessionExpiredHandler } from '@/lib/api-client'
 
@@ -34,6 +35,7 @@ function useSessionExpiredRedirect() {
 
   useEffect(() => {
     setSessionExpiredHandler(() => {
+      toast.dismiss()
       markLoggedOut(queryClient)
       if (window.location.pathname !== '/login') navigate('/login', { replace: true })
     })
@@ -46,7 +48,14 @@ export default function App() {
 
   return (
     <>
-      <Toaster richColors position="top-center" closeButton />
+      <Toaster closeButton />
+      <Suspense
+        fallback={
+          <div className="flex min-h-dvh items-center justify-center bg-background text-sm text-muted-foreground">
+            Đang tải…
+          </div>
+        }
+      >
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route element={<ProtectedRoute />}>
@@ -74,6 +83,7 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </>
   )
 }

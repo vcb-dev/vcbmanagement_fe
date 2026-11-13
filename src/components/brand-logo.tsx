@@ -5,7 +5,7 @@ export function BrandMark({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/30 ring-1 ring-white/20',
+        'flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#4f46e5] text-white',
         className,
       )}
     >

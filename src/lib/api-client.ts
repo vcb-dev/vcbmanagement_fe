@@ -1,6 +1,15 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
-export const API_BASE_URL = (import.meta.env.VITE_API_URL || '/api/v1').replace(/\/+$/, '')
+function resolveApiBase() {
+  const fromEnv = (import.meta.env.VITE_API_URL || '/api/v1').replace(/\/+$/, '')
+  // Vercel + iPhone: cookie khác domain (Railway) bị Safari chặn → gọi cùng origin qua rewrite.
+  if (typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app')) {
+    return '/api/v1'
+  }
+  return fromEnv
+}
+
+export const API_BASE_URL = resolveApiBase()
 
 const CSRF_COOKIE = 'vcb_csrf'
 const CSRF_HEADER = 'X-CSRF-Token'
@@ -95,7 +104,9 @@ apiClient.interceptors.request.use(async (config) => {
     const csrf = await resolveCsrfToken()
     if (csrf) config.headers.set(CSRF_HEADER, csrf)
   }
-  if (config.data instanceof FormData) config.headers.delete('Content-Type')
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    config.headers.delete('Content-Type')
+  }
   return config
 })
 
@@ -128,6 +139,7 @@ export function getApiErrorMessage(error: unknown): string {
     const data = error.response.data as { message?: unknown; errors?: unknown } | undefined
     if (Array.isArray(data?.errors) && data.errors.length) return data.errors.join(', ')
     if (typeof data?.message === 'string' && data.message) return data.message
+    if (Array.isArray(data?.message) && data.message.length) return data.message.filter((m) => typeof m === 'string').join(', ')
     if (error.response.status === 403) return 'Bạn không có quyền thực hiện thao tác này'
   }
   if (error instanceof Error) return error.message

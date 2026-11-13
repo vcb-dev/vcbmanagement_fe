@@ -46,11 +46,11 @@ export function DashboardPage() {
   const onTimeRate = shiftsIn > 0 ? Math.round(((shiftsIn - (s?.lateCount ?? 0)) / shiftsIn) * 100) : null
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 p-4 md:p-6 lg:p-8">
+    <div className="mx-auto w-full min-w-0 max-w-7xl space-y-5 overflow-x-clip p-3 sm:p-4 md:p-6 lg:p-8">
       <PageHeader
         title={
           <>
-            {greeting()}, <span className="text-primary">{displayName(user)}</span> 👋
+            {greeting()}, <span className="text-primary">{displayName(user)}</span>
           </>
         }
         description="Tình hình làm việc của bạn trong 30 ngày gần nhất."

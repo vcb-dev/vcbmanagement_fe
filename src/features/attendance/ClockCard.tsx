@@ -21,12 +21,41 @@ import { CameraCapture } from './CameraCapture'
 import { useAttendanceToday, usePhotoCheck, usePunch } from './use-attendance'
 import { geoVerdict, useGeolocation, type GeoVerdict } from './use-geolocation'
 
-function useNow(intervalMs = 1000) {
-  const [now, setNow] = useState(() => new Date())
+const VN_TZ = 'Asia/Ho_Chi_Minh'
+
+function vnDateLabel(d: Date) {
+  return d.toLocaleDateString('vi-VN', {
+    weekday: 'long',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: VN_TZ,
+  })
+}
+
+function vnHms(d: Date) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: VN_TZ,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(d)
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '00'
+  return { hour: get('hour'), minute: get('minute'), second: get('second') }
+}
+
+/** Đồng hồ hệ thống (VN): neo theo giờ server, chạy bằng performance.now() nên không bị kéo theo khi đổi giờ máy. */
+function useSystemNow(serverTime?: string, intervalMs = 1000) {
+  const [now, setNow] = useState(() => (serverTime ? new Date(serverTime) : new Date()))
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), intervalMs)
+    const originServer = serverTime ? new Date(serverTime).getTime() : Date.now()
+    const originPerf = performance.now()
+    const tick = () => setNow(new Date(originServer + (performance.now() - originPerf)))
+    tick()
+    const id = setInterval(tick, intervalMs)
     return () => clearInterval(id)
-  }, [intervalMs])
+  }, [serverTime, intervalMs])
   return now
 }
 
@@ -46,9 +75,27 @@ function slotTime(schedule: WorkSchedule, slot: AttendanceSlot) {
 
 const isInSlot = (slot: AttendanceSlot) => slot.endsWith('_in')
 
+function LiveClock({ serverTime }: { serverTime?: string }) {
+  const now = useSystemNow(serverTime, 1000)
+  const clock = vnHms(now)
+  return (
+    <>
+      <p className="text-sm capitalize" style={{ color: '#c7d2fe' }}>
+        {vnDateLabel(now)}
+      </p>
+      <p className="mt-2 text-4xl font-semibold sm:text-5xl" style={{ color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+        {clock.hour}:{clock.minute}
+        <span className="text-2xl" style={{ color: '#c7d2fe' }}>
+          :{clock.second}
+        </span>
+      </p>
+    </>
+  )
+}
+
 export function ClockCard({ className }: { className?: string }) {
-  const now = useNow()
   const { data, isPending } = useAttendanceToday()
+  const now = useSystemNow(data?.serverTime, 15_000)
   const punch = usePunch()
   const photoCheck = usePhotoCheck()
   const [note, setNote] = useState('')
@@ -65,7 +112,8 @@ export function ClockCard({ className }: { className?: string }) {
   const face = data?.face
   const faceRequired = !!face?.required
   const faceApproved = face?.profile?.status === 'approved'
-  const nowMinutes = toMinutes(formatTime(now.toISOString()))
+  const clock = vnHms(now)
+  const nowMinutes = toMinutes(`${clock.hour}:${clock.minute}`)
 
   /** Ca đang mở thì tính "đã làm" theo thời gian thực. */
   const liveWorked = (shift: ShiftRecord | undefined) => {
@@ -99,34 +147,23 @@ export function ClockCard({ className }: { className?: string }) {
 
   return (
     <Card className={cn('relative gap-0 overflow-hidden p-0', className)}>
-      <div className="relative bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 p-6 text-white">
-        <div className="pointer-events-none absolute -top-12 -right-12 size-48 rounded-full bg-white/10 blur-2xl" />
-        <div className="relative">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm text-indigo-100 capitalize">
-              {now.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}
-            </p>
-            {data && (
-              <div className="flex flex-wrap gap-1.5">
-                <SchedulePill label="Sáng" from={data.schedule.morningStart} to={data.schedule.morningEnd} />
-                <SchedulePill label="Chiều" from={data.schedule.afternoonStart} to={data.schedule.afternoonEnd} />
-              </div>
-            )}
+      <div className="relative min-w-0 overflow-hidden p-4 text-white sm:p-6" style={{ backgroundColor: '#4f46e5' }}>
+        {data && (
+          <div className="mb-2 flex max-w-full flex-wrap gap-1.5">
+            <SchedulePill label="Sáng" from={data.schedule.morningStart} to={data.schedule.morningEnd} />
+            <SchedulePill label="Chiều" from={data.schedule.afternoonStart} to={data.schedule.afternoonEnd} />
           </div>
-          <p className="mt-2 font-mono text-5xl font-semibold tracking-tight tabular-nums">
-            {now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-            <span className="text-2xl text-indigo-200">:{String(now.getSeconds()).padStart(2, '0')}</span>
-          </p>
-        </div>
+        )}
+        <LiveClock serverTime={data?.serverTime} />
       </div>
 
-      <div className="space-y-5 p-6">
+      <div className="space-y-5 p-4 sm:p-6">
         {isPending ? (
           <Skeleton className="h-28 w-full" />
         ) : (
-          <div className="overflow-hidden rounded-xl border">
-            <div className="grid grid-cols-[3.5rem_1fr_1fr_1fr] bg-muted/50 text-xs text-muted-foreground">
-              <span className="px-3 py-2">Ca</span>
+          <div className="overflow-x-auto rounded-xl border">
+            <div className="grid min-w-[17rem] grid-cols-[2.75rem_1fr_1fr_1fr] bg-muted text-xs text-muted-foreground">
+              <span className="px-2 py-2 sm:px-3">Ca</span>
               <span className="py-2 text-center">Giờ vào</span>
               <span className="py-2 text-center">Giờ ra</span>
               <span className="py-2 text-center">Đã làm</span>
@@ -137,8 +174,8 @@ export function ClockCard({ className }: { className?: string }) {
                 <div
                   key={key}
                   className={cn(
-                    'grid grid-cols-[3.5rem_1fr_1fr_1fr] items-center border-t',
-                    activeShift === key && 'bg-primary/5',
+                    'grid min-w-[17rem] grid-cols-[2.75rem_1fr_1fr_1fr] items-center border-t text-foreground',
+                    activeShift === key && 'bg-accent',
                   )}
                 >
                   <span className="px-3 py-3 text-sm font-medium">{SHIFT_LABEL[key]}</span>
@@ -215,9 +252,9 @@ export function ClockCard({ className }: { className?: string }) {
               </div>
             )}
             <p className="-mt-1 text-xs text-muted-foreground">
-              Bấm 1 lần vào khung để dán ảnh (Ctrl+V), bấm 2 lần để chọn file. Ảnh cần có{' '}
-              <b className="font-medium text-foreground">mặt bạn</b> cùng màn hình đang hiện{' '}
-              <b className="font-medium text-foreground">giờ và ngày hôm nay</b>.
+              Mở camera và chụp. Ảnh cần có <b className="font-medium text-foreground">mặt bạn</b> nhìn thẳng và nền{' '}
+              <b className="font-medium text-foreground">văn phòng tầng 5</b>. Không dùng ảnh có sẵn trên điện thoại
+              / giấy.
             </p>
             <CameraCapture
               photo={photo}
@@ -231,7 +268,10 @@ export function ClockCard({ className }: { className?: string }) {
             />
             {photo && <PhotoCheckBox check={photoCheck} />}
             {punch.isError && (
-              <div className="flex items-start gap-2 rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive">
+              <div
+                className="flex items-start gap-2 rounded-xl border p-3 text-sm"
+                style={{ backgroundColor: '#fff1f2', borderColor: '#fecdd3', color: '#9f1239' }}
+              >
                 <CircleAlert className="mt-0.5 size-4 shrink-0" />
                 <p>{getApiErrorMessage(punch.error)}</p>
               </div>
@@ -269,12 +309,21 @@ export function ClockCard({ className }: { className?: string }) {
                         ? undefined
                         : 'Cần ảnh hợp lệ trước khi chấm công'
               }
-              className={cn(
-                'h-11 w-full text-base shadow-md',
-                nextSlot && !isInSlot(nextSlot)
-                  ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-rose-500/25 hover:from-rose-400 hover:to-orange-400'
-                  : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-indigo-500/25 hover:from-indigo-500 hover:to-violet-500',
-              )}
+              className="h-12 w-full bg-clip-border text-base text-white disabled:opacity-100"
+              style={{
+                backgroundColor:
+                  isPending ||
+                  busy ||
+                  !photoOk ||
+                  !nextSlot ||
+                  !locationOk ||
+                  (faceRequired && !faceApproved)
+                    ? '#c7d2fe'
+                    : nextSlot && !isInSlot(nextSlot)
+                      ? '#e11d48'
+                      : '#4f46e5',
+                color: '#fff',
+              }}
             >
               {busy ? <Loader2 className="animate-spin" /> : nextSlot && !isInSlot(nextSlot) ? <LogOut /> : <LogIn />}
               {photoCheck.isPending
@@ -286,7 +335,7 @@ export function ClockCard({ className }: { className?: string }) {
                   : 'Chấm công'}
             </Button>
             {(!photoOk || !locationOk || (faceRequired && !faceApproved)) && (
-              <p className="text-center text-xs text-muted-foreground">
+              <p className="text-center text-xs text-zinc-500">
                 {faceRequired && !faceApproved
                   ? 'Cần khuôn mặt đã duyệt mới chấm công được'
                   : !locationOk
@@ -304,10 +353,10 @@ export function ClockCard({ className }: { className?: string }) {
 }
 
 const VERDICT_STYLE: Record<GeoVerdict['tone'], { box: string; icon: typeof MapPin }> = {
-  ok: { box: 'border-emerald-500/25 bg-emerald-500/5 text-emerald-700 dark:text-emerald-400', icon: MapPin },
-  warn: { box: 'border-amber-500/25 bg-amber-500/5 text-amber-700 dark:text-amber-400', icon: LocateFixed },
-  bad: { box: 'border-rose-500/25 bg-rose-500/5 text-rose-700 dark:text-rose-400', icon: MapPinOff },
-  pending: { box: 'bg-muted/40 text-muted-foreground', icon: LocateFixed },
+  ok: { box: 'border-[#a7f3d0] bg-[#ecfdf5] text-[#047857]', icon: MapPin },
+  warn: { box: 'border-[#fde68a] bg-[#fffbeb] text-[#b45309]', icon: LocateFixed },
+  bad: { box: 'border-[#fecdd3] bg-[#fff1f2] text-[#be123c]', icon: MapPinOff },
+  pending: { box: 'border-zinc-200 bg-zinc-50 text-zinc-500', icon: LocateFixed },
 }
 
 function LocationBox({ verdict, onRetry }: { verdict: GeoVerdict; onRetry: () => void }) {
@@ -337,31 +386,42 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
     return (
       <div className="flex items-center gap-2 rounded-xl border bg-muted/40 p-3 text-sm text-muted-foreground">
         <Loader2 className="size-4 shrink-0 animate-spin" />
-        Đang kiểm tra giờ/ngày trên màn hình và khớp khuôn mặt đã đăng ký…
+        Đang kiểm tra ngày giờ, khuôn mặt, nền văn phòng và ảnh thật…
       </div>
     )
   }
   if (check.isError) {
     return (
-      <div className="flex items-start gap-2 rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive">
+      <div
+        className="flex items-start gap-2 rounded-xl border p-3 text-sm"
+        style={{ backgroundColor: '#fff1f2', borderColor: '#fecdd3', color: '#9f1239' }}
+      >
         <ShieldX className="mt-0.5 size-4 shrink-0" />
         <div>
           <p className="font-medium">Ảnh chưa đủ điều kiện chấm công</p>
-          <p className="text-xs">{getApiErrorMessage(check.error)}</p>
+          <p className="mt-1 text-xs leading-5" style={{ color: '#881337' }}>
+            {getApiErrorMessage(check.error) || 'Không kiểm tra được ảnh. Hãy chụp lại.'}
+          </p>
         </div>
       </div>
     )
   }
   if (check.isSuccess) {
-    const { screenTime, screenDate, faceScore } = check.data
+    const { screenTime, screenDate, faceScore, sceneScore, floorNote, replayScore } = check.data
     return (
-      <div className="flex items-start gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3 text-sm text-emerald-700 dark:text-emerald-400">
+      <div
+        className="flex items-start gap-2 rounded-xl border p-3 text-sm"
+        style={{ backgroundColor: '#ecfdf5', borderColor: '#a7f3d0', color: '#047857' }}
+      >
         <ShieldCheck className="mt-0.5 size-4 shrink-0" />
         <div>
           <p className="font-medium">Ảnh hợp lệ</p>
-          <p className="text-xs text-muted-foreground">
-            Giờ {screenTime ?? '—'} · ngày {screenDate ?? '—'} khớp hiện tại
+          <p className="mt-1 text-xs leading-5" style={{ color: '#3f3f46' }}>
+            Giờ {screenTime ?? '—'} · ngày {screenDate ?? '—'} khớp hệ thống
             {faceScore != null && ` · khuôn mặt khớp đã đăng ký (${Math.round(faceScore * 100)}%)`}
+            {sceneScore != null &&
+              ` · nền văn phòng ${floorNote ?? 'tầng 5'} (${Math.round(sceneScore * 100)}%)`}
+            {replayScore != null && ` · không phải giơ màn hình (điểm ${Math.round(replayScore * 100)}%)`}
           </p>
         </div>
       </div>
@@ -372,7 +432,7 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
 
 function SchedulePill({ label, from, to }: { label: string; from: string; to: string }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ring-1 ring-white/20 backdrop-blur">
+    <div className="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: 'rgba(255,255,255,0.18)', color: '#fff' }}>
       <Clock3 className="size-3.5" />
       {label} {from}–{to}
     </div>
@@ -382,7 +442,9 @@ function SchedulePill({ label, from, to }: { label: string; from: string; to: st
 function TimeCell({ value, late, early }: { value: string; late?: number | null; early?: number | null }) {
   return (
     <div className="px-1 py-2.5 text-center">
-      <p className="text-base font-semibold tabular-nums">{value}</p>
+      <p className="text-sm font-semibold text-foreground sm:text-base" style={{ fontVariantNumeric: 'tabular-nums' }}>
+        {value}
+      </p>
       {(late ?? 0) > 0 && (
         <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400">Muộn {formatDuration(late)}</p>
       )}

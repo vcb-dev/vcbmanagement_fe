@@ -9,10 +9,12 @@ export interface FaceProfileSummary {
   reviewedAt: string | null
   rejectReason: string | null
   photoCount: number
+  photoLabels: string[]
 }
 
 export interface FaceMe {
   required: boolean
+  userId: string
   profile: FaceProfileSummary | null
   livenessExpiresAt: string | null
 }
@@ -24,6 +26,7 @@ export interface FaceAdminRow {
   reviewedAt: string | null
   rejectReason: string | null
   photoCount: number
+  photoLabels: string[]
   photoUrls: string[]
   user: Pick<User, 'id' | 'email' | 'fullName' | 'role' | 'isActive' | 'createdAt' | 'updatedAt'>
 }

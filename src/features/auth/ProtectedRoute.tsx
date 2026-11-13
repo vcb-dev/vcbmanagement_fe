@@ -63,7 +63,7 @@ export function ProtectedRoute({ roles }: Props) {
 
 function FullScreen({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-4 bg-background p-6">
+    <div className="flex min-h-dvh min-h-[100dvh] flex-col items-center justify-center gap-4 bg-background p-6 text-foreground">
       {children}
     </div>
   )

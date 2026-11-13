@@ -133,6 +133,7 @@ export function AttendancePage() {
               {isPending ? (
                 <TableSkeleton />
               ) : monthData && monthData.records.length > 0 ? (
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -169,6 +170,7 @@ export function AttendancePage() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               ) : (
                 <Empty text={`Không có dữ liệu chấm công trong ${formatMonth(month).toLowerCase()}`} />
               )}
@@ -226,6 +228,7 @@ function TeamBoard() {
         {isPending || !data ? (
           <TableSkeleton />
         ) : (
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -266,6 +269,7 @@ function TeamBoard() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
       </CardContent>
     </Card>

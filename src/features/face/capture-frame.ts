@@ -1,5 +1,7 @@
-const MAX_WIDTH = 960
-const JPEG_QUALITY = 0.85
+import { getCameraStream } from '@/lib/camera'
+
+const MAX_WIDTH = 640
+const JPEG_QUALITY = 0.72
 
 export function captureJpeg(video: HTMLVideoElement): Promise<Blob> {
   if (!video.videoWidth) return Promise.reject(new Error('Camera chưa sẵn sàng'))
@@ -14,8 +16,5 @@ export function captureJpeg(video: HTMLVideoElement): Promise<Blob> {
 }
 
 export async function openUserCamera(): Promise<MediaStream> {
-  return navigator.mediaDevices.getUserMedia({
-    video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
-    audio: false,
-  })
+  return getCameraStream('user')
 }
