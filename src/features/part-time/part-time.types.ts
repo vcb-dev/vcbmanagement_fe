@@ -3,7 +3,8 @@ import type { LateLevelCount } from '@/features/my-timesheet/my-timesheet.types'
 
 export type WorkShift = 'morning' | 'afternoon' | 'evening'
 export type SheetStatus = 'pending' | 'confirmed' | 'disputed'
-export type FeedbackStatus = 'open' | 'in_progress' | 'resolved'
+/** Mới gửi → Đã xử lý khi quản lý trả lời; nhân viên trả lời lại thì về Mới gửi. */
+export type FeedbackStatus = 'open' | 'resolved'
 
 export interface PartTimeShiftView {
   shift: WorkShift
@@ -147,6 +148,5 @@ export const SHEET_STATUS_LABEL: Record<SheetStatus, string> = {
 
 export const FEEDBACK_STATUS_LABEL: Record<FeedbackStatus, string> = {
   open: 'Mới gửi',
-  in_progress: 'Đang xử lý',
   resolved: 'Đã xử lý',
 }

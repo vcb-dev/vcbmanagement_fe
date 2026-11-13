@@ -10,19 +10,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  formatFeedbackTime,
-  managerDefaultStatus,
-  staffNextStatus,
-} from '@/features/feedbacks/feedback-format'
+import { formatFeedbackTime, replyNextStatus } from '@/features/feedbacks/feedback-format'
 import { useFeedbacks, useReplyToFeedback } from '@/features/feedbacks/use-feedbacks'
 import { formatMonth } from '@/lib/format'
 import { ROLE_LABEL } from '@/lib/user-display'
@@ -37,7 +26,6 @@ import { useSheetFeedbacks } from './use-part-time'
 
 const STATUS_STYLE: Record<FeedbackStatus, string> = {
   open: 'bg-rose-500/10 text-rose-700 dark:text-rose-400',
-  in_progress: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
   resolved: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
 }
 
@@ -52,9 +40,6 @@ function FeedbackCard({
   readOnly: boolean
 }) {
   const [content, setContent] = useState('')
-  const [status, setStatus] = useState<FeedbackStatus>(() =>
-    managerDefaultStatus(feedback.status),
-  )
   const reply = useReplyToFeedback()
 
   const handleSubmit = async (e: FormEvent) => {
@@ -63,11 +48,7 @@ function FeedbackCard({
     if (!trimmed) return
 
     try {
-      await reply.mutateAsync({
-        id: feedback.id,
-        content: trimmed,
-        status: mode === 'manager' ? status : undefined,
-      })
+      await reply.mutateAsync({ id: feedback.id, content: trimmed })
       setContent('')
     } catch {
       // Lỗi đã được báo bằng toast trong useReplyToFeedback.
@@ -127,28 +108,12 @@ function FeedbackCard({
           />
 
           <div className="flex flex-wrap items-center justify-between gap-2">
-            {mode === 'manager' ? (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Trạng thái sau khi gửi:</span>
-                <Select value={status} onValueChange={(v) => setStatus(v as FeedbackStatus)}>
-                  <SelectTrigger className="w-36 h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Mới gửi</SelectItem>
-                    <SelectItem value="in_progress">Đang xử lý</SelectItem>
-                    <SelectItem value="resolved">Đã xử lý</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : (
-              <span className="text-xs text-muted-foreground">
-                Trạng thái sau khi gửi:{' '}
-                <strong className="text-foreground">
-                  {FEEDBACK_STATUS_LABEL[staffNextStatus(feedback.status)]}
-                </strong>
-              </span>
-            )}
+            <span className="text-xs text-muted-foreground">
+              Trạng thái sau khi gửi:{' '}
+              <strong className="text-foreground">
+                {FEEDBACK_STATUS_LABEL[replyNextStatus(mode === 'manager')]}
+              </strong>
+            </span>
 
             <Button size="sm" type="submit" disabled={reply.isPending || !content.trim()}>
               {reply.isPending ? 'Đang gửi...' : 'Gửi trả lời'}

@@ -3,27 +3,16 @@ import { ExternalLink, Loader2, MessageSquare, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useMe } from '@/features/auth/use-auth'
 import { getApiErrorMessage } from '@/lib/api-client'
-import {
-  FEEDBACK_STATUS_LABEL,
-  type FeedbackStatus,
-} from '@/features/part-time/part-time.types'
+import { FEEDBACK_STATUS_LABEL } from '@/features/part-time/part-time.types'
 import { EMPLOYMENT_LABEL, ROLE_LABEL, initials } from '@/lib/user-display'
 import {
   formatFeedbackTime,
-  managerDefaultStatus,
+  replyNextStatus,
   sheetLabel,
   sheetLink,
-  staffNextStatus,
 } from './feedback-format'
 import { FeedbackStatusBadge } from './FeedbackListPanel'
 import { useDeleteFeedback, useFeedbackDetail, useReplyToFeedback } from './use-feedbacks'
@@ -206,16 +195,10 @@ export function FeedbackDetailPanel({ id, onDeleted }: FeedbackDetailPanelProps)
         ) : (
           <ReplyForm
             key={detail.id}
-            detailId={detail.id}
-            currentStatus={detail.status}
             isManagerOrAdmin={isManagerOrAdmin}
             authorName={me?.fullName || me?.email || ''}
-            onSubmit={async (content, status) => {
-              await replyMutation.mutateAsync({
-                id: detail.id,
-                content,
-                status,
-              })
+            onSubmit={async (content) => {
+              await replyMutation.mutateAsync({ id: detail.id, content })
             }}
             isPending={replyMutation.isPending}
           />
@@ -237,28 +220,21 @@ export function FeedbackDetailPanel({ id, onDeleted }: FeedbackDetailPanelProps)
 }
 
 function ReplyForm({
-  detailId: _detailId,
-  currentStatus,
   isManagerOrAdmin,
   authorName,
   onSubmit,
   isPending,
 }: {
-  detailId: string
-  currentStatus: FeedbackStatus
   isManagerOrAdmin: boolean
   authorName: string
-  onSubmit: (content: string, status?: FeedbackStatus) => Promise<void>
+  onSubmit: (content: string) => Promise<void>
   isPending: boolean
 }) {
   const [content, setContent] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState<FeedbackStatus>(() =>
-    managerDefaultStatus(currentStatus),
-  )
 
   const handleSubmit = async () => {
     if (!content.trim()) return
-    await onSubmit(content.trim(), isManagerOrAdmin ? selectedStatus : undefined)
+    await onSubmit(content.trim())
     setContent('')
   }
 
@@ -269,33 +245,12 @@ function ReplyForm({
           Trả lời với tư cách <strong>{authorName}</strong>
         </span>
 
-        {isManagerOrAdmin ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">
-              Trạng thái sau khi gửi:
-            </span>
-            <Select
-              value={selectedStatus}
-              onValueChange={(val) => setSelectedStatus(val as FeedbackStatus)}
-            >
-              <SelectTrigger className="h-8 w-36 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="open">Mới gửi</SelectItem>
-                <SelectItem value="in_progress">Đang xử lý</SelectItem>
-                <SelectItem value="resolved">Đã xử lý</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        ) : (
-          <span className="text-xs text-muted-foreground">
-            Trạng thái sau khi gửi:{' '}
-            <strong className="text-foreground">
-              {FEEDBACK_STATUS_LABEL[staffNextStatus(currentStatus)]}
-            </strong>
-          </span>
-        )}
+        <span className="text-xs text-muted-foreground">
+          Trạng thái sau khi gửi:{' '}
+          <strong className="text-foreground">
+            {FEEDBACK_STATUS_LABEL[replyNextStatus(isManagerOrAdmin)]}
+          </strong>
+        </span>
       </div>
 
       <Textarea
@@ -310,8 +265,8 @@ function ReplyForm({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-[11px] text-muted-foreground">
           {isManagerOrAdmin
-            ? 'Muốn đổi trạng thái thì gửi kèm một câu trả lời, để biết ai đổi và lúc nào.'
-            : 'Quản lý nhân sự sẽ trả lời và cập nhật trạng thái. Trả lời vào feedback đã xử lý sẽ mở lại feedback.'}
+            ? 'Gửi trả lời là feedback được đánh dấu đã xử lý.'
+            : 'Quản lý nhân sự trả lời là feedback được đánh dấu đã xử lý. Trả lời vào feedback đã xử lý sẽ mở lại feedback.'}
         </p>
         <Button
           size="sm"

@@ -4,7 +4,6 @@ import {
   Clock,
   MessageSquare,
   Plus,
-  RefreshCw,
   Search,
 } from 'lucide-react'
 import { PageContainer } from '@/components/page-container'
@@ -113,7 +112,7 @@ export function FeedbacksPage() {
     <PageContainer>
       <PageHeader
         title="Feedback"
-        description="Mỗi feedback gắn với một bản chốt công tháng (toàn thời gian hoặc part-time). Mỗi câu trả lời ghi lại trạng thái sau khi trả lời, nên biết ai đổi trạng thái và lúc nào."
+        description="Mỗi feedback gắn với một bản chốt công tháng (toàn thời gian hoặc part-time). Quản lý trả lời là feedback được đánh dấu đã xử lý; nhân viên trả lời lại thì feedback mở lại."
         actions={
           <Button onClick={() => setFormOpen(true)} className="gap-1.5 shadow-xs">
             <Plus className="size-4" />
@@ -122,8 +121,7 @@ export function FeedbacksPage() {
         }
       />
 
-      {/* 4 Stat Cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
           icon={MessageSquare}
           label="Tổng feedback"
@@ -135,23 +133,15 @@ export function FeedbacksPage() {
           icon={Clock}
           label="Mới"
           value={counts?.open ?? 0}
-          hint="Chưa ai trả lời"
+          hint="Chờ quản lý trả lời"
           tone="amber"
-          loading={countsLoading}
-        />
-        <StatCard
-          icon={RefreshCw}
-          label="Đang xử lý"
-          value={counts?.in_progress ?? 0}
-          hint="Đã trả lời, chờ hoàn tất"
-          tone="sky"
           loading={countsLoading}
         />
         <StatCard
           icon={CheckCircle2}
           label="Đã xử lý"
           value={counts?.resolved ?? 0}
-          hint="Đã đóng"
+          hint="Quản lý đã trả lời"
           tone="emerald"
           loading={countsLoading}
         />
@@ -166,9 +156,6 @@ export function FeedbacksPage() {
             </TabsTrigger>
             <TabsTrigger value="open" className="text-xs">
               Mới ({counts?.open ?? 0})
-            </TabsTrigger>
-            <TabsTrigger value="in_progress" className="text-xs">
-              Đang xử lý ({counts?.in_progress ?? 0})
             </TabsTrigger>
             <TabsTrigger value="resolved" className="text-xs">
               Đã xử lý ({counts?.resolved ?? 0})

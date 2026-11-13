@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { apiClient, getApiErrorMessage } from '@/lib/api-client'
-import type { FeedbackReplyView, FeedbackStatus } from '@/features/part-time/part-time.types'
+import type { FeedbackReplyView } from '@/features/part-time/part-time.types'
 import type {
   FeedbackCounts,
   FeedbackDetail,
@@ -90,18 +90,10 @@ export function useCreateFeedback() {
 export function useReplyToFeedback() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({
-      id,
-      content,
-      status,
-    }: {
-      id: string
-      content: string
-      status?: FeedbackStatus
-    }) => {
+    mutationFn: async ({ id, content }: { id: string; content: string }) => {
       const res = await apiClient.post<{ message: string; data: FeedbackReplyView }>(
         `/feedbacks/${id}/replies`,
-        { content, status },
+        { content },
       )
       return res.data
     },
