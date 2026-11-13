@@ -47,7 +47,7 @@ export function AnnualLeaveTable({
           <TableHeader>
             <TableRow>
               <TableHead className="min-w-[200px]">Nhân sự</TableHead>
-              <TableHead className="min-w-[150px]">Đã dùng / được hưởng</TableHead>
+              <TableHead className="min-w-[150px]">Đã dùng / có đến nay</TableHead>
               {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                 <TableHead key={m} className="w-12 text-center text-xs">
                   T{m}
@@ -64,8 +64,8 @@ export function AnnualLeaveTable({
                 : null
               const hasLeave = hasLeaveThisYear(row)
               const pct =
-                row.entitledDays > 0
-                  ? Math.min(100, Math.round((row.usedDays / row.entitledDays) * 100))
+                row.accruedDays > 0
+                  ? Math.min(100, Math.round((row.usedDays / row.accruedDays) * 100))
                   : 0
 
               return (
@@ -106,7 +106,7 @@ export function AnnualLeaveTable({
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <span className="text-sm tabular-nums">
-                        {formatDays(row.usedDays)} / {formatDays(row.entitledDays)} ngày
+                        {formatDays(row.usedDays)} / {formatDays(row.accruedDays)} ngày
                       </span>
                       <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
                         <div
@@ -114,6 +114,11 @@ export function AnnualLeaveTable({
                           style={{ width: `${pct}%` }}
                         />
                       </div>
+                      {hasLeave && (
+                        <span className="text-[11px] text-muted-foreground tabular-nums">
+                          Cả năm {formatDays(row.entitledDays)} ngày
+                        </span>
+                      )}
                     </div>
                   </TableCell>
                   {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {

@@ -8,8 +8,14 @@ export interface LeaveSuggestion {
 export interface AnnualLeaveRow {
   id: string
   year: number
+  /** Phép cả năm: tự tính theo ngày ký HĐ hoặc sửa tay. */
   entitledDays: number
+  /** Số tháng đã tích phép tới tháng hiện tại: mỗi tháng đã hết, từ tháng bắt đầu tính phép, được 1 ngày. */
+  accruedMonths: number
+  /** Phép có đến nay = min(cả năm, số tháng đã tích). */
+  accruedDays: number
   usedDays: number
+  /** Có đến nay − đã nghỉ, âm khi nghỉ quá. */
   remainingDays: number
   months: number[]
   lockedMonths: number[]

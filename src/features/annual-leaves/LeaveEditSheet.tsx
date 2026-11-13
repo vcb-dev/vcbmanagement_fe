@@ -17,7 +17,7 @@ import { getApiErrorMessage } from '@/lib/api-client'
 import { todayYmd } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { AnnualLeaveRow } from './annual-leaves.types'
-import { formatDays, LEAVE_STATUS_LABEL, leaveStatus } from './leave-status'
+import { accruedLeaveDays, formatDays, LEAVE_STATUS_LABEL, leaveStatus } from './leave-status'
 import { useDeleteLeaveRow, useSaveLeaveRow } from './use-annual-leaves'
 
 interface LeaveEditSheetProps {
@@ -54,8 +54,9 @@ export function LeaveEditSheet({
   }, [row])
 
   const usedDays = useMemo(() => months.reduce((acc, v) => acc + v, 0), [months])
-  const remainingDays = useMemo(() => entitledDays - usedDays, [entitledDays, usedDays])
-  const currentStatus = useMemo(() => leaveStatus(entitledDays, usedDays), [entitledDays, usedDays])
+  const accruedDays = accruedLeaveDays(entitledDays, row?.accruedMonths ?? 0)
+  const remainingDays = accruedDays - usedDays
+  const currentStatus = leaveStatus(accruedDays, usedDays)
 
   const handleMonthChange = (index: number, val: number) => {
     const next = [...months]
@@ -138,9 +139,12 @@ export function LeaveEditSheet({
                   </div>
                 </div>
                 <div className="rounded-md bg-background p-2 shadow-xs">
-                  <div className="text-[11px] text-muted-foreground">Được hưởng</div>
+                  <div className="text-[11px] text-muted-foreground">Có đến nay</div>
                   <div className="text-lg font-semibold tabular-nums">
-                    {formatDays(entitledDays)}
+                    {formatDays(accruedDays)}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground tabular-nums">
+                    cả năm {formatDays(entitledDays)}
                   </div>
                 </div>
                 <div className="rounded-md bg-background p-2 shadow-xs">
@@ -152,13 +156,14 @@ export function LeaveEditSheet({
               </div>
 
               <p className="text-[11px] text-muted-foreground text-center">
-                Còn lại tự tính = được hưởng − tổng các tháng
+                Mỗi tháng đã hết (từ tháng bắt đầu tính phép) được 1 ngày, không vượt phép cả năm.
+                Còn lại = có đến nay − tổng các tháng.
               </p>
             </div>
 
             {/* Ô số ngày được hưởng */}
             <div className="space-y-2">
-              <Label htmlFor="entitled-days">Phép được hưởng năm {year}</Label>
+              <Label htmlFor="entitled-days">Phép cả năm {year}</Label>
               <div className="flex items-center gap-2">
                 <Input
                   id="entitled-days"

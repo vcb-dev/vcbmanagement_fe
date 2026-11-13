@@ -110,7 +110,7 @@ export function AnnualLeavesPage() {
     <PageContainer>
       <PageHeader
         title={`Phép năm ${year}`}
-        description="Mỗi người một dòng phép năm: số ngày được hưởng và số ngày nghỉ từng tháng. Số còn lại hệ thống tự tính. Tháng trước ngày ký hợp đồng hiện sọc chéo; chưa có ngày ký hợp đồng thì chưa có phép. Chỉ áp dụng cho nhân sự toàn thời gian."
+        description="Mỗi người một dòng phép năm: phép cả năm và số ngày nghỉ từng tháng. Mỗi tháng đã hết, từ tháng ký hợp đồng, được 1 ngày phép (không vượt phép cả năm); sang năm tính lại. Số còn lại hệ thống tự tính. Tháng trước ngày ký hợp đồng hiện sọc chéo; chưa có ngày ký hợp đồng thì chưa có phép. Chỉ áp dụng cho nhân sự toàn thời gian."
         actions={
           <div className="flex items-center gap-2">
             <Select

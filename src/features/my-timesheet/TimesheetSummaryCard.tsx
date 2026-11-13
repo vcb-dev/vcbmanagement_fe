@@ -112,12 +112,12 @@ function LeaveTile({ leave }: { leave: LeaveSummary | null }) {
     <Tile label={`Phép năm ${leave.year} còn lại`}>
       <Value
         value={num(leave.remainingDays)}
-        unit={`/ ${num(leave.entitledDays)} ngày`}
+        unit={`/ ${num(leave.accruedDays)} ngày`}
         tone={low ? WARN : 'text-emerald-600 dark:text-emerald-400'}
       />
-      <Meter value={leave.remainingDays} of={leave.entitledDays} color={low ? 'bg-amber-500' : 'bg-emerald-500'} />
+      <Meter value={leave.remainingDays} of={leave.accruedDays} color={low ? 'bg-amber-500' : 'bg-emerald-500'} />
       <Sub>
-        Đã dùng {num(leave.usedDays)}
+        Có đến nay {num(leave.accruedDays)} / cả năm {num(leave.entitledDays)} · đã dùng {num(leave.usedDays)}
         {leave.usedInMonth > 0 && ` · tháng này ${num(leave.usedInMonth)}`}
       </Sub>
     </Tile>

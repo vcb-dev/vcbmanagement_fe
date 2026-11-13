@@ -218,7 +218,7 @@ export function RecordLeaveDialog({
                   )}
                 >
                   {formatDays(currentRemaining)} → {formatDays(nextRemaining)} ngày
-                  {nextRemaining < 0 && ' (vượt phép được hưởng)'}
+                  {nextRemaining < 0 && ' (vượt phép có đến nay)'}
                 </span>
               </div>
             </div>

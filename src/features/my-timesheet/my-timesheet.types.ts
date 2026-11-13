@@ -49,8 +49,12 @@ export interface PartTimeSummary {
 
 export interface LeaveSummary {
   year: number
+  /** Phép cả năm. */
   entitledDays: number
+  /** Phép có đến nay: mỗi tháng đã hết (từ tháng bắt đầu tính phép) được 1 ngày, không vượt cả năm. */
+  accruedDays: number
   usedDays: number
+  /** Có đến nay − đã nghỉ. */
   remainingDays: number
   usedInMonth: number
 }
