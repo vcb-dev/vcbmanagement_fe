@@ -9,6 +9,11 @@ export function leaveStatus(entitledDays: number, usedDays: number): LeaveStatus
   return 'ok'
 }
 
+/** Phép có đến nay: số tháng đã tích, không vượt phép cả năm (cùng luật với server). */
+export function accruedLeaveDays(entitledDays: number, accruedMonths: number): number {
+  return Math.min(entitledDays, accruedMonths)
+}
+
 export const LEAVE_STATUS_LABEL: Record<LeaveStatus, string> = {
   over: 'Vượt phép',
   zero: 'Hết phép',

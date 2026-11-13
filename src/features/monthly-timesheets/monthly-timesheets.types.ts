@@ -22,8 +22,11 @@ export interface FullTimeTimesheetRow {
   /** Phép năm của năm bản chốt; null = chưa có dòng phép năm, chưa ghi được công phép. */
   leave: {
     year: number
+    /** Phép cả năm. */
     entitledDays: number
-    /** Được hưởng trừ phép các tháng, âm khi đã nghỉ quá. Công phép lưu xong thì server tự trừ. */
+    /** Phép có đến nay: mỗi tháng đã hết (từ tháng bắt đầu tính phép) được 1 ngày, không vượt cả năm. */
+    accruedDays: number
+    /** Có đến nay trừ phép các tháng, âm khi đã nghỉ quá. Công phép lưu xong thì server tự trừ. */
     remainingDays: number
     /** Lý do chưa ghi thêm được công phép tháng này (chưa ký HĐ, tháng trước ngày ký HĐ); null = ghi được. */
     blockedReason: string | null
@@ -75,12 +78,13 @@ export function leaveLockReason(row: FullTimeTimesheetRow): string | undefined {
   return undefined
 }
 
-/** "Phép năm 2026 còn 4 / 12 ngày", hoặc "đã nghỉ quá 1,5 ngày" khi còn lại âm. */
+/** "Phép năm 2026 còn 4 / 10 ngày có đến nay (cả năm 12)", hoặc "đã nghỉ quá 1,5 ngày" khi còn lại âm. */
 export function leaveBalanceText(leave: NonNullable<FullTimeTimesheetRow['leave']>): string {
   const head = `Phép năm ${leave.year}`
+  const year = `cả năm ${leave.entitledDays}`
   return leave.remainingDays < 0
-    ? `${head}: ${leave.entitledDays} ngày, đã nghỉ quá ${formatWorkdays(-leave.remainingDays)} ngày`
-    : `${head} còn ${formatWorkdays(leave.remainingDays)} / ${leave.entitledDays} ngày`
+    ? `${head}: có đến nay ${leave.accruedDays} ngày (${year}), đã nghỉ quá ${formatWorkdays(-leave.remainingDays)} ngày`
+    : `${head} còn ${formatWorkdays(leave.remainingDays)} / ${leave.accruedDays} ngày có đến nay (${year})`
 }
 
 export const isOverLeave = (row: FullTimeTimesheetRow) => !!row.leave && row.leave.remainingDays < 0
