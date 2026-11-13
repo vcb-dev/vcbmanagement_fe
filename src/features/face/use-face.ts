@@ -20,6 +20,7 @@ export interface ScanFrameResult {
   hint: string
   poseOk?: boolean
   streak?: number
+  saving?: boolean
   livenessExpiresAt?: string
   me?: FaceMe
 }
@@ -54,9 +55,7 @@ export function useScanFrame() {
       const form = new FormData()
       form.append('sessionId', sessionId)
       form.append('frame', frame, 'frame.jpg')
-      const res = await apiClient.post<{ data: ScanFrameResult }>('/face/scan/frame', form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      const res = await apiClient.post<{ data: ScanFrameResult }>('/face/scan/frame', form)
       return res.data.data
     },
   })

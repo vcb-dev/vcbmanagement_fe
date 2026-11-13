@@ -13,7 +13,7 @@ export function FacePage() {
     <div className="mx-auto w-full max-w-5xl space-y-6 p-4 md:p-6 lg:p-8">
       <PageHeader
         title="Khuôn mặt"
-        description="Đăng ký khuôn mặt một lần. Quản lý duyệt xong, mỗi lần chấm công sẽ đối chiếu khuôn mặt trong ảnh."
+        description="Đăng ký khuôn mặt một lần (nhìn thẳng, quay trái, quay phải). Quản lý duyệt xong, mỗi lần chấm công đối chiếu khuôn mặt trong ảnh camera."
       />
       <MyFace />
     </div>

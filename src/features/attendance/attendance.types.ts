@@ -23,6 +23,7 @@ export interface AttendancePunch {
   screenDate: string | null
   faceScore: number | null
   sceneScore: number | null
+  floorNote: string | null
 }
 
 export interface AttendanceRecord {

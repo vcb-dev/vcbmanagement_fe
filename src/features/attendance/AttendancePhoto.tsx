@@ -69,7 +69,9 @@ export function AttendancePhotos({ record, title }: { record: AttendanceRecord |
                     <span className="block text-xs">Khuôn mặt khớp {Math.round(p.faceScore * 100)}%</span>
                   )}
                   {p.sceneScore != null && (
-                    <span className="block text-xs">Nền văn phòng {Math.round(p.sceneScore * 100)}%</span>
+                    <span className="block text-xs">
+                      Nền văn phòng{p.floorNote ? ` ${p.floorNote}` : ''} {Math.round(p.sceneScore * 100)}%
+                    </span>
                   )}
                   {p.distanceMeters !== null && (
                     <span className="block text-xs">Cách công ty {formatMeters(p.distanceMeters)}</span>

@@ -54,6 +54,8 @@ export interface PhotoCheckResult {
   screenDate: string | null
   faceScore: number | null
   sceneScore: number | null
+  floorNote: string | null
+  replayScore: number | null
 }
 
 function appendClientTime(form: FormData) {

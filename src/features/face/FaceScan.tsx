@@ -8,7 +8,7 @@ import { captureJpeg, openUserCamera } from './capture-frame'
 import { STEP_LABEL, type LivenessStep } from './face.types'
 import { useScanFrame, useStartScan, type ScanFrameResult } from './use-face'
 
-const TICK_MS = 480
+const TICK_GAP_MS = 50
 
 export function FaceScan({
   kind,
@@ -24,19 +24,26 @@ export function FaceScan({
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const busyRef = useRef(false)
+  const liveRef = useRef(false)
+  const sessionRef = useRef<string | null>(null)
+  const savingRef = useRef(false)
+  const lastBlobRef = useRef<Blob | null>(null)
   const [live, setLive] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [steps, setSteps] = useState<LivenessStep[]>([])
   const [stepIndex, setStepIndex] = useState(0)
   const [hint, setHint] = useState('Đưa mặt vào khung hình')
   const [poseOk, setPoseOk] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const stop = () => {
+    liveRef.current = false
     streamRef.current?.getTracks().forEach((t) => t.stop())
     streamRef.current = null
     setLive(false)
     busyRef.current = false
+    savingRef.current = false
   }
 
   useEffect(() => () => stop(), [])
@@ -51,36 +58,51 @@ export function FaceScan({
 
   useEffect(() => {
     if (!live || !sessionId) return
-    const id = window.setInterval(() => {
-      void tick()
-    }, TICK_MS)
-    return () => window.clearInterval(id)
+    let cancelled = false
+    const loop = async () => {
+      while (!cancelled && liveRef.current && sessionRef.current) {
+        await tick()
+        if (cancelled || !liveRef.current) break
+        await new Promise((r) => window.setTimeout(r, TICK_GAP_MS))
+      }
+    }
+    void loop()
+    return () => {
+      cancelled = true
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live, sessionId])
 
   const tick = async () => {
     const video = videoRef.current
-    if (!video || !sessionId || busyRef.current || !video.videoWidth) return
+    const sid = sessionRef.current
+    if (!video || !sid || busyRef.current) return
+    if (!savingRef.current && !video.videoWidth) return
     busyRef.current = true
     try {
-      const blob = await captureJpeg(video)
-      const result = await frame.mutateAsync({ sessionId, frame: blob })
+      const blob =
+        savingRef.current && lastBlobRef.current ? lastBlobRef.current : await captureJpeg(video)
+      lastBlobRef.current = blob
+      const result = await frame.mutateAsync({ sessionId: sid, frame: blob })
       setHint(result.hint)
       setStepIndex(result.stepIndex)
       setPoseOk(!!result.poseOk)
+      setSaving(!!result.saving)
+      savingRef.current = !!result.saving
       if (result.done) {
         stop()
+        sessionRef.current = null
         setSessionId(null)
         onDone(result)
       }
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status
-      // 502/503 khi BE hoặc AI đang khởi động lại — giữ camera, gửi khung hình tiếp.
       if (status === 502 || status === 503 || status === 0) {
         setHint('Đang kết nối lại máy chủ…')
       } else {
         setError(getApiErrorMessage(err))
         stop()
+        sessionRef.current = null
         setSessionId(null)
       }
     } finally {
@@ -94,11 +116,16 @@ export function FaceScan({
       const session = await start.mutateAsync(kind)
       const stream = await openUserCamera()
       streamRef.current = stream
+      sessionRef.current = session.sessionId
+      liveRef.current = true
+      savingRef.current = false
+      lastBlobRef.current = null
       setSessionId(session.sessionId)
       setSteps(session.steps)
       setStepIndex(session.stepIndex)
       setHint(session.hint)
       setPoseOk(false)
+      setSaving(false)
       setLive(true)
     } catch (err) {
       setError(getApiErrorMessage(err))
@@ -114,7 +141,7 @@ export function FaceScan({
         <div className="mx-auto w-full max-w-sm space-y-3">
           <div className="relative aspect-[3/4] overflow-hidden rounded-3xl border bg-black">
             <video ref={videoRef} playsInline muted autoPlay className="size-full -scale-x-100 object-cover" />
-            <OvalGuide step={step} poseOk={poseOk} blocked={blocked} />
+            <OvalGuide step={step} poseOk={poseOk} blocked={blocked} saving={saving} />
             <p className="absolute inset-x-0 bottom-4 px-4 text-center text-sm font-semibold text-white drop-shadow">
               {hint}
             </p>
@@ -128,7 +155,7 @@ export function FaceScan({
               Huỷ
             </Button>
           </div>
-          <StepRail steps={steps} current={stepIndex} poseOk={poseOk} />
+          <StepRail steps={steps} current={stepIndex} poseOk={poseOk} saving={saving} />
         </div>
       ) : (
         <Button type="button" variant="outline" className="h-12 w-full text-base" onClick={begin} disabled={start.isPending}>
@@ -146,7 +173,17 @@ export function FaceScan({
   )
 }
 
-function OvalGuide({ step, poseOk, blocked }: { step: LivenessStep; poseOk: boolean; blocked: boolean }) {
+function OvalGuide({
+  step,
+  poseOk,
+  blocked,
+  saving,
+}: {
+  step: LivenessStep
+  poseOk: boolean
+  blocked: boolean
+  saving: boolean
+}) {
   return (
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
       <div className="relative aspect-square w-[78%] max-w-[20rem]">
@@ -154,10 +191,16 @@ function OvalGuide({ step, poseOk, blocked }: { step: LivenessStep; poseOk: bool
         <div
           className={cn(
             'absolute inset-0 rounded-full border-[3px]',
-            blocked ? 'border-rose-400' : poseOk ? 'border-emerald-400' : 'border-white/90',
+            blocked ? 'border-rose-400' : poseOk || saving ? 'border-emerald-400' : 'border-white/90',
           )}
         />
-        {step !== 'center' && (
+        {saving && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white">
+            <Check className="size-10 drop-shadow" />
+            <span className="text-sm font-semibold drop-shadow">Đã nhận</span>
+          </div>
+        )}
+        {step !== 'center' && !saving && (
           <div
             className={cn(
               'absolute top-1/2 -translate-y-1/2 text-white',
@@ -172,12 +215,22 @@ function OvalGuide({ step, poseOk, blocked }: { step: LivenessStep; poseOk: bool
   )
 }
 
-function StepRail({ steps, current, poseOk }: { steps: LivenessStep[]; current: number; poseOk: boolean }) {
+function StepRail({
+  steps,
+  current,
+  poseOk,
+  saving,
+}: {
+  steps: LivenessStep[]
+  current: number
+  poseOk: boolean
+  saving: boolean
+}) {
   return (
-    <ol className="grid grid-cols-3 gap-2">
+    <ol className={cn('grid gap-2', steps.length === 1 ? 'grid-cols-1' : 'grid-cols-3')}>
       {steps.map((s, i) => {
-        const done = i < current
-        const active = i === current
+        const done = i < current || (saving && i <= current)
+        const active = i === current && !done
         const Icon = s === 'left' ? ArrowLeft : s === 'right' ? ArrowRight : UserRound
         return (
           <li
@@ -191,9 +244,9 @@ function StepRail({ steps, current, poseOk }: { steps: LivenessStep[]; current: 
             )}
           >
             <span className="flex size-7 items-center justify-center rounded-full bg-background shadow-sm">
-              {done ? (
+              {done || (active && poseOk) ? (
                 <Check className="size-4 text-emerald-600" />
-              ) : active && !poseOk ? (
+              ) : active ? (
                 <Loader2 className="size-4 animate-spin text-primary" />
               ) : (
                 <Icon className="size-4" />

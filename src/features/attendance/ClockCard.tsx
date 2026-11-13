@@ -252,9 +252,9 @@ export function ClockCard({ className }: { className?: string }) {
               </div>
             )}
             <p className="-mt-1 text-xs text-muted-foreground">
-              Mở camera và chụp. Ảnh cần có <b className="font-medium text-foreground">mặt bạn</b> và nền{' '}
-              <b className="font-medium text-foreground">văn phòng tầng 5</b>. Ngày giờ lấy từ đồng hồ thiết bị, phải
-              khớp hệ thống Việt Nam.
+              Mở camera và chụp. Ảnh cần có <b className="font-medium text-foreground">mặt bạn</b> nhìn thẳng và nền{' '}
+              <b className="font-medium text-foreground">văn phòng tầng 5</b>. Không dùng ảnh có sẵn trên điện thoại
+              / giấy.
             </p>
             <CameraCapture
               photo={photo}
@@ -312,7 +312,12 @@ export function ClockCard({ className }: { className?: string }) {
               className="h-12 w-full bg-clip-border text-base text-white disabled:opacity-100"
               style={{
                 backgroundColor:
-                  isPending || busy || !photoOk || !nextSlot || !locationOk || (faceRequired && !faceApproved)
+                  isPending ||
+                  busy ||
+                  !photoOk ||
+                  !nextSlot ||
+                  !locationOk ||
+                  (faceRequired && !faceApproved)
                     ? '#c7d2fe'
                     : nextSlot && !isInSlot(nextSlot)
                       ? '#e11d48'
@@ -381,7 +386,7 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
     return (
       <div className="flex items-center gap-2 rounded-xl border bg-muted/40 p-3 text-sm text-muted-foreground">
         <Loader2 className="size-4 shrink-0 animate-spin" />
-        Đang kiểm tra ngày giờ, khuôn mặt và nền văn phòng…
+        Đang kiểm tra ngày giờ, khuôn mặt, nền văn phòng và ảnh thật…
       </div>
     )
   }
@@ -402,7 +407,7 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
     )
   }
   if (check.isSuccess) {
-    const { screenTime, screenDate, faceScore, sceneScore } = check.data
+    const { screenTime, screenDate, faceScore, sceneScore, floorNote, replayScore } = check.data
     return (
       <div
         className="flex items-start gap-2 rounded-xl border p-3 text-sm"
@@ -414,7 +419,9 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
           <p className="mt-1 text-xs leading-5" style={{ color: '#3f3f46' }}>
             Giờ {screenTime ?? '—'} · ngày {screenDate ?? '—'} khớp hệ thống
             {faceScore != null && ` · khuôn mặt khớp đã đăng ký (${Math.round(faceScore * 100)}%)`}
-            {sceneScore != null && ` · nền văn phòng tầng 5 (${Math.round(sceneScore * 100)}%)`}
+            {sceneScore != null &&
+              ` · nền văn phòng ${floorNote ?? 'tầng 5'} (${Math.round(sceneScore * 100)}%)`}
+            {replayScore != null && ` · không phải giơ màn hình (điểm ${Math.round(replayScore * 100)}%)`}
           </p>
         </div>
       </div>
