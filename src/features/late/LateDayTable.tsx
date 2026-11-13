@@ -94,13 +94,13 @@ export function LateDayTable({
       <table className="w-max min-w-full border-separate border-spacing-0 text-sm">
         <thead>
           <tr>
-            <th scope="col" className={cn(HEAD, PERSON_COL, 'sticky left-0 z-20 border-r border-r-border px-2.5')}>
+            <th scope="col" className={cn(HEAD, PERSON_COL, 'sticky left-0 z-2 border-r border-r-border px-2.5')}>
               Nhân sự
             </th>
             <th scope="col" className={cn(HEAD, DEPARTMENT_COL, 'hidden md:table-cell')}>
               Bộ phận
             </th>
-            <th scope="col" className={cn(HEAD, SHIFT_COL, 'z-20 px-1')}>
+            <th scope="col" className={cn(HEAD, SHIFT_COL, 'z-2 px-1')}>
               Buổi
             </th>
             {days.map((ymd) => (

@@ -293,7 +293,7 @@ export function MonthlyDetailSheet({
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Tổng công = công máy + từ xa + lễ, bù + phép. Xin phép và tăng ca ghi riêng, không cộng vào.
+              Tổng công = công máy + làm ở nhà + ngày lễ + phép. Xin phép và tăng ca ghi riêng, không cộng vào.
             </p>
           </section>
 
@@ -302,7 +302,7 @@ export function MonthlyDetailSheet({
             <div className="grid grid-cols-3 gap-2">
               <Metric label="Công máy" value={formatWorkdays(row.machineWorkdays)} />
               <Metric
-                label="Thiếu chấm"
+                label="Thiếu in/out"
                 value={`${row.missingPunchCount} lần`}
                 tone={row.missingPunchCount ? 'text-amber-600 dark:text-amber-400' : undefined}
               />

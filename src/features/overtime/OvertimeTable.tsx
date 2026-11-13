@@ -40,7 +40,7 @@ export function OvertimeTable({
       <table className="w-max min-w-full border-separate border-spacing-0 text-sm">
         <thead>
           <tr>
-            <th scope="col" className={cn(HEAD, PERSON_RIGHT, 'sticky left-0 z-20 max-w-44 min-w-44 px-3 sm:max-w-56 sm:min-w-56')}>
+            <th scope="col" className={cn(HEAD, PERSON_RIGHT, 'sticky left-0 z-2 max-w-44 min-w-44 px-3 sm:max-w-56 sm:min-w-56')}>
               Nhân sự
             </th>
             <th scope="col" className={cn(HEAD, 'hidden min-w-28 px-3 md:table-cell')}>

@@ -46,6 +46,8 @@ const SUB = 'block text-[11px] leading-4 font-normal text-muted-foreground'
 const CELL = cn(LINE_BOTTOM, LINE_RIGHT, 'px-2.5 py-1.5 text-center tabular-nums whitespace-nowrap')
 const MANUAL_BG = 'bg-primary/[0.03]'
 const LAST = 'border-r-0'
+/** Tạm ẩn cột Xin phép trên bảng; vẫn sửa được trong chi tiết từng người. */
+const TABLE_MANUAL_FIELDS = MANUAL_FIELDS.filter((f) => f.field !== 'excusedWorkdays')
 /** Ô sửa được chỉ hiện khung khi rê chuột vào dòng, để bảng không kín ô viền. */
 const REVEAL_ON_ROW = 'group-hover/row:border-border group-hover/row:bg-background dark:group-hover/row:bg-input/30'
 
@@ -112,7 +114,7 @@ export function MonthlyTimesheetTable({
             <th
               rowSpan={2}
               scope="col"
-              className={cn(HEAD, PERSON_RIGHT, 'sticky left-0 z-20 max-w-44 min-w-44 sm:max-w-56 sm:min-w-56')}
+              className={cn(HEAD, PERSON_RIGHT, 'sticky left-0 z-2 max-w-44 min-w-44 sm:max-w-56 sm:min-w-56')}
             >
               Nhân sự
             </th>
@@ -122,7 +124,7 @@ export function MonthlyTimesheetTable({
             <th colSpan={3} scope="colgroup" className={GROUP} title="Tính lại từ chấm công mỗi lần tải">
               <span className={GROUP_LABEL}>Tự động</span>
             </th>
-            <th colSpan={5} scope="colgroup" className={cn(GROUP, MANUAL_HEAD)} title="Quản lý nhập, bấm vào ô để sửa">
+            <th colSpan={TABLE_MANUAL_FIELDS.length + 1} scope="colgroup" className={cn(GROUP, MANUAL_HEAD)} title="Quản lý nhập, bấm vào ô để sửa">
               <span className={GROUP_LABEL}>
                 <PencilLine className="size-3.5 text-primary" />
                 Quản lý nhập
@@ -132,7 +134,7 @@ export function MonthlyTimesheetTable({
               rowSpan={2}
               scope="col"
               className={HEAD}
-              title="Công máy + từ xa + lễ, bù + phép. Xin phép và tăng ca không cộng vào"
+              title="Công máy + làm ở nhà + ngày lễ + phép. Tăng ca không cộng vào"
             >
               Tổng công
               <span className={SUB}>chuẩn {formatWorkdays(standardWorkdays)}</span>
@@ -146,14 +148,14 @@ export function MonthlyTimesheetTable({
               Công máy
             </th>
             <th scope="col" className={HEAD} title="Số ca chỉ có giờ vào hoặc chỉ có giờ ra">
-              Thiếu chấm
+              Thiếu in/out
               <span className={SUB}>số lần</span>
             </th>
             <th scope="col" className={HEAD} title="Số ca vào muộn trong tháng">
               Đi muộn
               <span className={SUB}>số lần</span>
             </th>
-            {MANUAL_FIELDS.map((f) => (
+            {TABLE_MANUAL_FIELDS.map((f) => (
               <th
                 key={f.field}
                 scope="col"
@@ -201,7 +203,7 @@ export function MonthlyTimesheetTable({
               <td className={CELL}>
                 <Count value={row.lateCount} warn />
               </td>
-              {MANUAL_FIELDS.map((f) => {
+              {TABLE_MANUAL_FIELDS.map((f) => {
                 const isLeave = f.field === 'leaveDays'
                 const disabledHint = isLeave ? leaveLockReason(row) : undefined
                 // Ô đang mở thì rê chuột thấy phép năm còn lại (title của ô cha, vì ô nhập không có title riêng).

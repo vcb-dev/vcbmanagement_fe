@@ -65,7 +65,7 @@ export function WeeklySummaryTable({
             <th
               rowSpan={2}
               scope="col"
-              className={cn(HEAD, PERSON_COL, PERSON_RIGHT, 'sticky left-0 z-20')}
+              className={cn(HEAD, PERSON_COL, PERSON_RIGHT, 'sticky left-0 z-2')}
             >
               Nhân sự
             </th>

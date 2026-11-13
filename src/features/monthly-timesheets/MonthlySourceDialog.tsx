@@ -1,11 +1,11 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const SOURCES = [
-  ['Công máy, thiếu chấm, đi muộn', 'Tự động từ chấm công, tính lại mỗi lần tải trang'],
-  ['Từ xa, lễ + bù, xin phép', 'Quản lý nhập trên bảng hoặc trong chi tiết từng người'],
+  ['Công máy, thiếu in/out, đi muộn', 'Tự động từ chấm công, tính lại mỗi lần tải trang'],
+  ['Làm ở nhà, ngày lễ', 'Quản lý nhập trên bảng hoặc trong chi tiết từng người'],
   ['Phép', 'Quản lý nhập, ghi thẳng vào phép tháng của phép năm nên số phép còn lại tự trừ'],
   ['Tăng ca', 'Quản lý nhập theo từng ngày trong chi tiết từng người'],
-  ['Tổng công', 'Công máy + từ xa + lễ, bù + phép, do hệ thống tự tính'],
+  ['Tổng công', 'Công máy + làm ở nhà + ngày lễ + phép, do hệ thống tự tính'],
   ['Bộ phận', 'Theo hồ sơ nhân sự hiện tại'],
 ] as const
 
@@ -27,7 +27,7 @@ export function MonthlySourceDialog({ onClose }: { onClose: () => void }) {
         </dl>
         <ul className="list-disc space-y-1 pl-4 text-xs text-muted-foreground">
           <li>Không có bước chốt riêng: bảng luôn theo chấm công mới nhất và tự tải lại mỗi 30 giây.</li>
-          <li>Mỗi ca đủ giờ vào và giờ ra được 0,5 công. Ca chỉ có một mốc tính là một lần thiếu chấm, trừ hôm nay.</li>
+          <li>Mỗi ca đủ giờ vào và giờ ra được 0,5 công. Ca chỉ có một mốc tính là một lần thiếu in/out, trừ hôm nay.</li>
           <li>Xin phép và tăng ca ghi riêng, không cộng vào tổng công.</li>
         </ul>
       </DialogContent>

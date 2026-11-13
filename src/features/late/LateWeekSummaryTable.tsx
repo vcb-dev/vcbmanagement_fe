@@ -59,13 +59,13 @@ export function LateWeekSummaryTable({
       <table className="w-max min-w-full border-separate border-spacing-0 text-sm">
         <thead>
           <tr>
-            <th rowSpan={2} scope="col" className={cn(HEAD, PERSON_COL, PERSON_RIGHT, 'sticky left-0 z-20')}>
+            <th rowSpan={2} scope="col" className={cn(HEAD, PERSON_COL, PERSON_RIGHT, 'sticky left-0 z-2')}>
               Nhân sự
             </th>
             <th rowSpan={2} scope="col" className={cn(HEAD, DEPARTMENT_COL, 'hidden px-2 md:table-cell')}>
               Bộ phận
             </th>
-            <th rowSpan={2} scope="col" className={cn(HEAD, SHIFT_COL, 'z-20 px-1')}>
+            <th rowSpan={2} scope="col" className={cn(HEAD, SHIFT_COL, 'z-2 px-1')}>
               Buổi
             </th>
             <th colSpan={weeks.length} scope="colgroup" className={GROUP}>

@@ -42,7 +42,7 @@ const STATUS_TABS: ConfirmationStatus[] = ['confirmed', 'pending', 'disputed']
 
 const EXTRA_FILTERS: { value: string; label: string; match: (r: FullTimeTimesheetRow) => boolean }[] = [
   { value: 'overtime', label: 'Có tăng ca', match: (r) => r.overtimeWorkdays > 0 },
-  { value: 'missing', label: 'Có thiếu chấm', match: (r) => r.missingPunchCount > 0 },
+  { value: 'missing', label: 'Có thiếu in/out', match: (r) => r.missingPunchCount > 0 },
   { value: 'late', label: 'Có đi muộn', match: (r) => r.lateCount > 0 },
   { value: 'excused', label: 'Có xin phép', match: (r) => r.excusedWorkdays > 0 },
   { value: 'leave', label: 'Có nghỉ phép', match: (r) => r.leaveWorkdays > 0 },
