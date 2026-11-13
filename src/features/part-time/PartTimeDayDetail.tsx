@@ -98,8 +98,8 @@ function ShiftSection({
           </div>
           <p className="text-xs text-muted-foreground">
             {shift.entry.kind === 'online'
-              ? `Online · sửa bởi ${shift.entry.recordedBy.name}: ${shift.entry.note}`
-              : `Sửa bởi ${shift.entry.recordedBy.name}: ${shift.entry.note}`}
+              ? `Online · sửa bởi ${shift.entry.recordedBy.name}${shift.entry.note ? `: ${shift.entry.note}` : ''}`
+              : `Sửa bởi ${shift.entry.recordedBy.name}${shift.entry.note ? `: ${shift.entry.note}` : ''}`}
           </p>
         </div>
       ) : isOnline ? (

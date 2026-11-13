@@ -94,7 +94,7 @@ export interface ShiftEntryInput {
   shift: WorkShift
   kind: 'online' | 'manual'
   hours: number
-  note: string
+  note?: string
 }
 
 export interface PartTimeGridRow {
@@ -111,35 +111,6 @@ export interface PartTimeGridRow {
   skipReason: string | null
   days: { date: string; shifts: PartTimeShiftView[] }[]
   totalHours: number
-}
-
-export type PartTimeIssueType = 'missing' | 'late' | 'early' | 'disputed' | 'outdated'
-
-export interface PartTimeIssue {
-  type: PartTimeIssueType
-  user: { id: string; name: string }
-  department: { id: string; name: string } | null
-  date: string | null
-  shift: WorkShift | null
-  window: { start: string; end: string } | null
-  inAt: string | null
-  outAt: string | null
-  minutes: number
-  lateMinutes: number
-  lateLevel: number | null
-  earlyMinutes: number
-  sheetId: string | null
-  feedbackContent: string | null
-  liveTotalHours: number | null
-  sheetTotalHours: number | null
-}
-
-export const ISSUE_TYPE_LABEL: Record<PartTimeIssueType, string> = {
-  missing: 'Thiếu chấm',
-  late: 'Đi muộn',
-  early: 'Về sớm',
-  disputed: 'Báo sai',
-  outdated: 'Lệch sau chốt',
 }
 
 export interface FeedbackReplyView {

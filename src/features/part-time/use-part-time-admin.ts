@@ -6,10 +6,7 @@ import type {
   CloseMonthResult,
   PartTimeDayView,
   PartTimeGridRow,
-  PartTimeIssue,
-  PartTimeIssueType,
   PartTimeSheetRow,
-  PartTimeShiftView,
   ShiftEntryInput,
 } from './part-time.types'
 
@@ -24,18 +21,6 @@ export function usePartTimeSheets(month: string, page: number) {
     queryKey: ['part-time', 'sheets', month, page],
     queryFn: () => get<Paginated<PartTimeSheetRow>>('/timesheets/part-time', { month, page }),
     placeholderData: (prev) => prev,
-  })
-}
-
-/** Dòng chốt công của một người, khi mở chi tiết người không nằm ở trang đang xem. */
-export function usePartTimeSheetRow(month: string, userId: string | null, enabled: boolean) {
-  return useQuery({
-    queryKey: ['part-time', 'sheets', month, 'user', userId],
-    queryFn: async () => {
-      const data = await get<Paginated<PartTimeSheetRow>>('/timesheets/part-time', { month, userId })
-      return data.items[0] ?? null
-    },
-    enabled: enabled && Boolean(userId),
   })
 }
 
@@ -54,47 +39,6 @@ export function usePartTimeGrid(params: PartTimeGridParams) {
     queryFn: () => get<Paginated<PartTimeGridRow>>('/timesheets/part-time/grid', { ...params }),
     placeholderData: (prev) => prev,
   })
-}
-
-export interface PartTimeIssuesPage extends Paginated<PartTimeIssue> {
-  /** Đếm trên cả tháng theo từng loại, không phụ thuộc loại đang lọc. */
-  counts: Record<PartTimeIssueType | 'all', number>
-}
-
-/** Tải một trang việc cần đối soát trong tháng. Bỏ trống type/page = tất cả, trang 1 (dùng chung cache với số trên tab). */
-export function usePartTimeIssues({
-  month,
-  type,
-  page = 1,
-}: {
-  month: string
-  type?: PartTimeIssueType
-  page?: number
-}) {
-  return useQuery({
-    queryKey: ['part-time', 'issues', month, type ?? 'all', page],
-    queryFn: () => get<PartTimeIssuesPage>('/timesheets/part-time/issues', { month, type, page }),
-    placeholderData: (prev) => prev,
-  })
-}
-
-/** Chuyển issue dạng thiếu / muộn / sớm thành PartTimeShiftView để mở ShiftHoursDialog. */
-export function issueToShiftView(issue: PartTimeIssue): PartTimeShiftView {
-  return {
-    shift: issue.shift ?? 'morning',
-    window: issue.window ?? { start: '08:00', end: '12:00' },
-    mode: 'offline',
-    source: 'machine',
-    inAt: issue.inAt,
-    outAt: issue.outAt,
-    minutes: issue.minutes,
-    lateMinutes: issue.lateMinutes,
-    lateLevel: issue.lateLevel,
-    earlyMinutes: issue.earlyMinutes,
-    missing: issue.type === 'missing',
-    inProgress: false,
-    entry: null,
-  }
 }
 
 /** Chốt công tháng cho nhân sự part-time. */

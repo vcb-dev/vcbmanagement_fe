@@ -78,10 +78,6 @@ export function ShiftHoursDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!note.trim()) {
-      setErrorMsg('Vui lòng nhập lý do')
-      return
-    }
 
     const numHours = Number(hours)
     if (isNaN(numHours) || numHours < 0) {
@@ -208,7 +204,7 @@ export function ShiftHoursDialog({
 
               <div className="space-y-1.5">
                 <Label htmlFor="shift-note" className="text-xs font-medium">
-                  Lý do <span className="text-destructive">*</span>
+                  Lý do
                 </Label>
                 <Textarea
                   id="shift-note"
@@ -216,8 +212,7 @@ export function ShiftHoursDialog({
                   maxLength={500}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Nhập lý do điều chỉnh hoặc làm online..."
-                  required
+                  placeholder="Nhập lý do điều chỉnh hoặc làm online (không bắt buộc)..."
                 />
               </div>
 
