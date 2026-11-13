@@ -9,8 +9,6 @@ import type { FeedbackListItem, FeedbackStatus } from './feedbacks.types'
 export function FeedbackStatusBadge({ status }: { status: FeedbackStatus }) {
   const styles: Record<FeedbackStatus, string> = {
     open: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800/60',
-    in_progress:
-      'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800/60',
     resolved:
       'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60',
   }

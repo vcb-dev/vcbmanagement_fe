@@ -36,7 +36,6 @@ export interface FeedbackDetail extends FeedbackListItem {
 export interface FeedbackCounts {
   all: number
   open: number
-  in_progress: number
   resolved: number
 }
 

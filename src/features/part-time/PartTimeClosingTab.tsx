@@ -7,35 +7,25 @@ import { todayYmd } from '@/lib/format'
 import { CloseMonthButton } from './CloseMonthButton'
 import { PartTimeSheetTable } from './PartTimeSheetTable'
 import { PartTimeUserSheet } from './PartTimeUserSheet'
-import { usePartTimeSheetRow, usePartTimeSheets } from './use-part-time-admin'
+import { usePartTimeSheets } from './use-part-time-admin'
 
 export function PartTimeClosingTab({
   month,
   onMonthChange,
-  selectedUserId,
-  onSelectUser,
 }: {
   month: string
   onMonthChange: (m: string) => void
-  selectedUserId: string | null
-  onSelectUser: (id: string | null) => void
 }) {
   const currentMonth = todayYmd().slice(0, 7)
   // Đổi tháng thì về trang 1: trang gắn với tháng, khác tháng là bỏ.
   const [paging, setPaging] = useState({ month, page: 1 })
   const page = paging.month === month ? paging.page : 1
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   const { data, isPending, isError, error, refetch } = usePartTimeSheets(month, page)
   const rows = data?.items ?? []
 
-  // Mở từ tab "Cần đối soát" có thể là người ở trang khác: khi đó tải riêng dòng của người đó.
-  const rowInPage = rows.find((r) => r.user.id === selectedUserId) ?? null
-  const { data: rowElsewhere = null } = usePartTimeSheetRow(
-    month,
-    selectedUserId,
-    !isPending && rowInPage === null,
-  )
-  const selectedRow = rowInPage ?? rowElsewhere
+  const selectedRow = rows.find((r) => r.user.id === selectedUserId) ?? null
 
   return (
     <div className="space-y-4">
@@ -65,7 +55,7 @@ export function PartTimeClosingTab({
         </div>
       ) : (
         <div className="space-y-3">
-          <PartTimeSheetTable rows={rows} onSelect={onSelectUser} />
+          <PartTimeSheetTable rows={rows} onSelect={setSelectedUserId} />
           <PaginationFooter
             data={data}
             unit="nhân sự"
@@ -77,7 +67,7 @@ export function PartTimeClosingTab({
       <PartTimeUserSheet
         row={selectedRow}
         month={month}
-        onClose={() => onSelectUser(null)}
+        onClose={() => setSelectedUserId(null)}
       />
     </div>
   )

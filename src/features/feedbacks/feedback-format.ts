@@ -19,12 +19,9 @@ export function sheetLabel(sheet: FeedbackSheetRef): string {
   return `Chốt công ${m}/${y} · ${typeText}`
 }
 
-export function managerDefaultStatus(s: FeedbackStatus): FeedbackStatus {
-  return s === 'open' ? 'in_progress' : s
-}
-
-export function staffNextStatus(s: FeedbackStatus): FeedbackStatus {
-  return s === 'resolved' ? 'in_progress' : s
+/** Trạng thái feedback sau khi gửi trả lời, giống BE: quản lý trả lời là đã xử lý, nhân viên trả lời là mở lại. */
+export function replyNextStatus(isManager: boolean): FeedbackStatus {
+  return isManager ? 'resolved' : 'open'
 }
 
 export function sheetLink(sheet: FeedbackSheetRef, role: UserRole): string | null {
