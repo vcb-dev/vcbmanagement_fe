@@ -161,7 +161,7 @@ function OvertimeForm({ month, row, initial }: { month: string; row: FullTimeTim
       seen.add(item.date)
       const value = parseOvertime(item.workdays)
       if (!value) {
-        return setError(`Ngày ${formatDayMonth(item.date)}: nhập số công tăng ca lớn hơn 0, tối đa 3 chữ số thập phân, ví dụ 0,5 hoặc 0,375`)
+        return setError(`Ngày ${formatDayMonth(item.date)}: nhập số giờ tăng ca lớn hơn 0, số thập phân, tối đa 3 chữ số sau dấu phẩy, ví dụ 1,5 (1 giờ 30 phút) hoặc 0,25 (15 phút)`)
       }
       parsed.push({ date: item.date, workdays: value })
     }
@@ -192,11 +192,11 @@ function OvertimeForm({ month, row, initial }: { month: string; row: FullTimeTim
               />
               {item.date && <span className="w-7 text-xs text-muted-foreground">{weekdayShort(item.date)}</span>}
               <Input
-                aria-label="Số công tăng ca"
+                aria-label="Số giờ tăng ca"
                 inputMode="decimal"
                 autoComplete="off"
                 value={item.workdays}
-                placeholder="0,5"
+                placeholder="1,5"
                 onChange={(e) => edit(item.key, { workdays: e.target.value })}
                 className="w-20 text-right tabular-nums"
               />
@@ -227,7 +227,7 @@ function OvertimeForm({ month, row, initial }: { month: string; row: FullTimeTim
           Thêm ngày
         </Button>
         <span className="text-xs text-muted-foreground">
-          Tổng <b className="font-semibold text-foreground tabular-nums">{formatOvertime(sum)}</b> công
+          Tổng <b className="font-semibold text-foreground tabular-nums">{formatOvertime(sum)}</b> giờ
         </span>
         <Button type="button" size="sm" onClick={save} disabled={replace.isPending}>
           {replace.isPending ? <Loader2 className="animate-spin" /> : <Check />}
@@ -325,7 +325,10 @@ export function MonthlyDetailSheet({
           </section>
 
           <section ref={overtimeRef} className="scroll-mt-4 space-y-2">
-            <SectionTitle title="Tăng ca theo ngày" hint="không cộng vào tổng công" />
+            <SectionTitle title="Tăng ca theo ngày" hint="tính bằng giờ, không cộng vào tổng công" />
+            <p className="text-xs text-muted-foreground">
+              Nhập số giờ, số thập phân, tối đa 3 chữ số sau dấu phẩy: 1,5 = 1 giờ 30 phút, 0,25 = 15 phút.
+            </p>
             <OvertimeSection month={month} row={row} />
           </section>
         </div>

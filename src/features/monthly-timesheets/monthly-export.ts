@@ -15,7 +15,7 @@ export function buildMonthlyCsv(rows: FullTimeTimesheetRow[]): string {
     'Ngày lễ',
     'Xin phép',
     'Phép',
-    'Tăng ca',
+    'Tăng ca (giờ)',
     'Tổng công',
     'Xác nhận',
   ]

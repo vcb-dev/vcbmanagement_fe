@@ -19,7 +19,7 @@ const SUB = 'block text-[11px] leading-4 font-normal text-muted-foreground'
 const SUNDAY_HEAD = 'bg-[color-mix(in_oklab,var(--muted),var(--foreground)_5%)]'
 const CELL = cn(LINE_BOTTOM, LINE_RIGHT, 'px-1 py-1 text-center')
 const SUNDAY = 'bg-muted/50'
-const INVALID = 'Nhập số công tăng ca, tối đa 3 chữ số thập phân, ví dụ 0,5 hoặc 0,375'
+const INVALID = 'Nhập số giờ tăng ca, số thập phân, tối đa 3 chữ số sau dấu phẩy, ví dụ 1,5 (1 giờ 30 phút) hoặc 0,25 (15 phút)'
 
 export function OvertimeTable({
   month,
@@ -58,6 +58,7 @@ export function OvertimeTable({
             ))}
             <th scope="col" className={cn(HEAD, 'min-w-16 border-r-0 px-2 whitespace-nowrap')}>
               Tổng tháng
+              <span className={SUB}>giờ</span>
             </th>
           </tr>
         </thead>
@@ -100,7 +101,7 @@ export function OvertimeTable({
                     fractionDigits={3}
                     parse={parseOvertime}
                     invalidMessage={INVALID}
-                    label={`Tăng ca ngày ${formatDayMonth(ymd)} của ${displayName(row.user)}`}
+                    label={`Số giờ tăng ca ngày ${formatDayMonth(ymd)} của ${displayName(row.user)}`}
                     onSave={(workdays) => onSave(row, ymd, workdays)}
                     className="w-[3.75rem] border-transparent px-1 text-center hover:border-dashed hover:border-primary/40"
                   />

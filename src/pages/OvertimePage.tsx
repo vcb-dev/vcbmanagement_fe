@@ -1,4 +1,4 @@
-import { Download, RefreshCw, Search, Users } from 'lucide-react'
+import { Download, Info, RefreshCw, Search, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { MonthNav } from '@/components/month-nav'
@@ -74,7 +74,7 @@ export function OvertimePage() {
       .then(() =>
         toast.success(
           workdays
-            ? `Đã lưu tăng ca ${formatDayMonth(date)} của ${displayName(row.user)}: ${formatOvertime(workdays)} công`
+            ? `Đã lưu tăng ca ${formatDayMonth(date)} của ${displayName(row.user)}: ${formatOvertime(workdays)} giờ`
             : `Đã bỏ tăng ca ${formatDayMonth(date)} của ${displayName(row.user)}`,
         ),
       )
@@ -89,7 +89,7 @@ export function OvertimePage() {
           {report && (
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <RefreshCw className={isFetching ? 'size-3 animate-spin' : 'size-3'} />
-              Nhân sự toàn thời gian, tính bằng công. Tăng ca không cộng vào tổng công. Tải lúc {loadedAt(dataUpdatedAt)}
+              Nhân sự toàn thời gian, tính bằng giờ. Tăng ca không cộng vào tổng công. Tải lúc {loadedAt(dataUpdatedAt)}
             </p>
           )}
         </div>
@@ -150,6 +150,17 @@ export function OvertimePage() {
           </div>
         </div>
 
+        {/* Hướng dẫn nhập luôn hiện, kể cả màn hẹp. */}
+        <p className="flex items-start gap-2 border-b bg-muted/40 px-3 py-2 text-xs leading-5 text-muted-foreground">
+          <Info className="mt-0.5 size-3.5 shrink-0" />
+          <span>
+            Nhập <b className="font-semibold text-foreground">số giờ</b> tăng ca của từng ngày, số thập phân, tối đa 3 chữ số sau dấu phẩy:{' '}
+            <b className="font-semibold text-foreground tabular-nums">1,5</b> = 1 giờ 30 phút ·{' '}
+            <b className="font-semibold text-foreground tabular-nums">0,25</b> = 15 phút ·{' '}
+            <b className="font-semibold text-foreground tabular-nums">0,333</b> ≈ 20 phút. Xoá trống ô để bỏ tăng ca ngày đó.
+          </span>
+        </p>
+
         {isPending ? (
           <div className="space-y-2 p-3">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -185,7 +196,7 @@ export function OvertimePage() {
               {filtered.length} nhân sự
             </span>
             <p className="hidden min-w-0 flex-1 text-center lg:block">
-              Bấm vào ô của ngày để nhập số công tăng ca, ví dụ 0,5 hoặc 0,375 · Xoá trống để bỏ · Enter, ↑, ↓ để chuyển dòng
+              Bấm vào ô của ngày để nhập số giờ tăng ca, ví dụ 1,5 hoặc 2,25 · Xoá trống để bỏ · Enter, ↑, ↓ để chuyển dòng
             </p>
             <PaginationBar page={currentPage} pageCount={pageCount} onChange={setPage} />
           </div>

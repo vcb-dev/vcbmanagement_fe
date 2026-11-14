@@ -165,8 +165,8 @@ export function MonthlyTimesheetTable({
                 {f.short}
               </th>
             ))}
-            <th scope="col" className={cn(HEAD, MANUAL_HEAD)} title="Nhập theo từng ngày, không cộng vào tổng công">
-              Tăng ca
+            <th scope="col" className={cn(HEAD, MANUAL_HEAD)} title="Số giờ tăng ca, nhập theo từng ngày, không cộng vào tổng công">
+              Tăng ca (giờ)
             </th>
           </tr>
         </thead>
@@ -233,7 +233,7 @@ export function MonthlyTimesheetTable({
                   type="button"
                   onClick={() => onSelect(row.id, 'overtime')}
                   title="Sửa tăng ca theo ngày"
-                  aria-label={`Tăng ca của ${displayName(row.user)}: ${formatOvertime(row.overtimeWorkdays)} công, bấm để sửa theo ngày`}
+                  aria-label={`Tăng ca của ${displayName(row.user)}: ${formatOvertime(row.overtimeWorkdays)} giờ, bấm để sửa theo ngày`}
                   className={cn(
                     'h-8 w-14 rounded-md border border-transparent px-2 text-center transition-colors outline-none',
                     'hover:border-input hover:bg-background dark:hover:bg-input/30',

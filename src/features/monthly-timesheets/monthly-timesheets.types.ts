@@ -103,7 +103,7 @@ export const STATUS_TONE: Record<ConfirmationStatus, string> = {
 
 export const formatWorkdays = (value: number) => value.toLocaleString('vi-VN', { maximumFractionDigits: 2 })
 
-/** Tăng ca lưu tới 3 chữ số thập phân, vd 0,375 công = 3 giờ. */
+/** Tăng ca tính bằng giờ, lưu tới 3 chữ số thập phân, vd 1,5 = 1 giờ 30 phút, 0,25 = 15 phút. */
 export const formatOvertime = (value: number) => value.toLocaleString('vi-VN', { maximumFractionDigits: 3 })
 
 /** "1,5" hoặc "1.5" → 1.5; ô trống là 0. Trả về null khi không phải số hợp lệ trong khoảng cho phép. */
