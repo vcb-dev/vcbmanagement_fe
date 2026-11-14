@@ -144,7 +144,7 @@ export function MonthlyTimesheetTable({
             </th>
           </tr>
           <tr>
-            <th scope="col" className={HEAD} title="Mỗi ca đủ giờ vào và giờ ra được 0,5 công">
+            <th scope="col" className={HEAD} title="Ca nào có chấm công (giờ vào hoặc giờ ra) được 0,5 công; quên một mốc vẫn được tính công">
               Công máy
             </th>
             <th scope="col" className={HEAD} title="Số ca chỉ có giờ vào hoặc chỉ có giờ ra">

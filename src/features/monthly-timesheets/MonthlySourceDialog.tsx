@@ -27,7 +27,10 @@ export function MonthlySourceDialog({ onClose }: { onClose: () => void }) {
         </dl>
         <ul className="list-disc space-y-1 pl-4 text-xs text-muted-foreground">
           <li>Không có bước chốt riêng: bảng luôn theo chấm công mới nhất và tự tải lại mỗi 30 giây.</li>
-          <li>Mỗi ca đủ giờ vào và giờ ra được 0,5 công. Ca chỉ có một mốc tính là một lần thiếu in/out, trừ hôm nay.</li>
+          <li>
+            Ca nào có chấm công (giờ vào hoặc giờ ra) được 0,5 công. Ca chỉ có một mốc vẫn được tính công nhưng ghi là một lần
+            thiếu in/out, trừ hôm nay.
+          </li>
           <li>Xin phép và tăng ca ghi riêng, không cộng vào tổng công.</li>
         </ul>
       </DialogContent>

@@ -19,7 +19,7 @@ export interface BoardDay {
   lateCount: number
   /** Số ca chỉ có một mốc (0–2), hôm nay chưa tính. */
   missingCount: number
-  /** Công máy: mỗi ca đủ vào và ra được 0,5. */
+  /** Công máy: ca nào có chấm công (vào hoặc ra) được 0,5. */
   workdays: number
   /** Quản lý đã bổ sung hoặc sửa giờ. */
   adjusted: boolean

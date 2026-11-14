@@ -72,7 +72,7 @@ export function WeeklySummaryTable({
             <th rowSpan={2} scope="col" className={cn(HEAD, DEPARTMENT_COL, 'hidden px-2 md:table-cell')}>
               Bộ phận
             </th>
-            <th colSpan={weeks.length + 1} scope="colgroup" className={GROUP} title="Mỗi ca đủ giờ vào và giờ ra được 0,5 công">
+            <th colSpan={weeks.length + 1} scope="colgroup" className={GROUP} title="Ca nào có chấm công (giờ vào hoặc giờ ra) được 0,5 công; quên một mốc vẫn được tính công">
               Công theo tuần
             </th>
             <th colSpan={weeks.length + 1} scope="colgroup" className={cn(GROUP, LAST)} title="Số ca chỉ có giờ vào hoặc chỉ có giờ ra">
