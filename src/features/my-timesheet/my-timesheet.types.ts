@@ -35,10 +35,18 @@ export interface FullTimeSummary {
   leaveWorkdays: number
   /** Xin muộn / về sớm / ra ngoài, không cộng vào tổng công. */
   excusedWorkdays: number
-  /** Chỉ để hiển thị, không cộng vào tổng công. */
+  /** Tổng giờ tăng ca của tháng (tên field giữ từ trước). Chỉ để hiển thị, không cộng vào tổng công. */
   overtimeWorkdays: number
+  /** Tăng ca từng ngày do quản lý nhập (giờ), cộng lại bằng `overtimeWorkdays`. */
+  overtimeDays: OvertimeDay[]
   totalWorkdays: number
   standardWorkdays: number
+}
+
+export interface OvertimeDay {
+  /** "YYYY-MM-DD" */
+  date: string
+  workdays: number
 }
 
 export interface PartTimeSummary {
@@ -51,12 +59,16 @@ export interface LeaveSummary {
   year: number
   /** Phép cả năm. */
   entitledDays: number
+  /** Số tháng đã tích phép tới tháng đang chạy (các tháng đã hết, kể từ tháng bắt đầu tính phép). */
+  accruedMonths: number
   /** Phép có đến nay: mỗi tháng đã hết (từ tháng bắt đầu tính phép) được 1 ngày, không vượt cả năm. */
   accruedDays: number
   usedDays: number
   /** Có đến nay − đã nghỉ. */
   remainingDays: number
   usedInMonth: number
+  /** Số ngày phép đã nghỉ của từng tháng (1–12), chỉ các tháng có nghỉ. */
+  months: { month: number; usedDays: number }[]
 }
 
 export interface LateLevelCount {

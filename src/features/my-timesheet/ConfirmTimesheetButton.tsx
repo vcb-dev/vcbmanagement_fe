@@ -49,7 +49,7 @@ export function ConfirmTimesheetButton({
       <ConfirmDialog
         open={asking}
         title={`Xác nhận công ${formatMonth(month).toLowerCase()}?`}
-        description={`Tổng công ${num(summary.totalWorkdays)} / ${num(summary.standardWorkdays)} công chuẩn, tăng ca ${formatOvertime(summary.overtimeWorkdays)} công, phép ${num(summary.leaveWorkdays)} ngày. Sau khi xác nhận, nếu số liệu thay đổi bạn sẽ cần xác nhận lại.`}
+        description={`Tổng công ${num(summary.totalWorkdays)} / ${num(summary.standardWorkdays)} công chuẩn, tăng ca ${formatOvertime(summary.overtimeWorkdays)} giờ, phép ${num(summary.leaveWorkdays)} ngày. Sau khi xác nhận, nếu số liệu thay đổi bạn sẽ cần xác nhận lại.`}
         confirmLabel="Xác nhận"
         variant="default"
         pending={confirm.isPending}
