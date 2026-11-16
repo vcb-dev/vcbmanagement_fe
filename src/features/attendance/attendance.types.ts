@@ -47,6 +47,7 @@ export interface WorkSchedule {
   morningEnd: string
   afternoonStart: string
   afternoonEnd: string
+  evening: { start: string; end: string } | null
 }
 
 export interface Geofence {
