@@ -4,7 +4,7 @@ import type { AttendanceBoard } from './attendance-board.types'
 export function BoardSourceDialog({ board, onClose }: { board: AttendanceBoard; onClose: () => void }) {
   const { people, withData, missingCount, lateCount, adjustedDays } = board.summary
   const rows = [
-    ['Dòng nhân sự', `${people} người, gồm toàn thời gian và part-time`],
+    ['Dòng nhân sự', `${people} người, gồm full-time và part-time`],
     ['Có chấm công trong tháng', `${withData} người`],
     ['Thiếu chấm', `${missingCount} lần`],
     ['Đi muộn', `${lateCount} lần`],
@@ -31,8 +31,8 @@ export function BoardSourceDialog({ board, onClose }: { board: AttendanceBoard; 
             ảnh chấm công và bổ sung giờ.
           </li>
           <li>
-            Mỗi ca đủ giờ vào và giờ ra được 0,5 công; vào sáng, ra chiều mà không chấm trưa vẫn đủ 1 công. Cùng cách tính
-            với Chốt công tháng.
+            Ca nào có chấm công (giờ vào hoặc giờ ra) được 0,5 công, quên một mốc vẫn được tính công. Cùng cách tính với Chốt
+            công tháng.
           </li>
           <li>Ca chỉ có một mốc tính là một lần thiếu chấm, trừ hôm nay. Mỗi ca vào sau giờ ca của bộ phận là một lần đi muộn.</li>
           <li>

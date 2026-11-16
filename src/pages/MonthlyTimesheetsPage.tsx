@@ -42,7 +42,7 @@ const STATUS_TABS: ConfirmationStatus[] = ['confirmed', 'pending', 'disputed']
 
 const EXTRA_FILTERS: { value: string; label: string; match: (r: FullTimeTimesheetRow) => boolean }[] = [
   { value: 'overtime', label: 'Có tăng ca', match: (r) => r.overtimeWorkdays > 0 },
-  { value: 'missing', label: 'Có thiếu chấm', match: (r) => r.missingPunchCount > 0 },
+  { value: 'missing', label: 'Có thiếu in/out', match: (r) => r.missingPunchCount > 0 },
   { value: 'late', label: 'Có đi muộn', match: (r) => r.lateCount > 0 },
   { value: 'excused', label: 'Có xin phép', match: (r) => r.excusedWorkdays > 0 },
   { value: 'leave', label: 'Có nghỉ phép', match: (r) => r.leaveWorkdays > 0 },
@@ -220,7 +220,7 @@ export function MonthlyTimesheetsPage() {
             <Users className="size-8 text-muted-foreground/60" />
             <p className="text-sm text-muted-foreground">
               {rows.length === 0
-                ? 'Tháng này chưa có nhân sự toàn thời gian nào.'
+                ? 'Tháng này chưa có nhân sự full-time nào.'
                 : 'Không có nhân sự phù hợp. Thử đổi từ khoá hoặc bộ lọc.'}
             </p>
           </div>

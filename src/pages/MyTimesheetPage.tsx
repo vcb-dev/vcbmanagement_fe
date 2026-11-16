@@ -1,35 +1,23 @@
+import { CalendarDays } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { UserAvatar } from '@/components/layout/nav-user'
 import { MonthNav } from '@/components/month-nav'
 import { PageContainer } from '@/components/page-container'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useMe } from '@/features/auth/use-auth'
-import { DayDetailCard } from '@/features/my-timesheet/DayDetailCard'
-import { MonthCalendar } from '@/features/my-timesheet/MonthCalendar'
+import { DayLedger, LedgerFilterBar, type LedgerFilter, type LedgerFocus } from '@/features/my-timesheet/DayLedger'
+import { fullTimeLedger, ledgerDates, partTimeLedger } from '@/features/my-timesheet/day-ledger'
 import type { MyTimesheet } from '@/features/my-timesheet/my-timesheet.types'
 import { TimesheetSummaryCard } from '@/features/my-timesheet/TimesheetSummaryCard'
 import { useMyTimesheet } from '@/features/my-timesheet/use-my-timesheet'
 import { FeedbackThread } from '@/features/part-time/FeedbackThread'
-import {
-  PART_TIME_DAY_LABEL,
-  PART_TIME_DAY_STYLE,
-  partTimeDayKind,
-} from '@/features/part-time/part-time-day-status'
-import { PartTimeDayDetail } from '@/features/part-time/PartTimeDayDetail'
 import { useMyPartTimeDays } from '@/features/part-time/use-part-time'
 import { getApiErrorMessage } from '@/lib/api-client'
-import { formatDate, todayYmd } from '@/lib/format'
+import { formatDate, formatMonth, todayYmd } from '@/lib/format'
 import { EMPLOYMENT_LABEL, displayName } from '@/lib/user-display'
-
-const PART_TIME_LEGEND = [
-  { label: 'Có làm', swatch: 'bg-emerald-500' },
-  { label: 'Online', swatch: 'bg-sky-500' },
-  { label: 'Thiếu mốc', swatch: 'bg-rose-500' },
-  { label: 'Không có ca', swatch: 'bg-muted-foreground/30' },
-]
 
 function ProfileLine({ data }: { data: MyTimesheet }) {
   const { profile, schedule } = data
@@ -73,10 +61,12 @@ export function MyTimesheetPage() {
       ? initialMonth
       : currentMonth
   })
-  const [picked, setPicked] = useState<string | null>(null)
+  const [focus, setFocus] = useState<LedgerFocus | null>(null)
+  const [filter, setFilter] = useState<LedgerFilter>('all')
 
   const sheet = useMyTimesheet(month)
   const monthReady = sheet.data?.month === month
+  const data = monthReady ? sheet.data! : null
 
   const isPartTime = sheet.data?.profile.employmentType === 'part_time'
   const ptDays = useMyPartTimeDays(
@@ -85,8 +75,8 @@ export function MyTimesheetPage() {
   )
 
   const records = useMemo(
-    () => new Map((monthReady ? sheet.data!.records : []).map((r) => [r.workDate, r])),
-    [sheet.data, monthReady],
+    () => new Map((data?.records ?? []).map((r) => [r.workDate, r])),
+    [data],
   )
 
   const ptDaysMap = useMemo(
@@ -94,10 +84,35 @@ export function MyTimesheetPage() {
     [ptDays.data],
   )
 
-  const defaultDay = month === currentMonth ? today : (monthReady && sheet.data!.records[0]?.workDate) || `${month}-01`
-  const selected = picked?.startsWith(month) ? picked : defaultDay
+  const days = useMemo(() => {
+    if (!data) return []
+    const dates = ledgerDates(month, today)
+    return isPartTime
+      ? partTimeLedger(dates, ptDaysMap, records, data.schedule, today)
+      : fullTimeLedger(dates, records, data.fullTime?.overtimeDays ?? [], data.schedule, today)
+  }, [data, isPartTime, month, today, ptDaysMap, records])
+
+  function changeMonth(next: string) {
+    setMonth(next)
+    setFilter('all')
+  }
+
+  /** Chuyển xuống bảng theo ngày với một bộ lọc, khi bấm "Xem ngày" ở thẻ tổng hợp. */
+  function showDays(next: LedgerFilter) {
+    setFilter(next)
+    setFocus({ at: Date.now() })
+  }
 
   if (!user) return null
+
+  const retry = (
+    <>
+      {getApiErrorMessage(sheet.error)}{' '}
+      <button type="button" className="underline" onClick={() => void sheet.refetch()}>
+        Thử lại
+      </button>
+    </>
+  )
 
   return (
     <PageContainer>
@@ -109,108 +124,62 @@ export function MyTimesheetPage() {
             {sheet.data ? <ProfileLine data={sheet.data} /> : <Skeleton className="h-10 w-72" />}
           </div>
         </div>
-        <MonthNav
-          month={month}
-          max={currentMonth}
-          onChange={(next) => {
-            setMonth(next)
-            setPicked(null)
-          }}
-        />
+        <MonthNav month={month} max={currentMonth} onChange={changeMonth} />
       </Card>
 
       {sheet.isError ? (
         <Card>
-          <CardContent className="py-8 text-center text-sm text-destructive">
-            {getApiErrorMessage(sheet.error)}{' '}
-            <button type="button" className="underline" onClick={() => void sheet.refetch()}>
-              Thử lại
-            </button>
-          </CardContent>
+          <CardContent className="py-8 text-center text-sm text-destructive">{retry}</CardContent>
         </Card>
-      ) : monthReady ? (
+      ) : data ? (
         <div className="space-y-4">
-          <TimesheetSummaryCard data={sheet.data!} />
+          <TimesheetSummaryCard data={data} days={days} onShowDays={showDays} />
           <FeedbackThread
-            sheetId={sheet.data!.sheet?.id ?? null}
+            sheetId={data.sheet?.id ?? null}
             sheetType={isPartTime ? 'part_time' : 'full_time'}
             mode="staff"
-            readOnly={sheet.data!.sheet?.status === 'confirmed'}
+            readOnly={data.sheet?.status === 'confirmed'}
             currentMonth={month}
-            onSelectMonth={(next) => {
-              setMonth(next)
-              setPicked(null)
-            }}
+            onSelectMonth={changeMonth}
           />
         </div>
       ) : (
-        <Skeleton className="h-52 w-full rounded-xl" />
+        <Skeleton className="h-80 w-full rounded-xl" />
       )}
 
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Lịch chấm công của tôi</CardTitle>
-            <CardDescription>
-              Chọn một ngày để xem chi tiết các mốc giờ. Cần chấm công thì vào mục{' '}
-              <Link to="/attendance" className="font-medium text-primary underline-offset-2 hover:underline">
-                Chấm công
-              </Link>
-              .
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {sheet.isError ? (
-              <p className="py-8 text-center text-sm text-destructive">
-                {getApiErrorMessage(sheet.error)}{' '}
-                <button type="button" className="underline" onClick={() => void sheet.refetch()}>
-                  Thử lại
-                </button>
-              </p>
-            ) : monthReady ? (
-              <MonthCalendar
-                month={month}
-                records={records}
-                today={today}
-                selected={selected}
-                onSelect={setPicked}
-                kind={
-                  isPartTime
-                    ? (ymd) => {
-                        const d = ptDaysMap.get(ymd)
-                        const k = partTimeDayKind(d)
-                        return { label: PART_TIME_DAY_LABEL[k], className: PART_TIME_DAY_STYLE[k] }
-                      }
-                    : undefined
-                }
-                legend={isPartTime ? PART_TIME_LEGEND : undefined}
-              />
-            ) : (
-              <Skeleton className="h-96 w-full" />
-            )}
-          </CardContent>
-        </Card>
+      {!sheet.isError && (
+        <section className="space-y-3 pt-2">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground/80 ring-1 ring-foreground/10">
+                <CalendarDays className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-lg leading-6 font-semibold tracking-tight">Lịch làm việc {formatMonth(month).toLowerCase()}</h2>
+                <p className="text-sm text-muted-foreground">Giờ vào, ra và ghi chú của từng ngày</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {data && (
+                <LedgerFilterBar variant={isPartTime ? 'part_time' : 'full_time'} days={days} value={filter} onChange={setFilter} />
+              )}
+              <MonthNav month={month} max={currentMonth} onChange={changeMonth} />
+            </div>
+          </div>
 
-        {monthReady ? (
-          isPartTime ? (
-            <PartTimeDayDetail
-              ymd={selected}
-              day={ptDaysMap.get(selected)}
-              thresholds={sheet.data!.schedule.lateThresholds}
-              record={records.get(selected)}
+          {data && (!isPartTime || !data.profile.department || ptDays.data) ? (
+            <DayLedger
+              variant={isPartTime ? 'part_time' : 'full_time'}
+              days={days}
+              thresholds={data.schedule.lateThresholds}
+              filter={filter}
+              focus={focus}
             />
           ) : (
-            <DayDetailCard
-              ymd={selected}
-              record={records.get(selected)}
-              today={today}
-              thresholds={sheet.data!.schedule.lateThresholds}
-            />
-          )
-        ) : (
-          <Skeleton className="h-96 w-full rounded-xl" />
-        )}
-      </div>
+            <Skeleton className="h-96 w-full rounded-xl" />
+          )}
+        </section>
+      )}
     </PageContainer>
   )
 }

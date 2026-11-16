@@ -17,7 +17,7 @@ export interface FullTimeTimesheetRow {
   leaveWorkdays: number
   /** Tổng các ngày tăng ca, không cộng vào tổng công. */
   overtimeWorkdays: number
-  /** Công máy + từ xa + lễ, bù + phép. */
+  /** Công máy + làm ở nhà + ngày lễ + phép. */
   totalWorkdays: number
   /** Phép năm của năm bản chốt; null = chưa có dòng phép năm, chưa ghi được công phép. */
   leave: {
@@ -60,8 +60,8 @@ export interface OvertimeList {
 }
 
 export const MANUAL_FIELDS: { field: ManualField; label: string; short: string; hint: string }[] = [
-  { field: 'offsiteWorkdays', label: 'Làm ở nhà / cửa hàng', short: 'Từ xa', hint: 'Cộng vào tổng công' },
-  { field: 'holidayWorkdays', label: 'Công nghỉ lễ + nghỉ bù', short: 'Lễ + bù', hint: 'Cộng vào tổng công' },
+  { field: 'offsiteWorkdays', label: 'Làm ở nhà / cửa hàng', short: 'Làm ở nhà', hint: 'Cộng vào tổng công' },
+  { field: 'holidayWorkdays', label: 'Công nghỉ lễ + nghỉ bù', short: 'Ngày lễ', hint: 'Cộng vào tổng công' },
   { field: 'excusedWorkdays', label: 'Xin muộn / về sớm / ra ngoài', short: 'Xin phép', hint: 'Không cộng vào tổng công' },
   { field: 'leaveDays', label: 'Công phép', short: 'Phép', hint: 'Tự trừ vào phép năm, cộng vào tổng công' },
 ]
@@ -103,7 +103,7 @@ export const STATUS_TONE: Record<ConfirmationStatus, string> = {
 
 export const formatWorkdays = (value: number) => value.toLocaleString('vi-VN', { maximumFractionDigits: 2 })
 
-/** Tăng ca lưu tới 3 chữ số thập phân, vd 0,375 công = 3 giờ. */
+/** Tăng ca tính bằng giờ, lưu tới 3 chữ số thập phân, vd 1,5 = 1 giờ 30 phút, 0,25 = 15 phút. */
 export const formatOvertime = (value: number) => value.toLocaleString('vi-VN', { maximumFractionDigits: 3 })
 
 /** "1,5" hoặc "1.5" → 1.5; ô trống là 0. Trả về null khi không phải số hợp lệ trong khoảng cho phép. */

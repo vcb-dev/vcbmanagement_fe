@@ -70,14 +70,14 @@ export const NAV_GROUPS: NavGroup[] = [
         title: 'Chốt công tháng',
         url: '/monthly-timesheets',
         icon: CalendarCheck,
-        description: 'Công tháng của nhân sự toàn thời gian, tự cập nhật theo chấm công',
+        description: 'Công tháng của nhân sự full-time, tự cập nhật theo chấm công',
         roles: ['admin', 'manager'],
       },
       {
         title: 'Tăng ca',
         url: '/overtime',
         icon: ClockPlus,
-        description: 'Tăng ca theo ngày của nhân sự toàn thời gian',
+        description: 'Tăng ca theo ngày của nhân sự full-time',
         roles: ['admin', 'manager'],
       },
       {
@@ -98,7 +98,7 @@ export const NAV_GROUPS: NavGroup[] = [
         title: 'Phép năm',
         url: '/annual-leaves',
         icon: CalendarHeart,
-        description: 'Phép năm và ngày nghỉ các tháng của nhân sự toàn thời gian',
+        description: 'Phép năm và ngày nghỉ các tháng của nhân sự full-time',
         roles: ['admin', 'manager'],
       },
       {

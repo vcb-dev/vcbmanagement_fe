@@ -6,9 +6,9 @@ export interface OvertimeRow {
   id: string
   user: { id: string; email: string; fullName: string | null; isActive: boolean }
   department: { id: string; name: string } | null
-  /** Tổng tăng ca của tháng, không cộng vào tổng công. */
+  /** Tổng giờ tăng ca của tháng, không cộng vào tổng công. */
   overtimeWorkdays: number
-  /** Chỉ các ngày có tăng ca, tăng dần theo ngày. */
+  /** Chỉ các ngày có tăng ca, tăng dần theo ngày; `workdays` là số giờ (tên field giữ từ trước). */
   days: { date: string; workdays: number }[]
 }
 
@@ -25,7 +25,8 @@ export interface SetOvertimeDayResult {
 }
 
 /**
- * Số công tăng ca của một ngày, tối đa 3 chữ số thập phân (vd 0,375). Ô trống là 0 (bỏ tăng ca ngày đó).
+ * Số giờ tăng ca của một ngày, số thập phân tối đa 3 chữ số sau dấu phẩy (vd 1,5 = 1 giờ 30 phút).
+ * Ô trống là 0 (bỏ tăng ca ngày đó).
  * Không giới hạn nghiệp vụ; chỉ chặn ở sức chứa của cột trong DB (dưới 100).
  */
 export function parseOvertime(raw: string): number | null {

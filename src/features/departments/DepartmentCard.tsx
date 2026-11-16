@@ -8,7 +8,7 @@ const AXIS = ['07:00', '11:00', '15:00', '19:00', '23:00']
 
 function peopleLabel(d: Department) {
   const parts = [
-    d.fullTimeCount > 0 && `${d.fullTimeCount} toàn thời gian`,
+    d.fullTimeCount > 0 && `${d.fullTimeCount} full-time`,
     d.partTimeCount > 0 && `${d.partTimeCount} part-time`,
   ].filter(Boolean)
   return parts.length ? parts.join(' · ') : 'Chưa có nhân sự'

@@ -19,8 +19,13 @@ export const PERSON_COL = 'w-40 max-w-40 min-w-40 sm:w-44 sm:max-w-44 sm:min-w-4
 export const DEPARTMENT_COL = 'w-28 max-w-28 min-w-28'
 /** Cột Buổi dính ngay sau cột Nhân sự khi cuộn ngang (cột Bộ phận trượt xuống dưới). */
 export const SHIFT_COL = 'sticky left-40 w-12 max-w-12 min-w-12 sm:left-44'
-/** Ô giờ không đặt độ rộng cố định để giãn ra khi xem một tuần. */
-const SLOT_COL = 'min-w-12'
+/**
+ * Ô giờ không đặt độ rộng cố định để giãn ra khi xem một tuần.
+ * Tối thiểu 56px: giờ "08:05" chiếm khoảng 33px, còn chừa khoảng trống để Vào và Ra không dính nhau khi xem cả tháng.
+ */
+const SLOT_COL = 'min-w-14'
+/** Chiều cao một dòng giờ (Sáng hoặc Chiều), 36px để các giờ xếp chồng không sát nhau. */
+const SLOT_HEIGHT = 'h-9'
 
 const SHIFTS = [
   { label: 'Sáng', slots: [0, 1] },
@@ -113,20 +118,20 @@ function SlotCell({
 }) {
   const border = cn(slot % 2 === 0 ? SOFT_RIGHT : LINE_RIGHT, slot < 2 ? SOFT_BOTTOM : LINE_BOTTOM)
   const sunday = weekdayShort(ymd) === 'CN'
-  if (ymd > today) return <td className={cn(SLOT_COL, 'h-7.5', border, sunday && SUNDAY)} />
+  if (ymd > today) return <td className={cn(SLOT_COL, SLOT_HEIGHT, border, sunday && SUNDAY)} />
 
   const time = day?.times[slot] ?? null
   const missing = !!day && missingSlots(day)[slot]
   const off = (day?.deviations[slot] ?? 0) > 0
   const title = slotTitle(name, ymd, slot, day, missing, ymd === today)
   return (
-    <td className={cn(SLOT_COL, 'h-7.5 p-0', border, sunday && SUNDAY, missing && 'bg-amber-500/10')}>
+    <td className={cn(SLOT_COL, SLOT_HEIGHT, 'p-0', border, sunday && SUNDAY, missing && 'bg-amber-500/10')}>
       <button
         type="button"
         onClick={onClick}
         title={title}
         aria-label={title}
-        className="relative flex size-full items-center justify-center px-1 text-[13px] leading-none tabular-nums outline-none hover:bg-primary/5 hover:ring-1 hover:ring-primary hover:ring-inset focus-visible:bg-primary/5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+        className="relative flex size-full items-center justify-center px-2 text-[13px] leading-none tabular-nums outline-none hover:bg-primary/5 hover:ring-1 hover:ring-primary hover:ring-inset focus-visible:bg-primary/5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
       >
         {time ? (
           <span className={cn(off && 'font-semibold text-amber-600 dark:text-amber-400')}>{time}</span>
@@ -166,13 +171,13 @@ export function AttendanceBoardTable({
       <table className="w-max min-w-full border-separate border-spacing-0 text-sm">
         <thead>
           <tr>
-            <th rowSpan={2} scope="col" className={cn(HEAD, PERSON_COL, LINE_BOTTOM, 'sticky left-0 z-20 border-r px-2.5')}>
+            <th rowSpan={2} scope="col" className={cn(HEAD, PERSON_COL, LINE_BOTTOM, 'sticky left-0 z-2 border-r px-2.5')}>
               Nhân sự
             </th>
             <th rowSpan={2} scope="col" className={cn(HEAD, DEPARTMENT_COL, LINE_BOTTOM, 'hidden border-r md:table-cell')}>
               Bộ phận
             </th>
-            <th rowSpan={2} scope="col" className={cn(HEAD, SHIFT_COL, LINE_BOTTOM, LINE_RIGHT, 'z-20 px-1')}>
+            <th rowSpan={2} scope="col" className={cn(HEAD, SHIFT_COL, LINE_BOTTOM, LINE_RIGHT, 'z-2 px-1')}>
               Buổi
             </th>
             {days.map((ymd) => (

@@ -30,12 +30,14 @@ import { getApiErrorMessage } from '@/lib/api-client'
 import { FEATURES } from '@/lib/features'
 import { downloadCsv } from '@/lib/csv'
 import { formatMonth, normalizeSearch, todayYmd } from '@/lib/format'
-import { displayName } from '@/lib/user-display'
+import { EMPLOYMENT_LABEL, displayName } from '@/lib/user-display'
 
 const PAGE_SIZE = 12
 /** Radix Select không nhận giá trị rỗng. */
 const ALL = 'all'
 const UNASSIGNED = 'unassigned'
+/** Thứ tự loại nhân sự trong bộ lọc. */
+const EMPLOYMENT_TYPES = ['full_time', 'part_time'] as const
 const TAB_TRIGGER =
   'h-8 flex-none px-2 after:bg-primary data-active:text-primary data-active:hover:text-primary dark:data-active:text-primary'
 
@@ -84,6 +86,7 @@ export function AttendanceBoardPage() {
   const [range, setRange] = useState(() => defaultRange(currentMonth, today))
   const [query, setQuery] = useState('')
   const [department, setDepartment] = useState(ALL)
+  const [employment, setEmployment] = useState(ALL)
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<{ userId: string; date: string } | null>(null)
   const [showSource, setShowSource] = useState(false)
@@ -100,9 +103,10 @@ export function AttendanceBoardPage() {
       const matchesText = !q || normalizeSearch(`${displayName(row.user)} ${row.user.email}`).includes(q)
       const matchesDepartment =
         department === ALL || (department === UNASSIGNED ? !row.department : row.department?.id === department)
-      return matchesText && matchesDepartment
+      const matchesEmployment = employment === ALL || row.employmentType === employment
+      return matchesText && matchesDepartment && matchesEmployment
     })
-  }, [rows, query, department])
+  }, [rows, query, department, employment])
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const currentPage = Math.min(page, pageCount)
@@ -196,6 +200,19 @@ export function AttendanceBoardPage() {
                   </SelectItem>
                 ))}
                 <SelectItem value={UNASSIGNED}>Chưa gán bộ phận</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={employment} onValueChange={(next) => resetPageAfter(() => setEmployment(next))}>
+              <SelectTrigger aria-label="Lọc theo loại nhân sự" className="min-w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Tất cả loại nhân sự</SelectItem>
+                {EMPLOYMENT_TYPES.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {EMPLOYMENT_LABEL[type]}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             {mode !== 'week' && (

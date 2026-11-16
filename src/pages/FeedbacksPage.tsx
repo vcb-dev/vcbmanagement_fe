@@ -112,7 +112,7 @@ export function FeedbacksPage() {
     <PageContainer>
       <PageHeader
         title="Feedback"
-        description="Mỗi feedback gắn với một bản chốt công tháng (toàn thời gian hoặc part-time). Quản lý trả lời là feedback được đánh dấu đã xử lý; nhân viên trả lời lại thì feedback mở lại."
+        description="Mỗi feedback gắn với một bản chốt công tháng (full-time hoặc part-time). Quản lý trả lời là feedback được đánh dấu đã xử lý; nhân viên trả lời lại thì feedback mở lại."
         actions={
           <Button onClick={() => setFormOpen(true)} className="gap-1.5 shadow-xs">
             <Plus className="size-4" />
@@ -182,7 +182,7 @@ export function FeedbacksPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả bản chốt công</SelectItem>
-              <SelectItem value="full_time">Chốt công toàn thời gian</SelectItem>
+              <SelectItem value="full_time">Chốt công full-time</SelectItem>
               <SelectItem value="part_time">Chốt công part-time</SelectItem>
             </SelectContent>
           </Select>

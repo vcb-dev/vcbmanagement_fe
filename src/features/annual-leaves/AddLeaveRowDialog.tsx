@@ -97,7 +97,7 @@ export function AddLeaveRowDialog({
         <DialogHeader>
           <DialogTitle>Thêm dòng phép</DialogTitle>
           <DialogDescription>
-            Tạo dòng phép năm {year} cho nhân sự toàn thời gian.
+            Tạo dòng phép năm {year} cho nhân sự full-time.
           </DialogDescription>
         </DialogHeader>
 
@@ -106,12 +106,12 @@ export function AddLeaveRowDialog({
             <p className="text-sm text-muted-foreground">Đang tải danh sách nhân sự...</p>
           ) : candidates.length === 0 ? (
             <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
-              Mọi nhân sự toàn thời gian đã có dòng phép năm {year}.
+              Mọi nhân sự full-time đã có dòng phép năm {year}.
             </div>
           ) : (
             <>
               <div className="space-y-2">
-                <Label htmlFor="candidate-select">Nhân sự toàn thời gian</Label>
+                <Label htmlFor="candidate-select">Nhân sự full-time</Label>
                 <Select value={selectedUserId} onValueChange={handleSelectUser}>
                   <SelectTrigger id="candidate-select" className="w-full">
                     <SelectValue placeholder="Chọn nhân sự" />

@@ -7,7 +7,7 @@ export const ROLE_LABEL: Record<UserRole, string> = {
 }
 
 export const EMPLOYMENT_LABEL: Record<EmploymentType, string> = {
-  full_time: 'Toàn thời gian',
+  full_time: 'Full-time',
   part_time: 'Part-time',
 }
 
