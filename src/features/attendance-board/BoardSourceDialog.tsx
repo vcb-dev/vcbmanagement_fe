@@ -4,7 +4,7 @@ import type { AttendanceBoard } from './attendance-board.types'
 export function BoardSourceDialog({ board, onClose }: { board: AttendanceBoard; onClose: () => void }) {
   const { people, withData, missingCount, lateCount, adjustedDays } = board.summary
   const rows = [
-    ['Dòng nhân sự', `${people} người, gồm toàn thời gian và part-time`],
+    ['Dòng nhân sự', `${people} người, gồm full-time và part-time`],
     ['Có chấm công trong tháng', `${withData} người`],
     ['Thiếu chấm', `${missingCount} lần`],
     ['Đi muộn', `${lateCount} lần`],

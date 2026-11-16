@@ -220,7 +220,7 @@ export function MonthlyTimesheetsPage() {
             <Users className="size-8 text-muted-foreground/60" />
             <p className="text-sm text-muted-foreground">
               {rows.length === 0
-                ? 'Tháng này chưa có nhân sự toàn thời gian nào.'
+                ? 'Tháng này chưa có nhân sự full-time nào.'
                 : 'Không có nhân sự phù hợp. Thử đổi từ khoá hoặc bộ lọc.'}
             </p>
           </div>

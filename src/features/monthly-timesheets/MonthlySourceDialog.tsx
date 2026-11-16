@@ -15,7 +15,7 @@ export function MonthlySourceDialog({ onClose }: { onClose: () => void }) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Dữ liệu chốt công tháng</DialogTitle>
-          <DialogDescription>Mỗi dòng là bản chốt công của một nhân sự toàn thời gian trong tháng.</DialogDescription>
+          <DialogDescription>Mỗi dòng là bản chốt công của một nhân sự full-time trong tháng.</DialogDescription>
         </DialogHeader>
         <dl className="divide-y rounded-lg border text-sm">
           {SOURCES.map(([label, value]) => (

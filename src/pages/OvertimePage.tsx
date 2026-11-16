@@ -89,7 +89,7 @@ export function OvertimePage() {
           {report && (
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <RefreshCw className={isFetching ? 'size-3 animate-spin' : 'size-3'} />
-              Nhân sự toàn thời gian, tính bằng giờ. Tăng ca không cộng vào tổng công. Tải lúc {loadedAt(dataUpdatedAt)}
+              Nhân sự full-time, tính bằng giờ. Tăng ca không cộng vào tổng công. Tải lúc {loadedAt(dataUpdatedAt)}
             </p>
           )}
         </div>
@@ -179,7 +179,7 @@ export function OvertimePage() {
             <Users className="size-8 text-muted-foreground/60" />
             <p className="text-sm text-muted-foreground">
               {rows.length === 0
-                ? 'Tháng này chưa có nhân sự toàn thời gian nào.'
+                ? 'Tháng này chưa có nhân sự full-time nào.'
                 : tab === HAS_OVERTIME && withOvertime === 0
                   ? 'Chưa có ai tăng ca trong tháng này.'
                   : 'Không có nhân sự phù hợp. Thử đổi từ khoá hoặc bộ lọc.'}

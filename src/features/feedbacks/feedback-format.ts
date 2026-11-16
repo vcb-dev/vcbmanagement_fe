@@ -15,7 +15,7 @@ export function sheetLabel(sheet: FeedbackSheetRef): string {
   const parts = sheet.month.split('-')
   const m = parts[1] ?? '01'
   const y = parts[0] ?? ''
-  const typeText = sheet.type === 'part_time' ? 'Part-time' : 'Toàn thời gian'
+  const typeText = sheet.type === 'part_time' ? 'Part-time' : 'Full-time'
   return `Chốt công ${m}/${y} · ${typeText}`
 }
 
