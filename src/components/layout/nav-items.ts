@@ -45,6 +45,13 @@ export const NAV_GROUPS: NavGroup[] = [
         // Admin và quản lý chỉ dùng các màn quản lý.
         roles: ['staff'],
       },
+      {
+        title: 'Feedback của tôi',
+        url: '/my-feedbacks',
+        icon: MessageSquare,
+        description: 'Trao đổi với quản lý về công các tháng của bạn',
+        roles: ['staff'],
+      },
     ],
   },
   {

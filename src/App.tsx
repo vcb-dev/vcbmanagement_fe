@@ -18,6 +18,7 @@ const AssistantPage = lazy(() => import('@/pages/AssistantPage').then((m) => ({ 
 const FacePage = lazy(() => import('@/pages/FacePage').then((m) => ({ default: m.FacePage })))
 const FaceReviewPage = lazy(() => import('@/pages/FaceReviewPage').then((m) => ({ default: m.FaceReviewPage })))
 const MyTimesheetPage = lazy(() => import('@/pages/MyTimesheetPage').then((m) => ({ default: m.MyTimesheetPage })))
+const MyFeedbacksPage = lazy(() => import('@/pages/MyFeedbacksPage').then((m) => ({ default: m.MyFeedbacksPage })))
 const DepartmentsPage = lazy(() => import('@/pages/DepartmentsPage').then((m) => ({ default: m.DepartmentsPage })))
 const UsersPage = lazy(() => import('@/pages/UsersPage').then((m) => ({ default: m.UsersPage })))
 const LatePage = lazy(() => import('@/pages/LatePage').then((m) => ({ default: m.LatePage })))
@@ -63,6 +64,7 @@ export default function App() {
             <Route path="/" element={<DashboardPage />} />
             <Route element={<ProtectedRoute roles={['staff']} />}>
               <Route path="/my-timesheet" element={<MyTimesheetPage />} />
+              <Route path="/my-feedbacks" element={<MyFeedbacksPage />} />
             </Route>
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/assistant" element={<AssistantPage />} />
