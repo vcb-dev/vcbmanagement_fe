@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { Skeleton } from '@/components/ui/skeleton'
 import { daysOfMonth } from '@/features/my-timesheet/day-status'
 import { getApiErrorMessage } from '@/lib/api-client'
-import { formatDateTime, formatDayMonth, formatMonth, weekdayShort } from '@/lib/format'
+import { formatDateTime, formatDayMonth, formatHoursMinutes, formatMonth, weekdayShort } from '@/lib/format'
 import { displayName } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
 import {
@@ -308,8 +308,8 @@ export function MonthlyDetailSheet({
               />
               <Metric
                 label="Đi muộn"
-                value={`${row.lateCount} lần`}
-                tone={row.lateCount ? 'text-amber-600 dark:text-amber-400' : undefined}
+                value={formatHoursMinutes(row.lateMinutes)}
+                tone={row.lateMinutes ? 'text-amber-600 dark:text-amber-400' : undefined}
               />
             </div>
           </section>
