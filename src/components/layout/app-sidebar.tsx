@@ -19,6 +19,7 @@ import { SLOT_LABEL } from '@/features/attendance/attendance.types'
 import { useAttendanceToday } from '@/features/attendance/use-attendance'
 import type { User } from '@/features/auth/auth.types'
 import { useFeedbackCounts } from '@/features/feedbacks/use-feedbacks'
+import { useLeavePendingCount } from '@/features/leave-requests/use-leave-requests'
 import { formatTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { NAV_GROUPS } from './nav-items'
@@ -28,6 +29,7 @@ export function AppSidebar({ user }: { user: User }) {
   const { pathname } = useLocation()
   const isManagerOrAdmin = user.role === 'admin' || user.role === 'manager'
   const { data: feedbackCounts } = useFeedbackCounts(isManagerOrAdmin)
+  const { data: leavePending } = useLeavePendingCount(isManagerOrAdmin)
   const groups = NAV_GROUPS.map((g) => ({
     ...g,
     items: g.items.filter((item) => !item.roles || item.roles.includes(user.role)),
@@ -78,6 +80,9 @@ export function AppSidebar({ user }: { user: User }) {
                       </SidebarMenuButton>
                       {showFeedbackBadge && (
                         <SidebarMenuBadge>{feedbackCounts.open}</SidebarMenuBadge>
+                      )}
+                      {item.badge === 'leavePending' && (leavePending?.pending ?? 0) > 0 && (
+                        <SidebarMenuBadge>{leavePending!.pending}</SidebarMenuBadge>
                       )}
                     </SidebarMenuItem>
                   )

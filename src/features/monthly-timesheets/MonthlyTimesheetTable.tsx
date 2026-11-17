@@ -151,9 +151,13 @@ export function MonthlyTimesheetTable({
               Thiếu in/out
               <span className={SUB}>số lần</span>
             </th>
-            <th scope="col" className={HEAD} title="Số ca vào muộn trong tháng">
+            <th
+              scope="col"
+              className={HEAD}
+              title="Tổng số phút đi muộn trong tháng. Ca có đơn xin đi muộn được duyệt được trừ vào 60 phút đi muộn có phép của tháng, hết thì tính như thường"
+            >
               Đi muộn
-              <span className={SUB}>số lần</span>
+              <span className={SUB}>số phút</span>
             </th>
             {TABLE_MANUAL_FIELDS.map((f) => (
               <th
@@ -201,7 +205,7 @@ export function MonthlyTimesheetTable({
                 <Count value={row.missingPunchCount} warn />
               </td>
               <td className={CELL}>
-                <Count value={row.lateCount} warn />
+                <Count value={row.lateMinutes} warn />
               </td>
               {TABLE_MANUAL_FIELDS.map((f) => {
                 const isLeave = f.field === 'leaveDays'

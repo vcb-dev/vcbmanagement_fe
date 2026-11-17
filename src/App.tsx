@@ -18,6 +18,11 @@ const AssistantPage = lazy(() => import('@/pages/AssistantPage').then((m) => ({ 
 const FacePage = lazy(() => import('@/pages/FacePage').then((m) => ({ default: m.FacePage })))
 const FaceReviewPage = lazy(() => import('@/pages/FaceReviewPage').then((m) => ({ default: m.FaceReviewPage })))
 const MyTimesheetPage = lazy(() => import('@/pages/MyTimesheetPage').then((m) => ({ default: m.MyTimesheetPage })))
+const MyFeedbacksPage = lazy(() => import('@/pages/MyFeedbacksPage').then((m) => ({ default: m.MyFeedbacksPage })))
+const MyLeaveRequestsPage = lazy(() =>
+  import('@/pages/MyLeaveRequestsPage').then((m) => ({ default: m.MyLeaveRequestsPage })),
+)
+const LeaveRequestsPage = lazy(() => import('@/pages/LeaveRequestsPage').then((m) => ({ default: m.LeaveRequestsPage })))
 const DepartmentsPage = lazy(() => import('@/pages/DepartmentsPage').then((m) => ({ default: m.DepartmentsPage })))
 const UsersPage = lazy(() => import('@/pages/UsersPage').then((m) => ({ default: m.UsersPage })))
 const LatePage = lazy(() => import('@/pages/LatePage').then((m) => ({ default: m.LatePage })))
@@ -63,6 +68,8 @@ export default function App() {
             <Route path="/" element={<DashboardPage />} />
             <Route element={<ProtectedRoute roles={['staff']} />}>
               <Route path="/my-timesheet" element={<MyTimesheetPage />} />
+              <Route path="/my-feedbacks" element={<MyFeedbacksPage />} />
+              <Route path="/my-leave-requests" element={<MyLeaveRequestsPage />} />
             </Route>
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/assistant" element={<AssistantPage />} />
@@ -76,6 +83,7 @@ export default function App() {
               <Route path="/late" element={<LatePage />} />
               <Route path="/part-time-timesheets" element={<PartTimeTimesheetsPage />} />
               <Route path="/annual-leaves" element={<AnnualLeavesPage />} />
+              <Route path="/leave-requests" element={<LeaveRequestsPage />} />
               <Route path="/departments" element={<DepartmentsPage />} />
               <Route path="/users" element={<UsersPage />} />
             </Route>

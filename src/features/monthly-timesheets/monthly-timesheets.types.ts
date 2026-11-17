@@ -9,6 +9,8 @@ export interface FullTimeTimesheetRow {
   machineWorkdays: number
   missingPunchCount: number
   lateCount: number
+  /** Tổng phút đi muộn của tháng; đã trừ phần được miễn nhờ đơn xin đi muộn (quỹ 60 phút có phép mỗi tháng). */
+  lateMinutes: number
   // Quản lý nhập.
   offsiteWorkdays: number
   holidayWorkdays: number
