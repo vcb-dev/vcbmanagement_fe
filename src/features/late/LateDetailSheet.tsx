@@ -31,6 +31,9 @@ export function LateDetailSheet({ month, row, onClose }: { month: string; row: L
             <Metric label="Ca chiều" total={lateTotal(events, undefined, 'afternoon')} />
             <Metric label="Cả tháng" total={lateTotal(events)} />
           </div>
+          <p className="text-xs text-muted-foreground tabular-nums">
+            Đi muộn có phép: đã dùng {row.excusedMinutes}/{row.excuseQuota} phút của tháng
+          </p>
 
           <section className="space-y-2">
             <h3 className="text-sm font-medium">Lịch sử theo ngày</h3>
@@ -41,9 +44,16 @@ export function LateDetailSheet({ month, row, onClose }: { month: string; row: L
                     key={`${event.date}-${event.shift}`}
                     className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2"
                   >
-                    <span className="text-sm tabular-nums">
+                    <span className="min-w-0 text-sm tabular-nums">
                       {weekdayShort(event.date)} {formatDayMonth(event.date)}
                       <span className="text-muted-foreground"> · {SHIFT_LABEL[event.shift]}</span>
+                      {event.excused && (
+                        <span className="block text-xs text-muted-foreground">
+                          {event.excusedMinutes > 0
+                            ? `Có đơn xin đi muộn, đã miễn ${formatHoursMinutes(event.excusedMinutes)} (hết quỹ có phép)`
+                            : `Có đơn xin đi muộn nhưng đã hết ${row.excuseQuota} phút có phép của tháng`}
+                        </span>
+                      )}
                     </span>
                     <strong className="font-semibold text-amber-600 tabular-nums dark:text-amber-400">
                       {formatHoursMinutes(event.minutes)}

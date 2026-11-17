@@ -6,7 +6,12 @@ export type LateShift = 'morning' | 'afternoon'
 export interface LateEvent {
   date: string
   shift: LateShift
+  /** Phút muộn còn tính, đã trừ phần được miễn của đơn xin đi muộn đã duyệt. */
   minutes: number
+  /** Phút được miễn nhờ đơn xin đi muộn đã duyệt, trừ vào quỹ có phép của tháng (0 khi không có đơn hoặc quỹ đã hết). */
+  excusedMinutes: number
+  /** Ca này có đơn xin đi muộn đã duyệt, kể cả khi quỹ tháng đã hết. */
+  excused: boolean
 }
 
 export interface LateReportRow {
@@ -15,6 +20,9 @@ export interface LateReportRow {
   employmentType: EmploymentType
   lateCount: number
   lateMinutes: number
+  /** Phút đi muộn có phép đã dùng trong tháng, trên tổng `excuseQuota`. */
+  excusedMinutes: number
+  excuseQuota: number
   /** Các lần đi muộn trong tháng, tăng dần theo ngày. */
   events: LateEvent[]
 }
