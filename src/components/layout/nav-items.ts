@@ -7,6 +7,8 @@ import {
   CalendarRange,
   ClipboardCheck,
   ClockPlus,
+  FileCheck,
+  FileClock,
   LayoutDashboard,
   MessageSquare,
   ScanFace,
@@ -24,7 +26,7 @@ export interface NavItem {
   icon: LucideIcon
   description?: string
   roles?: UserRole[]
-  badge?: 'feedbackOpen'
+  badge?: 'feedbackOpen' | 'leavePending'
 }
 
 export interface NavGroup {
@@ -50,6 +52,13 @@ export const NAV_GROUPS: NavGroup[] = [
         url: '/my-feedbacks',
         icon: MessageSquare,
         description: 'Trao đổi với quản lý về công các tháng của bạn',
+        roles: ['staff'],
+      },
+      {
+        title: 'Đơn xin phép',
+        url: '/my-leave-requests',
+        icon: FileClock,
+        description: 'Xin nghỉ phép, đi muộn, về sớm, làm việc ngoài văn phòng',
         roles: ['staff'],
       },
     ],
@@ -100,6 +109,14 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: ClipboardCheck,
         description: 'Chốt công và trao đổi với nhân viên part-time',
         roles: ['admin', 'manager'],
+      },
+      {
+        title: 'Duyệt đơn xin phép',
+        url: '/leave-requests',
+        icon: FileCheck,
+        description: 'Duyệt đơn nghỉ phép, đi muộn, về sớm, làm việc ngoài văn phòng',
+        roles: ['admin', 'manager'],
+        badge: 'leavePending',
       },
       {
         title: 'Phép năm',
