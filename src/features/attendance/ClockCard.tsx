@@ -253,7 +253,7 @@ export function ClockCard({ className }: { className?: string }) {
             )}
             <p className="-mt-1 text-xs text-muted-foreground">
               Mở camera và chụp. Ảnh cần có <b className="font-medium text-foreground">mặt bạn</b> nhìn thẳng và nền{' '}
-              <b className="font-medium text-foreground">văn phòng tầng 5</b>. Không dùng ảnh có sẵn trên điện thoại
+              <b className="font-medium text-foreground">văn phòng tầng 5 hoặc tầng 6</b>. Không dùng ảnh có sẵn trên điện thoại
               / giấy.
             </p>
             <CameraCapture
@@ -420,7 +420,7 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
             Giờ {screenTime ?? '—'} · ngày {screenDate ?? '—'} khớp hệ thống
             {faceScore != null && ` · khuôn mặt khớp đã đăng ký (${Math.round(faceScore * 100)}%)`}
             {sceneScore != null &&
-              ` · nền văn phòng ${floorNote ?? 'tầng 5'} (${Math.round(sceneScore * 100)}%)`}
+              ` · nền văn phòng ${floorNote ?? 'tầng 5–6'} (${Math.round(sceneScore * 100)}%)`}
             {replayScore != null && ` · không phải giơ màn hình (điểm ${Math.round(replayScore * 100)}%)`}
           </p>
         </div>

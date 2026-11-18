@@ -133,7 +133,7 @@ export function FaceScan({
   }
 
   const step = steps[stepIndex] ?? 'center'
-  const blocked = /không khớp|nhiều hơn 1|Chỉ được có một|quá nhỏ|gần camera/i.test(hint)
+  const blocked = /không khớp|quá nhỏ|gần camera/i.test(hint)
 
   return (
     <div className="space-y-3">
