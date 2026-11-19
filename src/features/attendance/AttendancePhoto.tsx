@@ -35,7 +35,7 @@ export function AttendancePhotos({ record, title }: { record: AttendanceRecord |
             type="button"
             onClick={() => setOpen(true)}
             title={`Ảnh ${SLOT_LABEL[p.slot].toLowerCase()}`}
-            className="relative size-9 overflow-hidden rounded-lg border-2 border-card bg-muted ring-1 ring-border transition-transform hover:z-10 hover:scale-110"
+            className="relative size-11 overflow-hidden rounded-lg border-2 border-card bg-muted ring-1 ring-border"
           >
             <Thumb src={photoUrl(record, p.slot)} />
             <span className="absolute inset-x-0 bottom-0 bg-black/55 text-[9px] leading-3 font-medium text-white">

@@ -36,7 +36,7 @@ export function FacePhotos({
               <button
                 type="button"
                 onClick={() => setOpen(i)}
-                className="group w-full space-y-1.5 text-left"
+                className="group min-h-11 w-full space-y-1.5 text-left"
               >
                 <span className="block aspect-[3/4] overflow-hidden rounded-xl border bg-muted">
                   <Thumb src={facePhotoSrc(userId, i, submittedAt)} alt={`${name ? `${name} · ` : ''}${label}`} />

@@ -24,13 +24,13 @@ export function MobileTabBar() {
               to={item.url}
               className={({ isActive }) =>
                 cn(
-                  'flex h-14 min-h-11 flex-col items-center justify-center gap-0.5 px-1 text-[11px] font-medium',
+                  'flex h-14 min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[11px] leading-none font-medium',
                   isActive ? 'text-[#4f46e5]' : 'text-zinc-500',
                 )
               }
             >
-              <item.icon className="size-5" />
-              {item.title}
+              <item.icon className="size-5 shrink-0" aria-hidden />
+              <span className="max-w-full truncate">{item.title}</span>
             </NavLink>
           </li>
         ))}

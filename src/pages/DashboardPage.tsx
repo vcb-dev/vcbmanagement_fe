@@ -151,12 +151,16 @@ export function DashboardPage() {
                   <li key={r.id} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
                     <DateBadge ymd={r.workDate} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium tabular-nums">
-                        <span className="text-muted-foreground">S</span> {formatTime(r.morning.inAt)}–
-                        {formatTime(r.morning.outAt)}
-                        <span className="mx-1.5 text-muted-foreground">·</span>
-                        <span className="text-muted-foreground">C</span> {formatTime(r.afternoon.inAt)}–
-                        {formatTime(r.afternoon.outAt)}
+                      <p className="text-sm font-medium leading-5 tabular-nums">
+                        <span className="block sm:inline">
+                          <span className="text-muted-foreground">S</span> {formatTime(r.morning.inAt)}–
+                          {formatTime(r.morning.outAt)}
+                        </span>
+                        <span className="hidden sm:inline mx-1.5 text-muted-foreground">·</span>
+                        <span className="block sm:inline">
+                          <span className="text-muted-foreground">C</span> {formatTime(r.afternoon.inAt)}–
+                          {formatTime(r.afternoon.outAt)}
+                        </span>
                       </p>
                       <p className="text-xs text-muted-foreground">{formatWorkDate(r.workDate, { long: true })}</p>
                     </div>
