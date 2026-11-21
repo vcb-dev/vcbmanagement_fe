@@ -31,10 +31,11 @@ export function DepartmentsPage() {
     <PageContainer>
       <PageHeader
         title="Bộ phận & giờ làm"
+        hideTitleOnPhone
         description="Giờ ca của từng bộ phận và mốc đi muộn áp dụng cho từng đối tượng."
         actions={
           canEdit && tab === 'departments' ? (
-            <Button onClick={() => setEditing(null)}>
+            <Button className="pointer-coarse:h-10" onClick={() => setEditing(null)}>
               <Plus />
               Thêm bộ phận
             </Button>
@@ -47,7 +48,8 @@ export function DepartmentsPage() {
         onValueChange={(v) => setParams(v === 'late' ? { tab: 'late' } : {}, { replace: true })}
         className="gap-3"
       >
-        <TabsList>
+        {/* Màn cảm ứng: tab cao 33px thay vì 25px cho dễ chạm. */}
+        <TabsList className="pointer-coarse:group-data-horizontal/tabs:h-10">
           <TabsTrigger value="departments">
             <Building2 />
             Bộ phận
@@ -90,7 +92,7 @@ export function DepartmentsPage() {
                 <button
                   type="button"
                   onClick={() => setEditing(null)}
-                  className="flex min-h-40 items-center justify-center gap-2 rounded-xl border border-dashed text-sm font-medium text-primary transition-colors hover:bg-primary/5"
+                  className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-dashed text-sm font-medium text-primary transition-colors hover:bg-primary/5 md:min-h-40"
                 >
                   <Plus className="size-4" />
                   Thêm bộ phận

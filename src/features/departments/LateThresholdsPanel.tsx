@@ -71,8 +71,9 @@ export function LateThresholdsPanel({ departments, canEdit }: { departments: Dep
           mốc có hiệu lực từ tháng hiện tại, các tháng trước giữ nguyên.
         </CardDescription>
         {canEdit && (
-          <CardAction>
-            <Button size="sm" onClick={() => setForm({ threshold: null })}>
+          // Điện thoại: nút xuống dưới đoạn mô tả và rộng hết hàng, để đoạn mô tả không bị ép thành cột hẹp.
+          <CardAction className="col-start-1 row-start-3 mt-2 justify-self-stretch sm:col-start-2 sm:mt-0 sm:row-span-2 sm:row-start-1 sm:justify-self-end">
+            <Button size="sm" className="w-full sm:w-auto pointer-coarse:h-10" onClick={() => setForm({ threshold: null })}>
               <Plus />
               Thêm mốc
             </Button>
@@ -115,7 +116,7 @@ export function LateThresholdsPanel({ departments, canEdit }: { departments: Dep
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="shrink-0"
+                        className="shrink-0 pointer-coarse:h-10"
                         aria-label={`Thêm mốc cho ${targetLabel(group)}`}
                         onClick={() =>
                           setForm({
@@ -139,6 +140,7 @@ export function LateThresholdsPanel({ departments, canEdit }: { departments: Dep
                             <Button
                               variant="ghost"
                               size="icon-sm"
+                              className="pointer-coarse:size-10"
                               onClick={() => setForm({ threshold: row })}
                               aria-label={`Sửa mốc ${row.thresholdMinutes} phút của ${targetLabel(group)}`}
                             >
@@ -147,7 +149,7 @@ export function LateThresholdsPanel({ departments, canEdit }: { departments: Dep
                             <Button
                               variant="ghost"
                               size="icon-sm"
-                              className="text-destructive hover:text-destructive"
+                              className="text-destructive hover:text-destructive pointer-coarse:size-10"
                               onClick={() => setDeleting(row)}
                               aria-label={`Xoá mốc ${row.thresholdMinutes} phút của ${targetLabel(group)}`}
                             >
@@ -159,8 +161,12 @@ export function LateThresholdsPanel({ departments, canEdit }: { departments: Dep
                     ))}
                     <li className="flex min-h-10 items-center gap-3 py-1 pr-3 pl-3 text-sm">
                       <LevelBadge level={thresholds.length + 1} thresholds={thresholds} />
-                      <span className="flex-1 tabular-nums">Muộn {lateLevelRange(thresholds.length + 1, thresholds)}</span>
-                      <span className="text-xs text-muted-foreground">Tự động, theo mốc lớn nhất</span>
+                      <span className="flex-1 tabular-nums">
+                        Muộn {lateLevelRange(thresholds.length + 1, thresholds)}
+                        {/* Điện thoại: chú thích xuống dòng dưới, không chen ngang làm số phút bị ngắt dòng. */}
+                        <span className="block text-xs text-muted-foreground sm:hidden">Tự động, theo mốc lớn nhất</span>
+                      </span>
+                      <span className="hidden text-xs text-muted-foreground sm:inline">Tự động, theo mốc lớn nhất</span>
                     </li>
                   </ul>
                 </section>

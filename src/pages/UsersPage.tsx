@@ -12,11 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useMe } from '@/features/auth/use-auth'
-import { shiftLabel } from '@/features/departments/departments.types'
+import { shiftLabel, type Department } from '@/features/departments/departments.types'
 import { useDepartments } from '@/features/departments/use-departments'
 import { useUsers } from '@/features/users/use-users'
 import { UserProfileDialog } from '@/features/users/UserProfileDialog'
 import type { UserProfile } from '@/features/users/users.types'
+import { useElementWidth } from '@/hooks/use-element-width'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { formatDate, normalizeSearch } from '@/lib/format'
 import { EMPLOYMENT_LABEL, displayName } from '@/lib/user-display'
@@ -28,6 +29,94 @@ const UNASSIGNED = 'unassigned'
 const PAGE_SIZE = 15
 /** Tiêu đề bảng canh giữa, chữ đậm, cùng kiểu với các bảng khác. */
 const HEAD = 'text-center text-sm font-semibold'
+/** Khung hẹp hơn mức này thì bảng phải cuộn ngang, nên hiện danh sách mỗi người một dòng. */
+const TABLE_MIN_WIDTH = 700
+/** Cột Ca làm dài (có cả ca tối), chỉ thêm vào bảng khi khung đủ rộng cho nó. */
+const SHIFT_COLUMN_MIN_WIDTH = 1000
+/** Ô nhập và ô chọn: trên màn cảm ứng cao 40px cho dễ bấm. */
+const TOUCH_FIELD = 'pointer-coarse:h-10'
+const TOUCH_SELECT = 'pointer-coarse:data-[size=default]:h-10'
+
+function EmploymentBadge({ user }: { user: UserProfile }) {
+  return (
+    <Badge
+      variant="secondary"
+      className={cn(user.employmentType === 'part_time' && 'bg-violet-500/10 text-violet-800 dark:text-violet-300')}
+    >
+      {EMPLOYMENT_LABEL[user.employmentType]}
+    </Badge>
+  )
+}
+
+/** Trong bảng đã có tiêu đề cột Bộ phận nên chỉ cần "Chưa gán"; ở danh sách thì nói rõ là bộ phận. */
+function UnassignedBadge({ full = false }: { full?: boolean }) {
+  return (
+    <Badge variant="secondary" className="bg-amber-500/10 text-amber-800 dark:text-amber-300">
+      {full ? 'Chưa gán bộ phận' : 'Chưa gán'}
+    </Badge>
+  )
+}
+
+function LockedBadge() {
+  return (
+    <Badge variant="outline" className="ml-2">
+      Đã khoá
+    </Badge>
+  )
+}
+
+/**
+ * Một nhân sự khi khung hẹp (điện thoại, máy tính bảng, laptop nhỏ có sidebar mở): ảnh bên trái, tên và email,
+ * rồi loại, bộ phận, ca làm, ngày ký HĐ ngay dưới để không phải vuốt ngang; nút Sửa ở bên phải.
+ */
+function UserItem({
+  user: u,
+  department,
+  canEdit,
+  onEdit,
+}: {
+  user: UserProfile
+  department: Department | undefined
+  canEdit: boolean
+  onEdit: () => void
+}) {
+  return (
+    <li className={cn('flex gap-3 px-(--card-spacing) py-3', !u.isActive && 'opacity-60')}>
+      <UserAvatar user={u} className="size-9 shrink-0 rounded-lg" />
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <div className="min-w-0">
+          <p className="truncate font-medium">
+            {displayName(u)}
+            {!u.isActive && <LockedBadge />}
+          </p>
+          <p className="truncate text-xs text-muted-foreground">{u.email}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <EmploymentBadge user={u} />
+          {u.department ? <span className="min-w-0 text-[13px]">{u.department.name}</span> : <UnassignedBadge full />}
+        </div>
+        <p className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground tabular-nums">
+          <span>{department ? shiftLabel(department) : 'Giờ mặc định'}</span>
+          <span className="whitespace-nowrap">
+            {u.contractStartDate ? `Ký HĐ ${formatDate(u.contractStartDate)}` : 'Chưa có ngày ký HĐ'}
+          </span>
+        </p>
+      </div>
+      {canEdit && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0 pointer-coarse:h-10"
+          aria-label={`Sửa hồ sơ ${displayName(u)}`}
+          onClick={onEdit}
+        >
+          <Pencil />
+          Sửa
+        </Button>
+      )}
+    </li>
+  )
+}
 
 export function UsersPage() {
   const { data: me } = useMe()
@@ -39,6 +128,10 @@ export function UsersPage() {
   const [typeFilter, setTypeFilter] = useState(ALL)
   const [page, setPage] = useState(1)
   const [editing, setEditing] = useState<UserProfile | null>(null)
+  // Chọn bảng hay danh sách theo bề rộng khung thẻ, không theo màn hình: sidebar mở hay thu cũng tính đúng.
+  const [boxRef, boxWidth] = useElementWidth<HTMLDivElement>()
+  const asTable = boxWidth >= TABLE_MIN_WIDTH
+  const showShift = boxWidth >= SHIFT_COLUMN_MIN_WIDTH
 
   const filtered = useMemo(() => {
     const q = normalizeSearch(query.trim())
@@ -64,23 +157,24 @@ export function UsersPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Nhân sự" description="Bộ phận quyết định giờ làm và mốc đi muộn của từng người." />
+      <PageHeader title="Nhân sự" description="Bộ phận quyết định giờ làm và mốc đi muộn của từng người." hideTitleOnPhone />
 
       <Card>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            <div className="relative min-w-56 flex-1 sm:max-w-sm">
+        <CardContent ref={boxRef} className="space-y-4">
+          {/* Điện thoại: ô tìm hết hàng, hai ô chọn chia đôi hàng dưới. */}
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            <div className="relative col-span-2 sm:min-w-56 sm:flex-1 sm:max-w-sm">
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
                 onChange={(e) => resetPageAfter(() => setQuery(e.target.value))}
                 placeholder="Tìm tên hoặc email…"
                 aria-label="Tìm nhân sự"
-                className="pl-9"
+                className={cn('pl-9', TOUCH_FIELD)}
               />
             </div>
             <Select value={departmentFilter} onValueChange={(next) => resetPageAfter(() => setDepartmentFilter(next))}>
-              <SelectTrigger aria-label="Lọc theo bộ phận" className="min-w-44">
+              <SelectTrigger aria-label="Lọc theo bộ phận" className={cn('w-full min-w-0 sm:w-fit sm:min-w-44', TOUCH_SELECT)}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -94,7 +188,7 @@ export function UsersPage() {
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={(next) => resetPageAfter(() => setTypeFilter(next))}>
-              <SelectTrigger aria-label="Lọc theo loại nhân sự" className="min-w-40">
+              <SelectTrigger aria-label="Lọc theo loại nhân sự" className={cn('w-full min-w-0 sm:w-fit sm:min-w-40', TOUCH_SELECT)}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -123,6 +217,19 @@ export function UsersPage() {
               <Users className="size-8 text-muted-foreground/60" />
               <p className="text-sm text-muted-foreground">Không có nhân sự phù hợp. Thử đổi từ khoá hoặc bộ lọc.</p>
             </div>
+          ) : !asTable ? (
+            // Chỉ dựng một kiểu (bảng hoặc danh sách). Các dòng chạy sát hai mép thẻ, kẻ ngang giữa các người.
+            <ul aria-label="Danh sách nhân sự" className="-mx-(--card-spacing) divide-y divide-border/70 border-y border-border/70">
+              {pageRows.map((u) => (
+                <UserItem
+                  key={u.id}
+                  user={u}
+                  department={departments.find((d) => d.id === u.department?.id)}
+                  canEdit={canEdit}
+                  onEdit={() => setEditing(u)}
+                />
+              ))}
+            </ul>
           ) : (
             <Table>
               <TableHeader>
@@ -130,8 +237,8 @@ export function UsersPage() {
                   <TableHead className={HEAD}>Nhân sự</TableHead>
                   <TableHead className={HEAD}>Loại</TableHead>
                   <TableHead className={HEAD}>Bộ phận</TableHead>
-                  <TableHead className={cn(HEAD, 'hidden lg:table-cell')}>Ca làm</TableHead>
-                  <TableHead className={cn(HEAD, 'hidden md:table-cell')}>Ngày ký HĐ</TableHead>
+                  {showShift && <TableHead className={HEAD}>Ca làm</TableHead>}
+                  <TableHead className={HEAD}>Ngày ký HĐ</TableHead>
                   {canEdit && <TableHead className="w-20" />}
                 </TableRow>
               </TableHeader>
@@ -146,39 +253,22 @@ export function UsersPage() {
                           <div className="min-w-0">
                             <p className="truncate font-medium">
                               {displayName(u)}
-                              {!u.isActive && (
-                                <Badge variant="outline" className="ml-2">
-                                  Đã khoá
-                                </Badge>
-                              )}
+                              {!u.isActive && <LockedBadge />}
                             </p>
                             <p className="truncate text-xs text-muted-foreground">{u.email}</p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge
-                          variant="secondary"
-                          className={cn(
-                            u.employmentType === 'part_time' && 'bg-violet-500/10 text-violet-700 dark:text-violet-400',
-                          )}
-                        >
-                          {EMPLOYMENT_LABEL[u.employmentType]}
-                        </Badge>
+                        <EmploymentBadge user={u} />
                       </TableCell>
-                      <TableCell className="text-center">
-                        {u.department ? (
-                          u.department.name
-                        ) : (
-                          <Badge variant="secondary" className="bg-amber-500/10 text-amber-700 dark:text-amber-400">
-                            Chưa gán
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="hidden text-center text-muted-foreground tabular-nums lg:table-cell">
-                        {department ? shiftLabel(department) : 'Giờ mặc định'}
-                      </TableCell>
-                      <TableCell className="hidden text-center tabular-nums md:table-cell">
+                      <TableCell className="text-center">{u.department ? u.department.name : <UnassignedBadge />}</TableCell>
+                      {showShift && (
+                        <TableCell className="text-center text-muted-foreground tabular-nums">
+                          {department ? shiftLabel(department) : 'Giờ mặc định'}
+                        </TableCell>
+                      )}
+                      <TableCell className="text-center tabular-nums">
                         {u.contractStartDate ? formatDate(u.contractStartDate) : <span className="text-muted-foreground">—</span>}
                       </TableCell>
                       {canEdit && (
@@ -197,7 +287,8 @@ export function UsersPage() {
           )}
           {users && filtered.length > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-              <span>
+              {/* Đọc lên mỗi khi đổi từ khoá hoặc bộ lọc, để người dùng trình đọc màn hình biết còn bao nhiêu người. */}
+              <span role="status" aria-live="polite">
                 Hiển thị {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} trong{' '}
                 {filtered.length}
                 {filtered.length < users.length && ` (tổng ${users.length})`} tài khoản
