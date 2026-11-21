@@ -5,6 +5,7 @@ import {
   CalendarDays,
   CalendarHeart,
   CalendarRange,
+  ChartPie,
   ClipboardCheck,
   ClockPlus,
   FileCheck,
@@ -39,6 +40,13 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Tổng quan',
     items: [
       { title: 'Bảng điều khiển', url: '/', icon: LayoutDashboard, description: 'Tổng quan hoạt động' },
+      {
+        title: 'Tổng quan',
+        url: '/overview',
+        icon: ChartPie,
+        description: 'Đi làm, không đi làm, đi muộn, đơn xin đi muộn / về sớm theo ngày và theo tháng',
+        roles: ['admin', 'manager'],
+      },
       {
         title: 'Công của tôi',
         url: '/my-timesheet',

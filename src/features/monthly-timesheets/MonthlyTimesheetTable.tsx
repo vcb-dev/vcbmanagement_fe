@@ -50,6 +50,8 @@ const LAST = 'border-r-0'
 const TABLE_MANUAL_FIELDS = MANUAL_FIELDS.filter((f) => f.field !== 'excusedWorkdays')
 /** Ô sửa được chỉ hiện khung khi rê chuột vào dòng, để bảng không kín ô viền. */
 const REVEAL_ON_ROW = 'group-hover/row:border-border group-hover/row:bg-background dark:group-hover/row:bg-input/30'
+/** Cột Nhân sự dính trái; điện thoại hẹp lại 128px để thấy được các cột số bên cạnh. */
+const PERSON_WIDTH = 'w-32 max-w-32 min-w-32 sm:w-56 sm:max-w-56 sm:min-w-56'
 
 /** ISO → "08/11" theo giờ Việt Nam. */
 const confirmedDay = (iso: string) =>
@@ -114,7 +116,7 @@ export function MonthlyTimesheetTable({
             <th
               rowSpan={2}
               scope="col"
-              className={cn(HEAD, PERSON_RIGHT, 'sticky left-0 z-2 max-w-44 min-w-44 sm:max-w-56 sm:min-w-56')}
+              className={cn(HEAD, PERSON_RIGHT, PERSON_WIDTH, 'sticky left-0 z-2')}
             >
               Nhân sự
             </th>
@@ -181,16 +183,21 @@ export function MonthlyTimesheetTable({
                 className={cn(
                   LINE_BOTTOM,
                   PERSON_RIGHT,
-                  'sticky left-0 z-[1] max-w-44 min-w-44 bg-card px-3 py-1.5 group-hover/row:bg-muted sm:max-w-56 sm:min-w-56',
+                  PERSON_WIDTH,
+                  'sticky left-0 z-[1] bg-card px-2.5 py-1.5 group-hover/row:bg-muted sm:px-3',
                 )}
               >
                 <button type="button" onClick={() => onSelect(row.id)} className="group/name flex w-full items-center gap-2.5 text-left">
-                  <UserAvatar user={row.user} className="size-8 shrink-0 rounded-lg" />
+                  <UserAvatar user={row.user} className="hidden size-8 shrink-0 rounded-lg sm:flex" />
                   <span className="min-w-0">
-                    <span className="block truncate font-medium group-hover/name:underline">{displayName(row.user)}</span>
-                    <span className="block truncate text-xs text-muted-foreground">
+                    <span className="block text-[13px] leading-tight font-medium break-words group-hover/name:underline sm:truncate sm:text-sm sm:leading-5">
+                      {displayName(row.user)}
+                    </span>
+                    <span className="block truncate text-[11px] text-muted-foreground sm:text-xs">
                       {!row.user.isActive && 'Đã khoá · '}
-                      {row.user.email}
+                      {/* Màn hẹp không có cột Bộ phận nên hiện bộ phận thay cho email. */}
+                      <span className="md:hidden">{row.department?.name ?? 'Chưa gán bộ phận'}</span>
+                      <span className="hidden md:inline">{row.user.email}</span>
                     </span>
                   </span>
                 </button>

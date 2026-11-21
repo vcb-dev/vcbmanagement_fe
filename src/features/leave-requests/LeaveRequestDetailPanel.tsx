@@ -22,7 +22,7 @@ import { attachmentUrl, useLeaveRequestAction, useLeaveRequestDetail } from './u
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] gap-3 py-2 text-sm">
+    <div className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 py-2 text-sm sm:grid-cols-[8.5rem_minmax(0,1fr)]">
       <dt className="text-muted-foreground">{label}</dt>
       <dd className="min-w-0 break-words">{children}</dd>
     </div>
@@ -167,7 +167,8 @@ function ReviewForm({ detail }: { detail: LeaveRequestDetail }) {
         placeholder={detail.status === 'approved' ? 'Lý do huỷ duyệt' : 'Ví dụ: Đồng ý, nhớ bàn giao đầy đủ'}
       />
       {error && <p className="text-xs text-destructive">{error}</p>}
-      <div className="flex flex-wrap justify-end gap-2">
+      {/* Điện thoại: hai nút chia đôi hàng cho dễ bấm. */}
+      <div className="flex flex-wrap justify-end gap-2 *:flex-1 sm:*:flex-none">
         {detail.canReject && (
           <Button variant="outline" onClick={() => void run('reject')} disabled={pending}>
             {pending && action.variables?.action === 'reject' && <Loader2 className="animate-spin" />}
@@ -185,11 +186,23 @@ function ReviewForm({ detail }: { detail: LeaveRequestDetail }) {
   )
 }
 
-/** Chi tiết một đơn: thông tin form, phép năm / chấm công liên quan, kết quả duyệt và các thao tác được phép. */
-export function LeaveRequestDetailPanel({ id, showUser = false }: { id: string | null; showUser?: boolean }) {
+/**
+ * Chi tiết một đơn: thông tin form, phép năm / chấm công liên quan, kết quả duyệt và các thao tác được phép.
+ * `card` = khung thẻ ở cột phải màn rộng; `sheet` = nằm trong sheet ở màn hẹp (sheet lo khung, chừa chỗ nút đóng).
+ */
+export function LeaveRequestDetailPanel({
+  id,
+  showUser = false,
+  variant = 'card',
+}: {
+  id: string | null
+  showUser?: boolean
+  variant?: 'card' | 'sheet'
+}) {
   const { data: detail, isPending, isError, error } = useLeaveRequestDetail(id)
   const action = useLeaveRequestAction()
   const [confirmCancel, setConfirmCancel] = useState(false)
+  const card = variant === 'card'
 
   if (!id) {
     return (
@@ -202,14 +215,19 @@ export function LeaveRequestDetailPanel({ id, showUser = false }: { id: string |
   }
   if (isError && !detail) {
     return (
-      <div className="flex min-h-[320px] items-center justify-center rounded-xl border bg-card p-8 text-center text-sm text-destructive">
+      <div
+        className={cn(
+          'flex min-h-[320px] items-center justify-center p-8 text-center text-sm text-destructive',
+          card && 'rounded-xl border bg-card',
+        )}
+      >
         {getApiErrorMessage(error)}
       </div>
     )
   }
   if (isPending || !detail) {
     return (
-      <div className="flex min-h-[320px] items-center justify-center rounded-xl border bg-card p-8">
+      <div className={cn('flex min-h-[320px] items-center justify-center p-8', card && 'rounded-xl border bg-card')}>
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     )
@@ -219,15 +237,15 @@ export function LeaveRequestDetailPanel({ id, showUser = false }: { id: string |
   const reviewed = detail.status === 'approved' || detail.status === 'rejected'
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border bg-card p-5 shadow-xs">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b pb-4">
+    <div className={cn('flex flex-col gap-4', card && 'rounded-xl border bg-card p-5 shadow-xs')}>
+      <div className={cn('flex flex-wrap items-start justify-between gap-3 border-b pb-4', !card && 'pr-10')}>
         <div className="flex min-w-0 items-center gap-3">
           <LeaveTypeIcon type={detail.type} className="size-10" />
           <div className="min-w-0">
-            <h3 className="truncate text-base font-semibold">
+            <h3 className={cn('text-base font-semibold', card && 'truncate')}>
               {showUser ? `${detail.user.name} · ${meta.label}` : `Đơn ${meta.label.toLowerCase()}`}
             </h3>
-            <p className="truncate text-xs text-muted-foreground">
+            <p className={cn('text-xs text-muted-foreground', card && 'truncate')}>
               {showUser
                 ? `${detail.user.department?.name ?? 'Chưa có bộ phận'} · ${EMPLOYMENT_LABEL[detail.user.employmentType]} · `
                 : ''}
@@ -305,7 +323,7 @@ export function LeaveRequestDetailPanel({ id, showUser = false }: { id: string |
       {(detail.canApprove || detail.canReject) && <ReviewForm key={detail.id} detail={detail} />}
 
       {detail.canCancel && (
-        <div className="flex justify-end border-t pt-4">
+        <div className="flex justify-end border-t pt-4 *:flex-1 sm:*:flex-none">
           <Button variant="outline" onClick={() => setConfirmCancel(true)}>
             Rút đơn
           </Button>

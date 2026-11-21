@@ -141,7 +141,7 @@ export function AttendanceBoardPage() {
     <PageContainer>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 space-y-1.5">
-          <h2 className="text-2xl font-semibold tracking-tight">Bảng chấm công {formatMonth(month).toLowerCase()}</h2>
+          <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Bảng chấm công {formatMonth(month).toLowerCase()}</h2>
           {board && (
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <RefreshCw className={isFetching ? 'size-3 animate-spin' : 'size-3'} />
@@ -177,8 +177,9 @@ export function AttendanceBoardPage() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-            <div className="relative min-w-48 flex-1 sm:w-48 sm:flex-none">
+          {/* Điện thoại: ô tìm hết hàng, các ô chọn chia đôi hàng, đủ rộng mà không chiếm nhiều dòng. */}
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+            <div className="relative col-span-2 min-w-48 flex-1 sm:w-48 sm:flex-none">
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
@@ -189,7 +190,7 @@ export function AttendanceBoardPage() {
               />
             </div>
             <Select value={department} onValueChange={(next) => resetPageAfter(() => setDepartment(next))}>
-              <SelectTrigger aria-label="Lọc theo bộ phận" className="min-w-44">
+              <SelectTrigger aria-label="Lọc theo bộ phận" className="w-full min-w-0 sm:w-fit sm:min-w-44">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -203,11 +204,11 @@ export function AttendanceBoardPage() {
               </SelectContent>
             </Select>
             <Select value={employment} onValueChange={(next) => resetPageAfter(() => setEmployment(next))}>
-              <SelectTrigger aria-label="Lọc theo loại nhân sự" className="min-w-40">
+              <SelectTrigger aria-label="Lọc theo loại nhân sự" className="w-full min-w-0 sm:w-fit sm:min-w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>Tất cả loại nhân sự</SelectItem>
+                <SelectItem value={ALL}>Mọi loại nhân sự</SelectItem>
                 {EMPLOYMENT_TYPES.map((type) => (
                   <SelectItem key={type} value={type}>
                     {EMPLOYMENT_LABEL[type]}
@@ -216,7 +217,13 @@ export function AttendanceBoardPage() {
               </SelectContent>
             </Select>
             {mode !== 'week' && (
-              <WeekRangePicker month={month} weeks={weeks} value={range} onChange={(next) => resetPageAfter(() => setRange(next))} />
+              <WeekRangePicker
+                className="col-span-2"
+                month={month}
+                weeks={weeks}
+                value={range}
+                onChange={(next) => resetPageAfter(() => setRange(next))}
+              />
             )}
           </div>
         </div>

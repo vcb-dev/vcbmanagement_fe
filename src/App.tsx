@@ -30,6 +30,7 @@ const PartTimeTimesheetsPage = lazy(() => import('@/pages/PartTimeTimesheetsPage
 const AnnualLeavesPage = lazy(() => import('@/pages/AnnualLeavesPage').then((m) => ({ default: m.AnnualLeavesPage })))
 const FeedbacksPage = lazy(() => import('@/pages/FeedbacksPage').then((m) => ({ default: m.FeedbacksPage })))
 const OvertimePage = lazy(() => import('@/pages/OvertimePage').then((m) => ({ default: m.OvertimePage })))
+const OverviewPage = lazy(() => import('@/pages/OverviewPage').then((m) => ({ default: m.OverviewPage })))
 const MonthlyTimesheetsPage = lazy(() =>
   import('@/pages/MonthlyTimesheetsPage').then((m) => ({ default: m.MonthlyTimesheetsPage })),
 )
@@ -75,6 +76,7 @@ export default function App() {
             <Route path="/assistant" element={<AssistantPage />} />
             <Route path="/face" element={<FacePage />} />
             <Route element={<ProtectedRoute roles={['admin', 'manager']} />}>
+              <Route path="/overview" element={<OverviewPage />} />
               <Route path="/feedbacks" element={<FeedbacksPage />} />
               <Route path="/face/review" element={<FaceReviewPage />} />
               <Route path="/attendance-board" element={<AttendanceBoardPage />} />
