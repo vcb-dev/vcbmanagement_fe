@@ -43,6 +43,11 @@ export interface LedgerDay {
   lateCount: number
   earlyCount: number
   missingCount: number
+  /**
+   * Toàn thời gian: ngày thường đã qua mà không có lượt chấm nào, nên 0 công máy.
+   * Có thể là ngày nghỉ phép, lễ (quản lý nhập riêng). Part-time luôn false vì tự chọn ca.
+   */
+  unpunched: boolean
 }
 
 export const SHIFT_NAME: Record<WorkShift, string> = { morning: 'Sáng', afternoon: 'Chiều', evening: 'Tối' }
@@ -149,7 +154,7 @@ export function fullTimeLedger(
       shifts,
       noLunch,
       workedMinutes: record?.workedMinutes ?? null,
-      workdays: record ? machineWorkdays(record) : null,
+      workdays: record ? machineWorkdays(record) : !isToday && !isSunday(date) ? 0 : null,
       offlineMinutes: 0,
       onlineMinutes: 0,
       overtime: overtime.get(date) ?? 0,
@@ -157,6 +162,7 @@ export function fullTimeLedger(
       lateCount: shifts.filter((s) => s.lateMinutes > 0).length,
       earlyCount: shifts.filter((s) => s.earlyMinutes > 0).length,
       missingCount: shifts.filter((s) => s.missing).length,
+      unpunched: !record && !isToday && !isSunday(date),
     }
   })
 }
@@ -232,11 +238,16 @@ export function partTimeLedger(
       lateCount: shifts.filter((s) => s.lateMinutes > 0).length,
       earlyCount: shifts.filter((s) => s.earlyMinutes > 0).length,
       missingCount: shifts.filter((s) => s.missing).length,
+      unpunched: false,
     }
   })
 }
 
-/** Ngày cần chú ý: có đi muộn, về sớm hoặc thiếu giờ vào, ra. */
+/**
+ * Ngày cần chú ý: có đi muộn, về sớm hoặc thiếu giờ vào, ra.
+ * Ngày thường không chấm công không tính vào đây: có thể là ngày phép, lễ do quản lý nhập mà API chưa trả theo từng ngày,
+ * nên chỉ hiện trung tính để không báo động nhầm.
+ */
 export function needsAttention(day: LedgerDay): boolean {
   return day.lateCount > 0 || day.earlyCount > 0 || day.missingCount > 0
 }
@@ -245,7 +256,13 @@ export function needsAttention(day: LedgerDay): boolean {
 export function ledgerCounts(days: LedgerDay[]) {
   return {
     attention: days.filter(needsAttention).length,
+    unpunched: days.filter((d) => d.unpunched).length,
     overtime: days.filter((d) => d.overtime > 0).length,
     online: days.filter((d) => d.onlineMinutes > 0).length,
   }
+}
+
+/** Câu nhắc trong hộp xác nhận khi còn ngày cần chú ý. */
+export function attentionNote(attention: number): string {
+  return attention > 0 ? `Còn ${attention} ngày cần chú ý (đi muộn, về sớm hoặc thiếu giờ vào, ra). ` : ''
 }
