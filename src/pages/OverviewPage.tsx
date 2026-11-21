@@ -1,12 +1,12 @@
 import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { DateInput } from '@/components/date-input'
 import { MonthNav } from '@/components/month-nav'
 import { PageContainer } from '@/components/page-container'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DayTab } from '@/features/overview/DayTab'
@@ -122,14 +122,7 @@ export function OverviewPage() {
                 <Button variant="outline" size="icon-sm" onClick={() => goToDate(shiftYmd(date, -1))} aria-label="Xem ngày trước">
                   <ChevronLeft />
                 </Button>
-                <Input
-                  type="date"
-                  value={date}
-                  max={today}
-                  onChange={(e) => goToDate(e.target.value)}
-                  className="h-8 w-36 sm:w-40"
-                  aria-label="Chọn ngày cần xem"
-                />
+                <DateInput value={date} max={today} onChange={goToDate} className="h-7" aria-label="Chọn ngày cần xem" />
                 <Button variant="outline" size="icon-sm" onClick={() => goToDate(shiftYmd(date, 1))} disabled={isToday} aria-label="Xem ngày sau">
                   <ChevronRight />
                 </Button>
