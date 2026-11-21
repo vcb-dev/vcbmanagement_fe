@@ -73,7 +73,7 @@ export function LateThresholdsPanel({ departments, canEdit }: { departments: Dep
         {canEdit && (
           // Điện thoại: nút xuống dưới đoạn mô tả và rộng hết hàng, để đoạn mô tả không bị ép thành cột hẹp.
           <CardAction className="col-start-1 row-start-3 mt-2 justify-self-stretch sm:col-start-2 sm:mt-0 sm:row-span-2 sm:row-start-1 sm:justify-self-end">
-            <Button size="sm" className="w-full sm:w-auto" onClick={() => setForm({ threshold: null })}>
+            <Button size="sm" className="w-full sm:w-auto pointer-coarse:h-10" onClick={() => setForm({ threshold: null })}>
               <Plus />
               Thêm mốc
             </Button>
@@ -116,7 +116,7 @@ export function LateThresholdsPanel({ departments, canEdit }: { departments: Dep
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="shrink-0"
+                        className="shrink-0 pointer-coarse:h-10"
                         aria-label={`Thêm mốc cho ${targetLabel(group)}`}
                         onClick={() =>
                           setForm({
@@ -140,6 +140,7 @@ export function LateThresholdsPanel({ departments, canEdit }: { departments: Dep
                             <Button
                               variant="ghost"
                               size="icon-sm"
+                              className="pointer-coarse:size-10"
                               onClick={() => setForm({ threshold: row })}
                               aria-label={`Sửa mốc ${row.thresholdMinutes} phút của ${targetLabel(group)}`}
                             >
@@ -148,7 +149,7 @@ export function LateThresholdsPanel({ departments, canEdit }: { departments: Dep
                             <Button
                               variant="ghost"
                               size="icon-sm"
-                              className="text-destructive hover:text-destructive"
+                              className="text-destructive hover:text-destructive pointer-coarse:size-10"
                               onClick={() => setDeleting(row)}
                               aria-label={`Xoá mốc ${row.thresholdMinutes} phút của ${targetLabel(group)}`}
                             >

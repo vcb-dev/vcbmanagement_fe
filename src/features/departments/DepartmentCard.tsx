@@ -86,11 +86,11 @@ export function DepartmentCard({
 
       {canEdit && (
         <div className="flex justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={onEdit}>
+          <Button variant="outline" size="sm" className="pointer-coarse:h-10" onClick={onEdit}>
             <Pencil />
             Sửa
           </Button>
-          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={onDelete}>
+          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive pointer-coarse:h-10" onClick={onDelete}>
             <Trash2 />
             Xoá
           </Button>
