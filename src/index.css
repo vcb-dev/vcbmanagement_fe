@@ -61,7 +61,8 @@
   --secondary: #f4f4f5;
   --secondary-foreground: #27272a;
   --muted: #f4f4f5;
-  --muted-foreground: #71717a;
+  /* Đạt 4,5:1 cả trên nền muted (#f4f4f5) và accent, không chỉ trên nền thẻ trắng. */
+  --muted-foreground: #6b6b74;
   --accent: #eef2ff;
   --accent-foreground: #3730a3;
   --destructive: #dc2626;
@@ -139,6 +140,18 @@
   }
   html {
     @apply font-sans;
+    /* Cuộn tới neo hoặc tới ô đang focus thì chừa chỗ cho thanh tiêu đề, thanh chọn tháng dính (trên)
+       và thanh xác nhận dính (dưới), để không phần tử nào nằm khuất sau chúng. */
+    scroll-padding-top: calc(7.5rem + env(safe-area-inset-top, 0px));
+    scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 768px) {
+    html {
+      scroll-padding-top: 4.5rem;
+      scroll-padding-bottom: 1rem;
+    }
+  }
+  html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     font-synthesis: none;

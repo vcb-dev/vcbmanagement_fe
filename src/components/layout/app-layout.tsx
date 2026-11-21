@@ -1,4 +1,4 @@
-import { CalendarDays, Loader2 } from 'lucide-react'
+import { CalendarDays, Loader2, Menu } from 'lucide-react'
 import { Suspense, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -10,12 +10,12 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { Button } from '@/components/ui/button'
+import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sidebar'
 import { useMe } from '@/features/auth/use-auth'
 import { AppSidebar } from './app-sidebar'
 import { InstallAppButton } from './install-app-button'
 import { InstallHint } from './install-hint'
-import { MobileTabBar } from './mobile-tab-bar'
 import { NAV_GROUPS } from './nav-items'
 
 export function AppLayout() {
@@ -26,6 +26,8 @@ export function AppLayout() {
   const [today] = useState(() =>
     new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }),
   )
+  // Máy tính bảng (768–1023px): sidebar mở sẵn dạng biểu tượng để nội dung đủ rộng; vẫn mở rộng được bằng nút.
+  const [sidebarOpen] = useState(() => typeof window === 'undefined' || window.innerWidth >= 1024)
 
   if (!user) {
     return (
@@ -36,41 +38,49 @@ export function AppLayout() {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={sidebarOpen}>
+      {/* Điểm dừng Tab đầu tiên, trước cả menu bên. */}
+      <a
+        href="#main"
+        className="sr-only z-50 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+      >
+        Bỏ qua tới nội dung
+      </a>
       <AppSidebar user={user} />
       <SidebarInset className="min-w-0 overflow-x-clip">
         <header
-          className="sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b bg-background px-3 md:px-4"
+          className="sticky top-0 z-10 flex shrink-0 items-center gap-1 border-b bg-background pr-1 pl-1 md:gap-2 md:px-4"
           style={{ height: 'calc(3.5rem + env(safe-area-inset-top, 0px))', paddingTop: 'env(safe-area-inset-top, 0px)' }}
         >
-          <SidebarTrigger className="size-11 shrink-0 md:size-8" />
-          <Separator orientation="vertical" className="mr-1 hidden h-4 sm:block" />
-          <p className="min-w-0 flex-1 truncate text-[15px] font-semibold text-foreground md:hidden">
+          <MenuButton />
+          <Separator orientation="vertical" className="mr-1 hidden h-4 md:block" />
+          {/* Màn rộng đã có breadcrumb nên tiêu đề chỉ ẩn khỏi mắt, vẫn là h1 cho trình đọc màn hình. */}
+          <h1 className="min-w-0 flex-1 truncate text-base font-semibold text-foreground md:sr-only">
             {page?.title ?? 'VCB Management'}
-          </p>
-          <Breadcrumb className="hidden min-w-0 md:block">
-            <BreadcrumbList>
+          </h1>
+          <Breadcrumb className="hidden min-w-0 flex-1 md:block">
+            <BreadcrumbList className="flex-nowrap">
               {group && (
                 <>
-                  <BreadcrumbItem className="hidden sm:inline-flex">{group.label}</BreadcrumbItem>
-                  <BreadcrumbSeparator className="hidden sm:inline-flex" />
+                  <BreadcrumbItem className="shrink-0">{group.label}</BreadcrumbItem>
+                  <BreadcrumbSeparator className="shrink-0" />
                 </>
               )}
-              <BreadcrumbItem>
-                <BreadcrumbPage className="font-medium text-foreground">{page?.title ?? 'VCB Management'}</BreadcrumbPage>
+              <BreadcrumbItem className="min-w-0">
+                <BreadcrumbPage className="truncate font-medium text-foreground">{page?.title ?? 'VCB Management'}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <div className="ml-auto flex shrink-0 items-center gap-1">
-            <div className="hidden items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs text-muted-foreground md:flex">
+          <div className="ml-auto flex shrink-0 items-center md:gap-1">
+            <div className="mr-1 hidden items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs whitespace-nowrap text-muted-foreground lg:flex">
               <CalendarDays className="size-3.5" />
               <span className="capitalize">{today}</span>
             </div>
             <InstallAppButton />
-            <ThemeToggle />
+            <ThemeToggle className="size-11 md:size-8" />
           </div>
         </header>
-        <div className="flex flex-1 flex-col pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
+        <div id="main" tabIndex={-1} className="flex flex-1 flex-col pb-[env(safe-area-inset-bottom)] outline-none md:pb-0">
           <div className="px-4 pt-3 md:hidden">
             <InstallHint />
           </div>
@@ -79,8 +89,28 @@ export function AppLayout() {
           </Suspense>
         </div>
       </SidebarInset>
-      <MobileTabBar />
     </SidebarProvider>
+  )
+}
+
+/**
+ * Nút hamburger mở menu bên trái. Điện thoại: menu trượt ra che nội dung (lối điều hướng duy nhất);
+ * màn rộng: thu menu về dạng biểu tượng hoặc mở rộng lại.
+ */
+function MenuButton() {
+  const { toggleSidebar, isMobile, openMobile, open } = useSidebar()
+  const expanded = isMobile ? openMobile : open
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="size-11 shrink-0 md:size-8"
+      onClick={toggleSidebar}
+      aria-label={isMobile ? 'Mở menu' : expanded ? 'Thu gọn menu' : 'Mở rộng menu'}
+      aria-expanded={expanded}
+    >
+      <Menu className="size-5 md:size-4" />
+    </Button>
   )
 }
 
