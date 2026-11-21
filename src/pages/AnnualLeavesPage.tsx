@@ -110,14 +110,28 @@ export function AnnualLeavesPage() {
     <PageContainer>
       <PageHeader
         title={`Phép năm ${year}`}
-        description="Mỗi người một dòng phép năm: phép cả năm và số ngày nghỉ từng tháng. Mỗi tháng đã hết, từ tháng ký hợp đồng, được 1 ngày phép (không vượt phép cả năm); sang năm tính lại. Số còn lại hệ thống tự tính. Tháng trước ngày ký hợp đồng hiện sọc chéo; chưa có ngày ký hợp đồng thì chưa có phép. Chỉ áp dụng cho nhân sự full-time."
+        description={
+          <>
+            {/* Điện thoại: chỉ giữ ý chính, đoạn giải thích đầy đủ hiện từ md trở lên. */}
+            <span className="md:hidden">
+              Mỗi tháng đã hết, từ tháng ký hợp đồng, được 1 ngày phép. Chỉ áp dụng cho nhân sự full-time.
+            </span>
+            <span className="hidden md:inline">
+              Mỗi người một dòng phép năm: phép cả năm và số ngày nghỉ từng tháng. Mỗi tháng đã hết, từ tháng ký hợp
+              đồng, được 1 ngày phép (không vượt phép cả năm); sang năm tính lại. Số còn lại hệ thống tự tính. Tháng
+              trước ngày ký hợp đồng hiện sọc chéo; chưa có ngày ký hợp đồng thì chưa có phép. Chỉ áp dụng cho nhân sự
+              full-time.
+            </span>
+          </>
+        }
         actions={
-          <div className="flex items-center gap-2">
+          // Điện thoại: chọn năm rộng hết hàng, hai nút chia đôi hàng dưới.
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center">
             <Select
               value={String(year)}
               onValueChange={(val) => setYear(Number(val))}
             >
-              <SelectTrigger className="w-28">
+              <SelectTrigger className="col-span-2 w-full sm:w-28">
                 <SelectValue placeholder="Chọn năm" />
               </SelectTrigger>
               <SelectContent>
@@ -156,7 +170,9 @@ export function AnnualLeavesPage() {
           onValueChange={(val) => setFilter(val as LeaveFilter)}
           className="w-full lg:w-auto"
         >
-          <TabsList className="grid grid-cols-2 sm:grid-cols-4">
+          {/* TabsList mặc định cao cố định h-8: xếp 2 hàng trên điện thoại thì hàng dưới tràn đè ô tìm kiếm,
+              nên bỏ chiều cao cố định và cho mỗi tab cao 26px (một hàng vẫn tròn 32px như cũ). */}
+          <TabsList className="grid w-full grid-cols-2 group-data-horizontal/tabs:h-auto *:data-[slot=tabs-trigger]:h-[26px] sm:w-fit sm:grid-cols-4">
             <TabsTrigger value="all">Tất cả ({counts?.all ?? 0})</TabsTrigger>
             <TabsTrigger value="low">Sắp hết phép ({counts?.low ?? 0})</TabsTrigger>
             <TabsTrigger value="none">Chưa nghỉ ngày nào ({counts?.none ?? 0})</TabsTrigger>
@@ -164,7 +180,7 @@ export function AnnualLeavesPage() {
           </TabsList>
         </Tabs>
 
-        <div className="flex flex-col sm:flex-row items-center gap-2">
+        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
             <Input
