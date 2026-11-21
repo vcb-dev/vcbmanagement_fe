@@ -49,27 +49,34 @@ export function LoginPage() {
 
   const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname || '/'
 
+  const oauthOk = searchParams.get('oauth') === 'ok'
+
   useEffect(() => {
     const error = searchParams.get('error')
-    const oauthOk = searchParams.get('oauth') === 'ok'
-    if (!error && !oauthOk) return
-    if (oauthOk) {
-      void (async () => {
-        try {
-          const user = await authApi.me()
-          queryClient.setQueryData(ME_QUERY_KEY, user)
-          toast.success('Đăng nhập thành công', { id: 'oauth-result' })
-        } catch {
-          toast.error('Google xác thực xong nhưng chưa giữ được phiên. Hãy thử lại.', { id: 'oauth-result' })
-        }
-      })()
-    } else if (error) {
-      toast.error(GOOGLE_ERROR[error] ?? error, { id: 'oauth-result' })
-    }
+    if (!error) return
+    toast.error(GOOGLE_ERROR[error] ?? error, { id: 'oauth-result' })
     setSearchParams({}, { replace: true })
-  }, [searchParams, setSearchParams, queryClient])
+  }, [searchParams, setSearchParams])
+
+  useEffect(() => {
+    if (!oauthOk || me.isPending || me.data) return
+    toast.error('Google xác thực xong nhưng chưa giữ được phiên. Hãy thử lại.', { id: 'oauth-result' })
+    setSearchParams({}, { replace: true })
+  }, [oauthOk, me.isPending, me.data, setSearchParams])
 
   if (me.data) return <Navigate to={from} replace />
+
+  if (oauthOk) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background p-6 text-foreground">
+        <BrandMark className="size-12 animate-pulse rounded-2xl" />
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" />
+          Đang đăng nhập…
+        </p>
+      </div>
+    )
+  }
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
