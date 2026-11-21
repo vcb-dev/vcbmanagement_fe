@@ -1,5 +1,6 @@
 import { CheckCircle2, Clock, Search, XCircle } from 'lucide-react'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { PageContainer } from '@/components/page-container'
 import { PageHeader } from '@/components/page-header'
 import { StatCard } from '@/components/stat-card'
@@ -17,18 +18,24 @@ import { cn } from '@/lib/utils'
 type StatusTab = 'all' | LeaveRequestStatus
 const TABS: StatusTab[] = ['pending', 'approved', 'rejected', 'cancelled', 'all']
 
+function oneOf<T extends string>(value: string | null, options: readonly T[]): T | undefined {
+  return options.find((o) => o === value)
+}
+
 /**
  * Duyệt đơn xin phép cho admin / quản lý. Mặc định mở các đơn đang chờ, đơn có ngày bắt đầu gần nhất lên trước.
  * Duyệt nghỉ phép có trừ phép năm thì phép tháng ở màn Phép năm và Chốt công tháng tự cộng; huỷ duyệt thì hoàn lại.
+ * Trang khác mở sẵn bộ lọc qua URL (chỉ đọc lúc mở): `?status=&type=&q=&id=` (`id` là đơn được chọn sẵn).
  */
 export function LeaveRequestsPage() {
-  const [status, setStatus] = useState<StatusTab>('pending')
-  const [type, setType] = useState<'all' | LeaveRequestType>('all')
+  const [params] = useSearchParams()
+  const [status, setStatus] = useState<StatusTab>(() => oneOf(params.get('status'), TABS) ?? 'pending')
+  const [type, setType] = useState<'all' | LeaveRequestType>(() => oneOf(params.get('type'), TYPE_ORDER) ?? 'all')
   const [mineOnly, setMineOnly] = useState(false)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(() => params.get('q') ?? '')
   const q = useDebouncedValue(search.trim())
   const [page, setPage] = useState(1)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(() => params.get('id'))
 
   const query = useLeaveRequests({
     status: status === 'all' ? undefined : status,
