@@ -1,10 +1,12 @@
-import { AlarmClock, CircleAlert, Clock3, Loader2, LocateFixed, LogIn, LogOut, MapPin, MapPinOff, PartyPopper, RotateCw, ScanFace, ShieldCheck, ShieldX } from 'lucide-react'
+import { AlarmClock, CircleAlert, Clock3, Loader2, LocateFixed, LogIn, LogOut, MapPin, MapPinOff, PartyPopper, RotateCw, ScanFace, ShieldCheck, ShieldX, Wifi, WifiOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useMe } from '@/features/auth/use-auth'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { formatDuration, formatTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
@@ -18,7 +20,7 @@ import {
 } from './attendance.types'
 import { AttendanceStatus } from './AttendanceStatus'
 import { CameraCapture } from './CameraCapture'
-import { useAttendanceToday, usePhotoCheck, usePunch } from './use-attendance'
+import { useAttendanceToday, usePhotoCheck, usePunch, useRegisterOfficeWifi, useUnregisterOfficeWifi } from './use-attendance'
 import { geoVerdict, useGeolocation, type GeoVerdict } from './use-geolocation'
 
 const VN_TZ = 'Asia/Ho_Chi_Minh'
@@ -94,21 +96,29 @@ function LiveClock({ serverTime }: { serverTime?: string }) {
 }
 
 export function ClockCard({ className }: { className?: string }) {
+  const { data: me } = useMe()
   const { data, isPending } = useAttendanceToday()
   const now = useSystemNow(data?.serverTime, 15_000)
   const punch = usePunch()
   const photoCheck = usePhotoCheck()
+  const registerWifi = useRegisterOfficeWifi()
+  const unregisterWifi = useUnregisterOfficeWifi()
   const [note, setNote] = useState('')
   const [photo, setPhoto] = useState<Blob | null>(null)
+  const [registerFloor, setRegisterFloor] = useState<'5' | '6'>('5')
 
   const record = data?.record ?? null
   const nextSlot = data?.nextSlot ?? null
-  const busy = punch.isPending || photoCheck.isPending
+  const canManageWifi = me?.role === 'admin' || me?.role === 'manager'
+  const busy = punch.isPending || photoCheck.isPending || registerWifi.isPending || unregisterWifi.isPending
   const photoOk = !!photo && photoCheck.isSuccess
   const fence = data?.geofence ?? null
-  const geo = useGeolocation(!!fence && !!nextSlot)
+  const geo = useGeolocation(!!fence && (!!nextSlot || canManageWifi))
   const verdict = fence ? geoVerdict(fence, geo.state) : null
   const locationOk = !verdict || verdict.allowed
+  const wifi = data?.officeWifi
+  const assignedFloor = wifi?.assignedFloor ?? me?.officeFloor ?? null
+  const wifiOk = !wifi?.required || !!wifi.floorMatch
   const face = data?.face
   const faceRequired = !!face?.required
   const faceApproved = face?.profile?.status === 'approved'
@@ -123,7 +133,7 @@ export function ClockCard({ className }: { className?: string }) {
   }
 
   const submit = () => {
-    if (!photo || !photoOk || !nextSlot || !locationOk || (faceRequired && !faceApproved)) return
+    if (!photo || !photoOk || !nextSlot || !locationOk || !wifiOk || (faceRequired && !faceApproved)) return
     punch.mutate(
       {
         slot: nextSlot,
@@ -230,6 +240,90 @@ export function ClockCard({ className }: { className?: string }) {
               )}
             </div>
             {verdict && <LocationBox verdict={verdict} onRetry={geo.retry} />}
+            {(wifi?.required || canManageWifi) && (
+              <div
+                className={cn(
+                  'flex items-start gap-3 rounded-xl border p-3 text-sm',
+                  wifi?.required
+                    ? wifiOk
+                      ? 'border-[#a7f3d0] bg-[#ecfdf5] text-[#047857]'
+                      : 'border-[#fecdd3] bg-[#fff1f2] text-[#be123c]'
+                    : 'border-amber-500/30 bg-amber-500/5 text-amber-950 dark:text-amber-100',
+                )}
+              >
+                {wifi?.required && wifiOk ? (
+                  <Wifi className="mt-0.5 size-4 shrink-0" />
+                ) : (
+                  <WifiOff className="mt-0.5 size-4 shrink-0" />
+                )}
+                <div className="min-w-0 flex-1 space-y-2">
+                  <p className="font-medium">
+                    {!wifi?.required
+                      ? 'Chưa bật lọc Wi‑Fi công ty'
+                      : wifiOk
+                        ? `Đang dùng Wi‑Fi ${wifi.wifiFloor ? `tầng ${wifi.wifiFloor}` : 'công ty'}`
+                        : !assignedFloor && !canManageWifi
+                          ? 'Chưa được gán tầng chấm công'
+                          : wifi?.connected && wifi.wifiFloor && assignedFloor && wifi.wifiFloor !== assignedFloor
+                            ? `Sai tầng: đang ở tầng ${wifi.wifiFloor}`
+                            : 'Chưa kết nối Wi‑Fi đúng tầng'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {!wifi?.required
+                      ? 'Gán tầng cho nhân sự, rồi ghi nhận Wi‑Fi từng tầng. Tầng 1 dùng mạng khác sẽ không chấm được.'
+                      : wifiOk
+                        ? canManageWifi
+                          ? 'Quản lý được chấm ở tầng 5 hoặc 6.'
+                          : `Bạn chấm công tầng ${assignedFloor}.`
+                        : !assignedFloor && !canManageWifi
+                          ? 'Liên hệ quản lý gán tầng 5 hoặc tầng 6 trong mục Nhân sự.'
+                          : `Tắt 4G, nối Wi‑Fi ${assignedFloor ? `tầng ${assignedFloor}` : 'đúng tầng của bạn'} rồi tải lại trang.`}
+                    {wifi?.clientIp ? ` IP: ${wifi.clientIp}.` : ''}
+                  </p>
+                  {canManageWifi && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Select value={registerFloor} onValueChange={(v) => setRegisterFloor(v as '5' | '6')}>
+                        <SelectTrigger aria-label="Tầng của Wi‑Fi này" className="h-9 w-28">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="5">Tầng 5</SelectItem>
+                          <SelectItem value="6">Tầng 6</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        className="h-9"
+                        disabled={busy || !locationOk}
+                        onClick={() =>
+                          registerWifi.mutate({
+                            location: geo.state.status === 'ok' ? geo.state.reading : undefined,
+                            floor: Number(registerFloor) as 5 | 6,
+                          })
+                        }
+                      >
+                        {registerWifi.isPending ? <Loader2 className="animate-spin" /> : <Wifi />}
+                        Ghi nhận Wi‑Fi này
+                      </Button>
+                      {wifi?.required && wifi.connected && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="h-9"
+                          disabled={busy}
+                          onClick={() => unregisterWifi.mutate()}
+                        >
+                          Gỡ IP này
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             {faceRequired && !faceApproved && (
               <div className="flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/5 p-3 text-sm">
                 <ScanFace className="mt-0.5 size-4 shrink-0 text-amber-600" />
@@ -252,7 +346,10 @@ export function ClockCard({ className }: { className?: string }) {
             )}
             <p className="-mt-1 text-xs leading-5 text-muted-foreground">
               Chụp trực tiếp từ camera: <b className="font-medium text-foreground">mặt nhìn thẳng</b>, nền{' '}
-              <b className="font-medium text-foreground">văn phòng tầng 5 hoặc 6</b>. Không dùng ảnh có sẵn.
+              <b className="font-medium text-foreground">
+                {assignedFloor ? `văn phòng tầng ${assignedFloor}` : 'văn phòng tầng 5 hoặc 6'}
+              </b>
+              . Không dùng ảnh có sẵn.
             </p>
             <CameraCapture
               photo={photo}
@@ -297,12 +394,15 @@ export function ClockCard({ className }: { className?: string }) {
                 !photoOk ||
                 !nextSlot ||
                 !locationOk ||
+                !wifiOk ||
                 (faceRequired && !faceApproved)
               }
               title={
                 faceRequired && !faceApproved
                   ? 'Cần đăng ký khuôn mặt và được duyệt'
-                  : !locationOk
+                  : !wifiOk
+                    ? 'Cần Wi‑Fi đúng tầng để chấm công'
+                    : !locationOk
                       ? 'Bạn cần ở công ty để chấm công'
                       : photoOk
                         ? undefined
@@ -316,6 +416,7 @@ export function ClockCard({ className }: { className?: string }) {
                   !photoOk ||
                   !nextSlot ||
                   !locationOk ||
+                  !wifiOk ||
                   (faceRequired && !faceApproved)
                     ? '#c7d2fe'
                     : nextSlot && !isInSlot(nextSlot)
@@ -333,11 +434,13 @@ export function ClockCard({ className }: { className?: string }) {
                   ? `Chấm công ${SLOT_LABEL[nextSlot].toLowerCase()}`
                   : 'Chấm công'}
             </Button>
-            {(!photoOk || !locationOk || (faceRequired && !faceApproved)) && (
+            {(!photoOk || !locationOk || !wifiOk || (faceRequired && !faceApproved)) && (
               <p className="text-center text-xs text-zinc-500">
                 {faceRequired && !faceApproved
                   ? 'Cần khuôn mặt đã duyệt mới chấm công được'
-                  : !locationOk
+                  : !wifiOk
+                    ? 'Cần Wi‑Fi đúng tầng mới chấm công được'
+                    : !locationOk
                       ? 'Cần ở trong khu vực công ty mới chấm công được'
                       : photoCheck.isError
                         ? 'Ảnh chưa đạt — chụp lại để chấm công'

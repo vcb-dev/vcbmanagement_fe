@@ -63,6 +63,16 @@ export interface AttendanceToday {
   schedule: WorkSchedule
   /** null = công ty chưa cấu hình vị trí, không kiểm tra GPS. */
   geofence: Geofence | null
+  /** required=false hoặc thiếu = chưa ghi nhận IP Wi‑Fi công ty, chưa lọc. */
+  officeWifi?: {
+    required: boolean
+    connected: boolean
+    /** Đúng Wi‑Fi tầng được gán (admin/manager được cả 5 và 6). */
+    floorMatch?: boolean
+    clientIp?: string | null
+    wifiFloor?: 5 | 6 | null
+    assignedFloor?: 5 | 6 | null
+  }
   record: AttendanceRecord | null
   /** null = đã chấm đủ trong ngày. */
   nextSlot: AttendanceSlot | null

@@ -37,6 +37,7 @@ export function UsersPage() {
   const [query, setQuery] = useState('')
   const [departmentFilter, setDepartmentFilter] = useState(ALL)
   const [typeFilter, setTypeFilter] = useState(ALL)
+  const [floorFilter, setFloorFilter] = useState(ALL)
   const [page, setPage] = useState(1)
   const [editing, setEditing] = useState<UserProfile | null>(null)
 
@@ -47,9 +48,12 @@ export function UsersPage() {
       const matchesDepartment =
         departmentFilter === ALL || (departmentFilter === UNASSIGNED ? !u.department : u.department?.id === departmentFilter)
       const matchesType = typeFilter === ALL || u.employmentType === typeFilter
-      return matchesText && matchesDepartment && matchesType
+      const matchesFloor =
+        floorFilter === ALL ||
+        (floorFilter === UNASSIGNED ? !u.officeFloor : String(u.officeFloor) === floorFilter)
+      return matchesText && matchesDepartment && matchesType && matchesFloor
     })
-  }, [users, query, departmentFilter, typeFilter])
+  }, [users, query, departmentFilter, typeFilter, floorFilter])
 
   // Sửa hồ sơ làm danh sách ngắn lại (vd đổi bộ phận khi đang lọc) thì giữ ở trang cuối còn dòng.
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
@@ -93,6 +97,17 @@ export function UsersPage() {
                 <SelectItem value={UNASSIGNED}>Chưa gán bộ phận</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={floorFilter} onValueChange={(next) => resetPageAfter(() => setFloorFilter(next))}>
+              <SelectTrigger aria-label="Lọc theo tầng" className="min-w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Tất cả tầng</SelectItem>
+                <SelectItem value="5">Tầng 5</SelectItem>
+                <SelectItem value="6">Tầng 6</SelectItem>
+                <SelectItem value={UNASSIGNED}>Chưa gán tầng</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={typeFilter} onValueChange={(next) => resetPageAfter(() => setTypeFilter(next))}>
               <SelectTrigger aria-label="Lọc theo loại nhân sự" className="min-w-40">
                 <SelectValue />
@@ -130,6 +145,7 @@ export function UsersPage() {
                   <TableHead className={HEAD}>Nhân sự</TableHead>
                   <TableHead className={HEAD}>Loại</TableHead>
                   <TableHead className={HEAD}>Bộ phận</TableHead>
+                  <TableHead className={HEAD}>Tầng</TableHead>
                   <TableHead className={cn(HEAD, 'hidden lg:table-cell')}>Ca làm</TableHead>
                   <TableHead className={cn(HEAD, 'hidden md:table-cell')}>Ngày ký HĐ</TableHead>
                   {canEdit && <TableHead className="w-20" />}
@@ -169,6 +185,15 @@ export function UsersPage() {
                       <TableCell className="text-center">
                         {u.department ? (
                           u.department.name
+                        ) : (
+                          <Badge variant="secondary" className="bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                            Chưa gán
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {u.officeFloor ? (
+                          `Tầng ${u.officeFloor}`
                         ) : (
                           <Badge variant="secondary" className="bg-amber-500/10 text-amber-700 dark:text-amber-400">
                             Chưa gán

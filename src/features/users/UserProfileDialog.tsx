@@ -27,6 +27,7 @@ export function UserProfileDialog({
   const update = useUpdateUserProfile()
   const [departmentId, setDepartmentId] = useState(user.department?.id ?? NONE)
   const [employmentType, setEmploymentType] = useState<EmploymentType>(user.employmentType)
+  const [officeFloor, setOfficeFloor] = useState(user.officeFloor ? String(user.officeFloor) : NONE)
   const [contract, setContract] = useState(user.contractStartDate ?? '')
   const [error, setError] = useState('')
 
@@ -41,6 +42,7 @@ export function UserProfileDialog({
         input: {
           departmentId: departmentId === NONE ? null : departmentId,
           employmentType,
+          officeFloor: officeFloor === NONE ? null : (Number(officeFloor) as 5 | 6),
           contractStartDate: contract || null,
         },
       },
@@ -75,6 +77,20 @@ export function UserProfileDialog({
               <FieldDescription>
                 {selected ? `Ca ${shiftLabel(selected)}` : 'Chưa gán bộ phận thì dùng giờ làm mặc định của hệ thống.'}
               </FieldDescription>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="user-floor">Tầng chấm công</FieldLabel>
+              <Select value={officeFloor} onValueChange={setOfficeFloor}>
+                <SelectTrigger id="user-floor" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE}>Chưa gán tầng</SelectItem>
+                  <SelectItem value="5">Tầng 5</SelectItem>
+                  <SelectItem value="6">Tầng 6</SelectItem>
+                </SelectContent>
+              </Select>
+              <FieldDescription>Nhân sự chỉ chấm công khi nối Wi‑Fi đúng tầng này. Quản lý được cả hai tầng.</FieldDescription>
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field>
