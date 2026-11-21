@@ -83,7 +83,7 @@ function LiveClock({ serverTime }: { serverTime?: string }) {
       <p className="text-sm capitalize" style={{ color: '#c7d2fe' }}>
         {vnDateLabel(now)}
       </p>
-      <p className="mt-2 text-4xl font-semibold sm:text-5xl" style={{ color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+      <p className="mt-2 text-3xl font-semibold sm:text-5xl" style={{ color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
         {clock.hour}:{clock.minute}
         <span className="text-2xl" style={{ color: '#c7d2fe' }}>
           :{clock.second}
@@ -146,7 +146,7 @@ export function ClockCard({ className }: { className?: string }) {
   const activeShift: ShiftKey | null = nextSlot ? (nextSlot.startsWith('morning') ? 'morning' : 'afternoon') : null
 
   return (
-    <Card className={cn('relative gap-0 overflow-hidden p-0', className)}>
+    <Card className={cn('relative min-w-0 gap-0 p-0', className)}>
       <div className="relative min-w-0 overflow-hidden p-4 text-white sm:p-6" style={{ backgroundColor: '#4f46e5' }}>
         {data && (
           <div className="mb-2 flex max-w-full flex-wrap gap-1.5">
@@ -157,7 +157,7 @@ export function ClockCard({ className }: { className?: string }) {
         <LiveClock serverTime={data?.serverTime} />
       </div>
 
-      <div className="space-y-5 p-4 sm:p-6">
+      <div className="min-w-0 space-y-5 p-4 sm:p-6">
         {isPending ? (
           <Skeleton className="h-28 w-full" />
         ) : (
@@ -194,15 +194,14 @@ export function ClockCard({ className }: { className?: string }) {
             {data && <AttendanceStatus record={record} live hideLate />}
           </div>
           {record && (
-            <div className="flex items-center justify-between gap-3">
-              <span className="whitespace-nowrap text-muted-foreground">Đi muộn hôm nay</span>
+            <div className="flex items-start justify-between gap-3">
+              <span className="shrink-0 text-muted-foreground">Đi muộn hôm nay</span>
               {record.lateMinutes > 0 ? (
-                <span className="text-right font-medium text-amber-600 tabular-nums dark:text-amber-400">
+                <span className="min-w-0 text-right font-medium text-amber-600 tabular-nums dark:text-amber-400">
                   {formatDuration(record.lateMinutes)}
                   {record.lateCount > 1 && (
-                    <span className="font-normal text-muted-foreground">
-                      {' '}
-                      (sáng {formatDuration(record.morning.lateMinutes)}, chiều {formatDuration(record.afternoon.lateMinutes)})
+                    <span className="block font-normal text-muted-foreground">
+                      sáng {formatDuration(record.morning.lateMinutes)}, chiều {formatDuration(record.afternoon.lateMinutes)}
                     </span>
                   )}
                 </span>
@@ -251,10 +250,9 @@ export function ClockCard({ className }: { className?: string }) {
                 </div>
               </div>
             )}
-            <p className="-mt-1 text-xs text-muted-foreground">
-              Mở camera và chụp. Ảnh cần có <b className="font-medium text-foreground">mặt bạn</b> nhìn thẳng và nền{' '}
-              <b className="font-medium text-foreground">văn phòng tầng 5</b>. Không dùng ảnh có sẵn trên điện thoại
-              / giấy.
+            <p className="-mt-1 text-xs leading-5 text-muted-foreground">
+              Chụp trực tiếp từ camera: <b className="font-medium text-foreground">mặt nhìn thẳng</b>, nền{' '}
+              <b className="font-medium text-foreground">văn phòng tầng 5 hoặc 6</b>. Không dùng ảnh có sẵn.
             </p>
             <CameraCapture
               photo={photo}
@@ -273,15 +271,16 @@ export function ClockCard({ className }: { className?: string }) {
                 style={{ backgroundColor: '#fff1f2', borderColor: '#fecdd3', color: '#9f1239' }}
               >
                 <CircleAlert className="mt-0.5 size-4 shrink-0" />
-                <p>{getApiErrorMessage(punch.error)}</p>
+                <p className="min-w-0 break-words">{getApiErrorMessage(punch.error)}</p>
               </div>
             )}
             <Input
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Ghi chú (không bắt buộc), vd: làm việc tại văn phòng"
+              placeholder="Ghi chú (không bắt buộc)"
               maxLength={255}
               disabled={isPending || busy}
+              className="h-11 text-base md:h-8 md:text-sm"
             />
             {lateNow > 0 && (
               <p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
@@ -309,7 +308,7 @@ export function ClockCard({ className }: { className?: string }) {
                         ? undefined
                         : 'Cần ảnh hợp lệ trước khi chấm công'
               }
-              className="h-12 w-full bg-clip-border text-base text-white disabled:opacity-100"
+              className="h-12 min-h-11 w-full bg-clip-border text-base text-white disabled:opacity-100"
               style={{
                 backgroundColor:
                   isPending ||
@@ -373,7 +372,7 @@ function LocationBox({ verdict, onRetry }: { verdict: GeoVerdict; onRetry: () =>
         {verdict.detail && <p className="text-xs text-muted-foreground">{verdict.detail}</p>}
       </div>
       {verdict.canRetry && (
-        <Button type="button" variant="ghost" size="icon-sm" onClick={onRetry} aria-label="Định vị lại">
+        <Button type="button" variant="ghost" size="icon" className="size-11 shrink-0" onClick={onRetry} aria-label="Định vị lại">
           <RotateCw />
         </Button>
       )}
@@ -397,9 +396,9 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
         style={{ backgroundColor: '#fff1f2', borderColor: '#fecdd3', color: '#9f1239' }}
       >
         <ShieldX className="mt-0.5 size-4 shrink-0" />
-        <div>
+        <div className="min-w-0">
           <p className="font-medium">Ảnh chưa đủ điều kiện chấm công</p>
-          <p className="mt-1 text-xs leading-5" style={{ color: '#881337' }}>
+          <p className="mt-1 text-xs leading-5 break-words" style={{ color: '#881337' }}>
             {getApiErrorMessage(check.error) || 'Không kiểm tra được ảnh. Hãy chụp lại.'}
           </p>
         </div>
@@ -414,13 +413,13 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
         style={{ backgroundColor: '#ecfdf5', borderColor: '#a7f3d0', color: '#047857' }}
       >
         <ShieldCheck className="mt-0.5 size-4 shrink-0" />
-        <div>
+        <div className="min-w-0">
           <p className="font-medium">Ảnh hợp lệ</p>
-          <p className="mt-1 text-xs leading-5" style={{ color: '#3f3f46' }}>
+          <p className="mt-1 text-xs leading-5 break-words" style={{ color: '#3f3f46' }}>
             Giờ {screenTime ?? '—'} · ngày {screenDate ?? '—'} khớp hệ thống
             {faceScore != null && ` · khuôn mặt khớp đã đăng ký (${Math.round(faceScore * 100)}%)`}
             {sceneScore != null &&
-              ` · nền văn phòng ${floorNote ?? 'tầng 5'} (${Math.round(sceneScore * 100)}%)`}
+              ` · nền văn phòng ${floorNote ?? 'tầng 5–6'} (${Math.round(sceneScore * 100)}%)`}
             {replayScore != null && ` · không phải giơ màn hình (điểm ${Math.round(replayScore * 100)}%)`}
           </p>
         </div>

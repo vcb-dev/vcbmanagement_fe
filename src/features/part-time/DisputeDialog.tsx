@@ -18,13 +18,16 @@ export function DisputeDialog({
   sheetType = 'part_time',
   open,
   onOpenChange,
+  initialContent = '',
 }: {
   sheetId: string
   sheetType?: 'part_time' | 'full_time'
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Nội dung điền sẵn, vd ngày và ghi chú khi báo sai một ngày. Đổi `key` của dialog để nạp nội dung mới. */
+  initialContent?: string
 }) {
-  const [content, setContent] = useState('')
+  const [content, setContent] = useState(initialContent)
   const [error, setError] = useState<string | null>(null)
   const dispute = useDisputeSheet()
   const createFeedback = useCreateFeedback()
@@ -78,8 +81,9 @@ export function DisputeDialog({
                 setContent(e.target.value)
                 if (error) setError(null)
               }}
-              placeholder="Ví dụ: Ngày 05/09 em có làm online 2 giờ buổi chiều nhưng chưa thấy tính..."
+              placeholder="Ví dụ: Ngày 04/11 tôi làm online buổi chiều nhưng chưa thấy tính công."
               rows={4}
+              autoFocus
               maxLength={2000}
               required
             />
@@ -102,8 +106,9 @@ export function DisputeDialog({
             >
               Huỷ
             </Button>
-            <Button type="submit" variant="destructive" disabled={isPending}>
-              {isPending ? 'Đang gửi...' : 'Gửi báo sai'}
+            {/* Báo sai là hỏi lại quản lý, không phải thao tác xoá, nên dùng nút thường. */}
+            <Button type="submit" disabled={isPending}>
+              {isPending ? 'Đang gửi...' : 'Gửi cho quản lý'}
             </Button>
           </DialogFooter>
         </form>

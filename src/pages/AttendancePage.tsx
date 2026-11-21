@@ -52,12 +52,12 @@ export function AttendancePage() {
   const onTimeRate = shiftsIn > 0 ? Math.round((onTimeShifts / shiftsIn) * 100) : null
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 p-4 md:p-6 lg:p-8">
+    <div className="mx-auto w-full min-w-0 max-w-7xl space-y-6 overflow-x-clip p-3 sm:p-4 md:p-6 lg:p-8">
       <PageHeader
         title="Chấm công"
         description={
           today
-            ? `Ca sáng ${today.schedule.morningStart} – ${today.schedule.morningEnd}, ca chiều ${today.schedule.afternoonStart} – ${today.schedule.afternoonEnd} (giờ Việt Nam). Vào ca sau giờ bắt đầu tính đi muộn, ra trước giờ kết thúc tính về sớm.`
+            ? `Ca sáng ${today.schedule.morningStart}–${today.schedule.morningEnd}, chiều ${today.schedule.afternoonStart}–${today.schedule.afternoonEnd}. Vào sau giờ bắt đầu tính muộn, ra trước giờ kết thúc tính về sớm.`
             : 'Theo dõi giờ vào, giờ ra và bảng công hàng tháng.'
         }
       />
@@ -66,10 +66,10 @@ export function AttendancePage() {
         <ClockCard />
 
         <Card className="lg:col-span-2">
-          <CardHeader>
+          <CardHeader className="max-sm:grid-cols-1">
             <CardTitle>Tổng hợp {formatMonth(month).toLowerCase()}</CardTitle>
             <CardDescription>Số liệu chấm công của bạn trong tháng</CardDescription>
-            <CardAction>
+            <CardAction className="max-sm:col-start-1 max-sm:row-auto max-sm:justify-self-start">
               <MonthNav month={month} max={currentMonth} onChange={setMonth} />
             </CardAction>
           </CardHeader>
@@ -196,19 +196,20 @@ function TeamBoard() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="max-sm:grid-cols-1">
         <CardTitle>Bảng công nhân viên</CardTitle>
         <CardDescription className="capitalize">{formatWorkDate(date, { long: true })}</CardDescription>
-        <CardAction className="flex items-center gap-1">
-          <Button variant="outline" size="icon-sm" onClick={() => setDate(shiftYmd(date, -1))} aria-label="Ngày trước">
+        <CardAction className="flex items-center gap-1 max-sm:col-start-1 max-sm:row-auto max-sm:justify-self-start">
+          <Button variant="outline" size="icon" className="size-11 md:size-8" onClick={() => setDate(shiftYmd(date, -1))} aria-label="Ngày trước">
             <ChevronLeft />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setDate(today)} disabled={date === today}>
+          <Button variant="outline" className="h-11 min-h-11 md:h-8" onClick={() => setDate(today)} disabled={date === today}>
             Hôm nay
           </Button>
           <Button
             variant="outline"
-            size="icon-sm"
+            size="icon"
+            className="size-11 md:size-8"
             onClick={() => setDate(shiftYmd(date, 1))}
             disabled={date >= today}
             aria-label="Ngày sau"
@@ -279,13 +280,14 @@ function TeamBoard() {
 function MonthNav({ month, max, onChange }: { month: string; max: string; onChange: (m: string) => void }) {
   return (
     <div className="flex items-center gap-1">
-      <Button variant="outline" size="icon-sm" onClick={() => onChange(shiftMonth(month, -1))} aria-label="Tháng trước">
+      <Button variant="outline" size="icon" className="size-11 md:size-8" onClick={() => onChange(shiftMonth(month, -1))} aria-label="Tháng trước">
         <ChevronLeft />
       </Button>
       <span className="min-w-28 text-center text-sm font-medium">{formatMonth(month)}</span>
       <Button
         variant="outline"
-        size="icon-sm"
+        size="icon"
+        className="size-11 md:size-8"
         onClick={() => onChange(shiftMonth(month, 1))}
         disabled={month >= max}
         aria-label="Tháng sau"

@@ -133,23 +133,22 @@ export function FaceScan({
   }
 
   const step = steps[stepIndex] ?? 'center'
-  const blocked = /không khớp|nhiều hơn 1|Chỉ được có một|quá nhỏ|gần camera/i.test(hint)
+  const blocked = /không khớp|quá nhỏ|gần camera/i.test(hint)
 
   return (
     <div className="space-y-3">
       {live ? (
-        <div className="mx-auto w-full max-w-sm space-y-3">
-          <div className="relative aspect-[3/4] overflow-hidden rounded-3xl border bg-black">
+        <div className="mx-auto w-full max-w-sm min-w-0 space-y-3">
+          <div className="relative h-[min(58dvh,26rem)] w-full overflow-hidden rounded-3xl border bg-black sm:h-auto sm:aspect-[3/4]">
             <video ref={videoRef} playsInline muted autoPlay className="size-full -scale-x-100 object-cover" />
             <OvalGuide step={step} poseOk={poseOk} blocked={blocked} saving={saving} />
-            <p className="absolute inset-x-0 bottom-4 px-4 text-center text-sm font-semibold text-white drop-shadow">
+            <p className="absolute inset-x-0 bottom-3 line-clamp-2 px-10 text-center text-sm font-semibold text-white drop-shadow">
               {hint}
             </p>
             <Button
               type="button"
               variant="ghost"
-              size="sm"
-              className="absolute top-2 right-2 text-white hover:bg-white/15 hover:text-white"
+              className="absolute top-2 right-2 h-11 min-w-11 px-3 text-white hover:bg-white/15 hover:text-white"
               onClick={stop}
             >
               Huỷ
@@ -186,7 +185,7 @@ function OvalGuide({
 }) {
   return (
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-      <div className="relative aspect-square w-[78%] max-w-[20rem]">
+      <div className="relative aspect-square h-[70%] max-h-[16rem] w-auto">
         <div className="absolute inset-0 rounded-full shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]" />
         <div
           className={cn(
@@ -204,7 +203,7 @@ function OvalGuide({
           <div
             className={cn(
               'absolute top-1/2 -translate-y-1/2 text-white',
-              step === 'left' ? '-left-10 animate-pulse' : '-right-10 animate-pulse',
+              step === 'left' ? 'left-2 animate-pulse' : 'right-2 animate-pulse',
             )}
           >
             {step === 'left' ? <ArrowLeft className="size-8 drop-shadow" /> : <ArrowRight className="size-8 drop-shadow" />}
@@ -236,7 +235,7 @@ function StepRail({
           <li
             key={`${s}-${i}`}
             className={cn(
-              'flex flex-col items-center gap-1 rounded-xl border px-2 py-2 text-center text-[11px] leading-tight',
+              'flex min-w-0 flex-col items-center gap-1 rounded-xl border px-1 py-2 text-center text-[11px] leading-tight sm:px-2',
               done && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
               active && poseOk && 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
               active && !poseOk && 'border-primary/40 bg-primary/5 text-foreground',
