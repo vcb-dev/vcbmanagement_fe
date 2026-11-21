@@ -23,9 +23,11 @@ import { lateTotal } from '@/features/late/late.types'
 import { LateDayTable } from '@/features/late/LateDayTable'
 import { LateDetailSheet } from '@/features/late/LateDetailSheet'
 import { LateSourceDialog } from '@/features/late/LateSourceDialog'
+import { LateWeekList } from '@/features/late/LateWeekList'
 import { LateWeekSummaryTable } from '@/features/late/LateWeekSummaryTable'
 import { useLateReport } from '@/features/late/use-late-report'
 import { daysOfMonth } from '@/features/my-timesheet/day-status'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { downloadCsv } from '@/lib/csv'
 import { FEATURES } from '@/lib/features'
@@ -58,6 +60,8 @@ export function LatePage() {
   const [page, setPage] = useState(1)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showSource, setShowSource] = useState(false)
+  /** Điện thoại: Theo ngày là danh sách mỗi người một dòng, các lần muộn là thẻ nhỏ, không phải vuốt ngang bảng. */
+  const wide = useMediaQuery('(min-width: 640px)')
 
   const { data: report, isPending, isError, error, refetch } = useLateReport(month)
   const { data: departments = [] } = useDepartments()
@@ -136,7 +140,8 @@ export function LatePage() {
         <div className="min-w-0 space-y-1.5">
           <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Đi muộn {formatMonth(month).toLowerCase()}</h2>
           <p className="text-xs text-muted-foreground">
-            Mỗi ca vào sau giờ vào ca của bộ phận là một lần đi muộn. Bấm vào tên để xem chi tiết cả tháng.
+            Mỗi ca vào sau giờ vào ca của bộ phận là một lần đi muộn. Bấm vào {wide ? 'tên' : 'một người'} để xem chi tiết cả
+            tháng.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 lg:shrink-0">
@@ -234,6 +239,8 @@ export function LatePage() {
           </div>
         ) : mode === 'week' ? (
           <LateWeekSummaryTable rows={pageRows} weeks={weeks} onSelectPerson={(row) => setSelectedId(row.user.id)} />
+        ) : !wide ? (
+          <LateWeekList rows={pageRows} days={days} onSelectPerson={(row) => setSelectedId(row.user.id)} />
         ) : (
           <LateDayTable rows={pageRows} days={days} today={today} onSelectPerson={(row) => setSelectedId(row.user.id)} />
         )}

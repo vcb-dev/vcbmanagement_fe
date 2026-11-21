@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { daysOfMonth } from '@/features/my-timesheet/day-status'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { formatDateTime, formatDayMonth, formatHoursMinutes, formatMonth, weekdayShort } from '@/lib/format'
+import { keepKeyboardClosedOnTouch } from '@/lib/touch'
 import { displayName } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
 import {
@@ -265,7 +266,10 @@ export function MonthlyDetailSheet({
 
   return (
     <Sheet open onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md">
+      <SheetContent
+        className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md"
+        onOpenAutoFocus={keepKeyboardClosedOnTouch}
+      >
         <SheetHeader className="border-b pr-12">
           <SheetTitle>{displayName(row.user)}</SheetTitle>
           <SheetDescription>

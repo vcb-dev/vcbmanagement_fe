@@ -66,7 +66,7 @@ function Count({ value, warn }: { value: number; warn?: boolean }) {
 }
 
 /** Chờ xác nhận là trạng thái thường gặp nên hiện nhẹ; chỉ báo sai công mới cần nổi bật. */
-function Status({ row }: { row: FullTimeTimesheetRow }) {
+export function Status({ row }: { row: FullTimeTimesheetRow }) {
   if (row.confirmationStatus === 'confirmed') {
     return (
       <span

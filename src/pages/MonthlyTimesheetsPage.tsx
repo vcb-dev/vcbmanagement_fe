@@ -25,8 +25,10 @@ import {
 } from '@/features/monthly-timesheets/monthly-timesheets.types'
 import { MonthlyDetailSheet } from '@/features/monthly-timesheets/MonthlyDetailSheet'
 import { MonthlySourceDialog } from '@/features/monthly-timesheets/MonthlySourceDialog'
+import { MonthlyTimesheetList } from '@/features/monthly-timesheets/MonthlyTimesheetList'
 import { MonthlyTimesheetTable } from '@/features/monthly-timesheets/MonthlyTimesheetTable'
 import { useFullTimeTimesheets, useUpdateFullTimeTimesheet } from '@/features/monthly-timesheets/use-monthly-timesheets'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { FEATURES } from '@/lib/features'
 import { formatMonth, normalizeSearch, todayYmd } from '@/lib/format'
@@ -65,6 +67,8 @@ export function MonthlyTimesheetsPage() {
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<{ id: string; focus?: 'overtime' } | null>(null)
   const [showSource, setShowSource] = useState(false)
+  /** Điện thoại: danh sách gọn, bấm một người để xem và sửa trong chi tiết, thay cho bảng nhiều cột. */
+  const wide = useMediaQuery('(min-width: 640px)')
 
   const { data: report, isPending, isError, error, refetch, isFetching, dataUpdatedAt } = useFullTimeTimesheets(month)
   const { data: departments = [] } = useDepartments()
@@ -235,6 +239,12 @@ export function MonthlyTimesheetsPage() {
                 : 'Không có nhân sự phù hợp. Thử đổi từ khoá hoặc bộ lọc.'}
             </p>
           </div>
+        ) : !wide ? (
+          <MonthlyTimesheetList
+            rows={pageRows}
+            standardWorkdays={report.standardWorkdays}
+            onSelect={(id) => setSelected({ id })}
+          />
         ) : (
           <MonthlyTimesheetTable
             rows={pageRows}
