@@ -1,6 +1,7 @@
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, X } from 'lucide-react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { BrandMark } from '@/components/brand-logo'
+import { Button } from '@/components/ui/button'
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +15,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { SLOT_LABEL } from '@/features/attendance/attendance.types'
 import { useAttendanceToday } from '@/features/attendance/use-attendance'
@@ -26,6 +28,11 @@ import { NavUser } from './nav-user'
 
 export function AppSidebar({ user }: { user: User }) {
   const { pathname } = useLocation()
+  const { isMobile, setOpenMobile } = useSidebar()
+  // Điện thoại: chọn một mục thì đóng menu để thấy ngay trang vừa mở.
+  const closeOnMobile = () => {
+    if (isMobile) setOpenMobile(false)
+  }
   const isManagerOrAdmin = user.role === 'admin' || user.role === 'manager'
   const { data: feedbackCounts } = useFeedbackCounts(isManagerOrAdmin)
   const groups = NAV_GROUPS.map((g) => ({
@@ -36,10 +43,10 @@ export function AppSidebar({ user }: { user: User }) {
   return (
     <Sidebar collapsible="icon" variant="inset">
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
+        <SidebarMenu className="flex-row items-center gap-1">
+          <SidebarMenuItem className="min-w-0 flex-1">
             <SidebarMenuButton size="lg" asChild className="hover:bg-transparent">
-              <NavLink to="/">
+              <NavLink to="/" onClick={closeOnMobile}>
                 <BrandMark className="size-8 rounded-lg shadow-sm" />
                 <div className="grid flex-1 text-left leading-tight">
                   <span className="truncate text-sm font-semibold">VCB Management</span>
@@ -48,6 +55,11 @@ export function AppSidebar({ user }: { user: User }) {
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          {isMobile && (
+            <Button variant="ghost" size="icon" className="size-11 shrink-0" onClick={() => setOpenMobile(false)} aria-label="Đóng menu">
+              <X className="size-5" />
+            </Button>
+          )}
         </SidebarMenu>
       </SidebarHeader>
 
@@ -71,7 +83,7 @@ export function AppSidebar({ user }: { user: User }) {
                         tooltip={item.title}
                         className="h-9 data-[active=true]:font-semibold data-[active=true]:shadow-sm data-[active=true]:ring-1 data-[active=true]:ring-border/60"
                       >
-                        <NavLink to={item.url}>
+                        <NavLink to={item.url} onClick={closeOnMobile}>
                           <item.icon />
                           <span>{item.title}</span>
                         </NavLink>
@@ -89,7 +101,7 @@ export function AppSidebar({ user }: { user: User }) {
       </SidebarContent>
 
       <SidebarFooter>
-        <TodayWidget />
+        <TodayWidget onNavigate={closeOnMobile} />
         <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
@@ -97,7 +109,7 @@ export function AppSidebar({ user }: { user: User }) {
   )
 }
 
-function TodayWidget() {
+function TodayWidget({ onNavigate }: { onNavigate: () => void }) {
   const { data } = useAttendanceToday()
   if (!data) return null
   const { record, nextSlot } = data
@@ -112,6 +124,7 @@ function TodayWidget() {
   return (
     <Link
       to="/attendance"
+      onClick={onNavigate}
       className="group/today mx-0.5 mb-1 block rounded-xl border bg-card p-3 shadow-xs transition-shadow hover:shadow-md group-data-[collapsible=icon]:hidden"
     >
       <div className="flex items-center gap-2">

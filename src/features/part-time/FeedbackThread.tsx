@@ -1,22 +1,13 @@
-import { MessageSquarePlus } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { formatFeedbackTime, replyNextStatus } from '@/features/feedbacks/feedback-format'
 import { useFeedbacks, useReplyToFeedback } from '@/features/feedbacks/use-feedbacks'
 import { formatMonth } from '@/lib/format'
 import { ROLE_LABEL } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
-import { DisputeDialog } from './DisputeDialog'
 import {
   FEEDBACK_STATUS_LABEL,
   type FeedbackStatus,
@@ -140,7 +131,6 @@ export function FeedbackThread({
   currentMonth?: string
   onSelectMonth?: (month: string) => void
 }) {
-  const [disputeOpen, setDisputeOpen] = useState(false)
   const { data: feedbacks, isLoading } = useSheetFeedbacks(sheetId, sheetType)
   const { data: allMyFeedbacks } = useFeedbacks({ page: 1 }, mode === 'staff')
   const myItems = allMyFeedbacks?.items
@@ -189,39 +179,25 @@ export function FeedbackThread({
 
   const count = feedbacks?.length ?? 0
 
+  // Nhân viên: mở trao đổi mới bằng nút "Báo sai" ở thẻ tổng công (một lối vào duy nhất), ở đây chỉ đọc và trả lời.
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">
-          Feedback bản chốt công{count > 0 ? ` (${count})` : ''}
+          Trao đổi với quản lý{count > 0 ? ` (${count})` : ''}
         </CardTitle>
-        <CardDescription>
-          Trao đổi và phản hồi với quản lý về số liệu bản chốt công tháng.
-        </CardDescription>
-        {sheetId && !readOnly && (
-          <CardAction>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setDisputeOpen(true)}
-            >
-              <MessageSquarePlus className="size-4" />
-              Gửi feedback
-            </Button>
-          </CardAction>
-        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {!sheetId ? (
           <p className="text-sm text-muted-foreground">
-            Tháng này chưa chốt công nên chưa có phản hồi. Khi quản lý chốt công tháng, bạn có thể xác nhận hoặc gửi feedback tại đây.
+            Tháng này chưa có bản chốt công nên chưa trao đổi được.
           </p>
         ) : isLoading ? (
-          <p className="text-sm text-muted-foreground">Đang tải phản hồi...</p>
+          <p className="text-sm text-muted-foreground">Đang tải trao đổi...</p>
         ) : count === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Chưa có phản hồi nào cho bản chốt công tháng này.
-            {!readOnly && ' Nếu số liệu công cần kiểm tra lại, bấm "Gửi feedback" hoặc "Báo sai" để trao đổi với quản lý.'}
+            Chưa có trao đổi nào.
+            {!readOnly && ' Thấy số liệu chưa đúng thì bấm "Báo sai" ở thẻ tổng công, quản lý sẽ trả lời tại đây.'}
           </p>
         ) : (
           feedbacks!.map((fb) => (
@@ -236,7 +212,7 @@ export function FeedbackThread({
 
         {otherMonths.length > 0 && onSelectMonth && (
           <div className="flex flex-wrap items-center gap-2 border-t pt-3 text-xs text-muted-foreground">
-            <span>Feedback ở tháng khác:</span>
+            <span>Trao đổi ở tháng khác:</span>
             {otherMonths.map((item) => (
               <Button
                 key={item.month}
@@ -262,14 +238,6 @@ export function FeedbackThread({
         )}
       </CardContent>
 
-      {sheetId && (
-        <DisputeDialog
-          sheetId={sheetId}
-          sheetType={sheetType}
-          open={disputeOpen}
-          onOpenChange={setDisputeOpen}
-        />
-      )}
     </Card>
   )
 }

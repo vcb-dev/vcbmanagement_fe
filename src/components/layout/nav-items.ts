@@ -132,5 +132,3 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 ]
-
-export const NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap((g) => g.items)
