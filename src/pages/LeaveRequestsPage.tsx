@@ -1,9 +1,8 @@
-import { CheckCircle2, Clock, Search, XCircle } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { PageContainer } from '@/components/page-container'
 import { PageHeader } from '@/components/page-header'
-import { StatCard } from '@/components/stat-card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -18,6 +17,10 @@ import { cn } from '@/lib/utils'
 
 type StatusTab = 'all' | LeaveRequestStatus
 const TABS: StatusTab[] = ['pending', 'approved', 'rejected', 'cancelled', 'all']
+/** Số đơn trên tab: còn đơn chờ duyệt thì tô cam cho dễ thấy, các tab khác chữ nhạt. */
+const COUNT = 'rounded-full px-1.5 text-[11px] leading-4 font-medium tabular-nums'
+const COUNT_TONE = 'bg-muted-foreground/10 text-muted-foreground'
+const PENDING_TONE = 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
 
 function oneOf<T extends string>(value: string | null, options: readonly T[]): T | undefined {
   return options.find((o) => o === value)
@@ -46,7 +49,6 @@ export function LeaveRequestsPage() {
     page,
   })
   const counts = query.data?.counts
-  const loading = query.isPending && !query.data
 
   const resetPage = <T,>(set: (v: T) => void) => (v: T) => {
     set(v)
@@ -70,20 +72,19 @@ export function LeaveRequestsPage() {
         }
       />
 
-      {/* Điện thoại bỏ ba thẻ số: hàng tab ngay dưới đã có đủ số đơn từng trạng thái. */}
-      <div className="hidden gap-4 sm:grid sm:grid-cols-3">
-        <StatCard icon={Clock} label="Chờ duyệt" value={counts?.pending ?? 0} tone="amber" loading={loading} />
-        <StatCard icon={CheckCircle2} label="Đã duyệt" value={counts?.approved ?? 0} tone="emerald" loading={loading} />
-        <StatCard icon={XCircle} label="Từ chối" value={counts?.rejected ?? 0} tone="rose" loading={loading} />
-      </div>
-
+      {/* Không có thẻ số riêng: số đơn từng trạng thái nằm ngay trên tab, đỡ một hàng thẻ to chỉ để nhắc lại con số. */}
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <Tabs value={status} onValueChange={resetPage((v: string) => setStatus(v as StatusTab))} className="max-w-full min-w-0">
           {/* justify-start: canh giữa thì khi tràn, tab đầu bị cắt mất bên trái và không vuốt tới được. */}
           <TabsList className={cn('h-9 max-w-full justify-start overflow-x-auto', NO_SCROLLBAR)}>
             {TABS.map((t) => (
-              <TabsTrigger key={t} value={t} className="text-xs">
-                {t === 'all' ? 'Tất cả' : STATUS_LABEL[t]} ({counts?.[t] ?? 0})
+              <TabsTrigger key={t} value={t} className="gap-1.5 text-xs">
+                {t === 'all' ? 'Tất cả' : STATUS_LABEL[t]}
+                {counts && (
+                  <span className={cn(COUNT, t === 'pending' && counts.pending > 0 ? PENDING_TONE : COUNT_TONE)}>
+                    {counts[t].toLocaleString('vi-VN')}
+                  </span>
+                )}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -98,9 +99,10 @@ export function LeaveRequestsPage() {
                 setSearch(e.target.value)
                 setPage(1)
               }}
-              placeholder="Tìm theo tên hoặc email…"
+              placeholder="Tìm tên hoặc email…"
               aria-label="Tìm người gửi"
-              className="h-9 pl-8 text-xs"
+              // Điện thoại chữ 16px: nhỏ hơn thì iPhone tự phóng to trang khi bấm vào ô.
+              className="h-9 pl-8 text-xs max-sm:text-base"
             />
           </div>
           <Select value={type} onValueChange={resetPage((v: string) => setType(v as 'all' | LeaveRequestType))}>
@@ -146,6 +148,7 @@ export function LeaveRequestsPage() {
         selectedId={selectedId}
         onSelect={setSelectedId}
         showUser
+        hideStatus={status !== 'all'}
         emptyText={
           status === 'pending' ? 'Không có đơn nào đang chờ duyệt.' : 'Không có đơn phù hợp. Thử đổi bộ lọc hoặc từ khoá.'
         }

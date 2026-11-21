@@ -7,17 +7,20 @@ import type { LeaveRequest } from './leave-requests.types'
 /**
  * Danh sách đơn dạng thẻ, bấm để xem chi tiết. `showUser` hiện người gửi (màn duyệt);
  * màn của nhân sự thì ẩn vì đều là đơn của chính mình.
+ * `hideStatus`: đang lọc một trạng thái thì điện thoại ẩn nhãn trạng thái (thẻ nào cũng giống nhau), nhường chỗ cho tên.
  */
 export function LeaveRequestList({
   items,
   selectedId,
   onSelect,
   showUser = false,
+  hideStatus = false,
 }: {
   items: LeaveRequest[]
   selectedId: string | null
   onSelect: (id: string) => void
   showUser?: boolean
+  hideStatus?: boolean
 }) {
   return (
     <ul className="space-y-2">
@@ -49,7 +52,9 @@ export function LeaveRequestList({
                       </span>
                     )}
                   </span>
-                  <LeaveStatusBadge status={item.status} />
+                  <span className={cn('shrink-0', hideStatus && 'max-sm:hidden')}>
+                    <LeaveStatusBadge status={item.status} />
+                  </span>
                 </span>
                 <span className="text-xs text-foreground/80 tabular-nums">
                   {startLabel(item)} · {durationLabel(item)}

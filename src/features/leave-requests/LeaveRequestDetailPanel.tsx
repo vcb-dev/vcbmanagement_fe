@@ -131,8 +131,25 @@ function AttendanceBox({ detail }: { detail: LeaveRequestDetail }) {
   )
 }
 
+/** Đệm của panel trong sheet; thanh nút dính đáy kéo ra sát mép bằng lề âm cùng cỡ. */
+const SHEET_PAD = 'p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]'
+/** Thanh thao tác ở đáy sheet (vùng ngón cái): đơn ngắn thì đẩy xuống đáy, đơn dài thì dính đáy khi cuộn. */
+const STICKY_FOOTER =
+  'sticky bottom-0 mt-auto z-10 -mx-4 -mb-[calc(1rem+env(safe-area-inset-bottom))] bg-popover px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-6px_12px_-8px_rgb(0_0_0/0.15)]'
+
+/** Màn rộng: chi tiết dài hơn cột thì thanh nút dính đáy thẻ khi cuộn trong cột. */
+const CARD_FOOTER = 'sticky bottom-0 z-10 -mx-5 -mb-5 rounded-b-xl bg-card px-5 pb-5'
+
 /** Ô nhập ghi chú + nút duyệt / từ chối cho admin, quản lý. Đơn đã duyệt thì nút từ chối là "Huỷ duyệt". */
-function ReviewForm({ detail }: { detail: LeaveRequestDetail }) {
+function ReviewForm({
+  detail,
+  variant,
+  onDone,
+}: {
+  detail: LeaveRequestDetail
+  variant: 'card' | 'sheet'
+  onDone?: () => void
+}) {
   const action = useLeaveRequestAction()
   const [note, setNote] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -147,13 +164,14 @@ function ReviewForm({ detail }: { detail: LeaveRequestDetail }) {
     try {
       await action.mutateAsync({ id: detail.id, action: kind, note })
       setNote('')
+      onDone?.()
     } catch {
       // Lỗi (vd chưa có phép năm) đã hiện qua toast của hook.
     }
   }
 
   return (
-    <div className="space-y-2 border-t pt-4">
+    <div className={cn('space-y-2 border-t pt-4', variant === 'sheet' ? STICKY_FOOTER : CARD_FOOTER)}>
       <label htmlFor="lr-review-note" className="text-xs font-medium">
         Ghi chú cho nhân sự <span className="font-normal text-muted-foreground">(bắt buộc khi từ chối)</span>
       </label>
@@ -194,10 +212,13 @@ export function LeaveRequestDetailPanel({
   id,
   showUser = false,
   variant = 'card',
+  onDone,
 }: {
   id: string | null
   showUser?: boolean
   variant?: 'card' | 'sheet'
+  /** Gọi sau khi duyệt / từ chối / rút đơn thành công (sheet dùng để tự đóng). */
+  onDone?: () => void
 }) {
   const { data: detail, isPending, isError, error } = useLeaveRequestDetail(id)
   const action = useLeaveRequestAction()
@@ -235,9 +256,10 @@ export function LeaveRequestDetailPanel({
 
   const meta = TYPE_META[detail.type]
   const reviewed = detail.status === 'approved' || detail.status === 'rejected'
+  const canReview = detail.canApprove || detail.canReject
 
   return (
-    <div className={cn('flex flex-col gap-4', card && 'rounded-xl border bg-card p-5 shadow-xs')}>
+    <div className={cn('flex flex-col gap-4', card ? 'rounded-xl border bg-card p-5 shadow-xs' : cn(SHEET_PAD, 'flex-1'))}>
       <div className={cn('flex flex-wrap items-start justify-between gap-3 border-b pb-4', !card && 'pr-10')}>
         <div className="flex min-w-0 items-center gap-3">
           <LeaveTypeIcon type={detail.type} className="size-10" />
@@ -320,10 +342,10 @@ export function LeaveRequestDetailPanel({
         </Box>
       )}
 
-      {(detail.canApprove || detail.canReject) && <ReviewForm key={detail.id} detail={detail} />}
+      {canReview && <ReviewForm key={detail.id} detail={detail} variant={variant} onDone={onDone} />}
 
       {detail.canCancel && (
-        <div className="flex justify-end border-t pt-4 *:flex-1 sm:*:flex-none">
+        <div className={cn('flex justify-end border-t pt-4 *:flex-1 sm:*:flex-none', !card && !canReview && STICKY_FOOTER)}>
           <Button variant="outline" onClick={() => setConfirmCancel(true)}>
             Rút đơn
           </Button>
@@ -338,7 +360,10 @@ export function LeaveRequestDetailPanel({
         pending={action.isPending}
         onCancel={() => setConfirmCancel(false)}
         onConfirm={() => {
-          action.mutate({ id: detail.id, action: 'cancel' }, { onSettled: () => setConfirmCancel(false) })
+          action.mutate(
+            { id: detail.id, action: 'cancel' },
+            { onSuccess: () => onDone?.(), onSettled: () => setConfirmCancel(false) },
+          )
         }}
       />
     </div>
