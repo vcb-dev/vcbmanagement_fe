@@ -135,6 +135,7 @@
   }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;
+    touch-action: manipulation;
   }
   html {
     @apply font-sans;

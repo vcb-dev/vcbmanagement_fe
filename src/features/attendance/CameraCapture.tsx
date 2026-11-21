@@ -154,8 +154,8 @@ export function CameraCapture({
   }
 
   return (
-    <div className="space-y-2">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-xl border bg-zinc-100">
+    <div className="min-w-0 space-y-2">
+      <div className="relative h-[min(42dvh,20rem)] w-full overflow-hidden rounded-xl border bg-zinc-100 sm:h-auto sm:aspect-[4/3]">
         <video
           ref={videoRef}
           playsInline
@@ -174,7 +174,7 @@ export function CameraCapture({
             {state === 'live' && (
               <>
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <div className="aspect-square w-[62%] rounded-full border-[3px] border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.32)]" />
+                  <div className="aspect-square h-[72%] max-h-[14rem] w-auto rounded-full border-[3px] border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.32)]" />
                 </div>
                 <Button
                   type="button"
@@ -201,7 +201,7 @@ export function CameraCapture({
                   <span className="text-sm font-medium text-zinc-800">Mở camera để chụp ảnh chấm công</span>
                 )}
                 <span
-                  className="text-xs"
+                  className="max-w-full text-xs break-words"
                   style={{ color: error || state === 'error' ? '#be123c' : '#71717a' }}
                 >
                   {state === 'starting' ? 'Đang mở camera…' : (error ?? 'Chỉ chụp trực tiếp từ camera')}
@@ -212,14 +212,14 @@ export function CameraCapture({
         )}
         {previewUrl && (
           <>
-            <span className="absolute top-2 left-2 rounded-full px-2 py-0.5 text-[11px] font-medium text-white" style={{ backgroundColor: '#10b981' }}>
+            <span className="absolute top-2 left-2 rounded-full px-2 py-1 text-[11px] font-medium text-white" style={{ backgroundColor: '#10b981' }}>
               Đã chụp
             </span>
             <Button
               type="button"
-              size="icon-sm"
+              size="icon"
               variant="secondary"
-              className="absolute top-2 right-2 size-8 rounded-full bg-black/55 text-white shadow hover:bg-black/70"
+              className="absolute top-2 right-2 size-11 rounded-full bg-black/55 text-white shadow hover:bg-black/70"
               onClick={clearPhoto}
               disabled={disabled}
               aria-label="Xoá ảnh"
@@ -232,14 +232,14 @@ export function CameraCapture({
 
       {previewUrl ? (
         <div className="grid grid-cols-2 gap-2">
-          <Button type="button" variant="outline" className="h-12" onClick={clearPhoto} disabled={disabled}>
+          <Button type="button" variant="outline" className="h-12 min-h-11" onClick={clearPhoto} disabled={disabled}>
             <Trash2 />
             Xoá ảnh
           </Button>
           <Button
             type="button"
             variant="outline"
-            className="h-12"
+            className="h-12 min-h-11"
             onClick={() => {
               onChange(null)
               void start()
@@ -252,14 +252,14 @@ export function CameraCapture({
         </div>
       ) : state === 'live' ? (
         <div className="grid grid-cols-[1fr_auto] gap-2">
-          <Button type="button" variant="secondary" className="h-12 text-base" onClick={() => void capture()} disabled={disabled}>
+          <Button type="button" variant="secondary" className="h-12 min-h-11 text-base" onClick={() => void capture()} disabled={disabled}>
             <Camera />
             Chụp ảnh
           </Button>
           <Button
             type="button"
             variant="ghost"
-            className="h-12 min-w-18"
+            className="h-12 min-h-11 min-w-[4.5rem]"
             onClick={() => {
               stop()
               setState('idle')
@@ -269,7 +269,7 @@ export function CameraCapture({
           </Button>
         </div>
       ) : (
-        <Button type="button" variant="outline" className="h-12 w-full text-base" onClick={() => void start()} disabled={disabled || state === 'starting'}>
+        <Button type="button" variant="outline" className="h-12 min-h-11 w-full text-base" onClick={() => void start()} disabled={disabled || state === 'starting'}>
           <ScanFace />
           Mở camera
         </Button>

@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 
 export function FacePage() {
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6 p-4 md:p-6 lg:p-8">
+    <div className="mx-auto w-full min-w-0 max-w-5xl space-y-6 overflow-x-clip p-3 sm:p-4 md:p-6 lg:p-8">
       <PageHeader
         title="Khuôn mặt"
         description="Đăng ký khuôn mặt một lần (nhìn thẳng, quay trái, quay phải). Quản lý duyệt xong, mỗi lần chấm công đối chiếu khuôn mặt trong ảnh camera."
