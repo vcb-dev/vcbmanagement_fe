@@ -9,7 +9,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import { SidebarInset, SidebarProvider, useSidebar } from '@/components/ui/sidebar'
 import { useMe } from '@/features/auth/use-auth'
@@ -53,7 +52,6 @@ export function AppLayout() {
           style={{ height: 'calc(3.5rem + env(safe-area-inset-top, 0px))', paddingTop: 'env(safe-area-inset-top, 0px)' }}
         >
           <MenuButton />
-          <Separator orientation="vertical" className="mr-1 hidden h-4 md:block" />
           {/* Màn rộng đã có breadcrumb nên tiêu đề chỉ ẩn khỏi mắt, vẫn là h1 cho trình đọc màn hình. */}
           <h1 className="min-w-0 flex-1 truncate text-base font-semibold text-foreground md:sr-only">
             {page?.title ?? 'VCB Management'}
@@ -94,22 +92,21 @@ export function AppLayout() {
 }
 
 /**
- * Nút hamburger mở menu bên trái. Điện thoại: menu trượt ra che nội dung (lối điều hướng duy nhất);
- * màn rộng: thu menu về dạng biểu tượng hoặc mở rộng lại.
+ * Hamburger mở menu bên trái, chỉ trên điện thoại: menu trượt ra che nội dung (lối điều hướng duy nhất).
+ * Màn rộng không có nút này; nút thu / mở rộng menu nằm trong chính menu (`AppSidebar`).
  */
 function MenuButton() {
-  const { toggleSidebar, isMobile, openMobile, open } = useSidebar()
-  const expanded = isMobile ? openMobile : open
+  const { setOpenMobile, openMobile } = useSidebar()
   return (
     <Button
       variant="ghost"
       size="icon"
-      className="size-11 shrink-0 md:size-8"
-      onClick={toggleSidebar}
-      aria-label={isMobile ? 'Mở menu' : expanded ? 'Thu gọn menu' : 'Mở rộng menu'}
-      aria-expanded={expanded}
+      className="size-11 shrink-0 md:hidden"
+      onClick={() => setOpenMobile(true)}
+      aria-label="Mở menu"
+      aria-expanded={openMobile}
     >
-      <Menu className="size-5 md:size-4" />
+      <Menu className="size-5" />
     </Button>
   )
 }

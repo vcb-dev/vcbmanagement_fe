@@ -1,4 +1,4 @@
-import { ArrowRight, X } from 'lucide-react'
+import { ArrowRight, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { BrandMark } from '@/components/brand-logo'
 import { Button } from '@/components/ui/button'
@@ -45,7 +45,8 @@ export function AppSidebar({ user }: { user: User }) {
   return (
     <Sidebar collapsible="icon" variant="inset">
       <SidebarHeader>
-        <SidebarMenu className="flex-row items-center gap-1">
+        {/* Thu về dạng biểu tượng thì nút mở rộng xuống dưới logo. */}
+        <SidebarMenu className="flex-row items-center gap-1 group-data-[collapsible=icon]:flex-col">
           <SidebarMenuItem className="min-w-0 flex-1">
             <SidebarMenuButton size="lg" asChild className="hover:bg-transparent">
               <NavLink to="/" onClick={closeOnMobile}>
@@ -57,10 +58,12 @@ export function AppSidebar({ user }: { user: User }) {
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          {isMobile && (
+          {isMobile ? (
             <Button variant="ghost" size="icon" className="size-11 shrink-0" onClick={() => setOpenMobile(false)} aria-label="Đóng menu">
               <X className="size-5" />
             </Button>
+          ) : (
+            <CollapseButton />
           )}
         </SidebarMenu>
       </SidebarHeader>
@@ -111,6 +114,26 @@ export function AppSidebar({ user }: { user: User }) {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
+  )
+}
+
+/** Màn rộng: thu menu về dạng biểu tượng hoặc mở rộng lại. */
+function CollapseButton() {
+  const { open, toggleSidebar } = useSidebar()
+  const label = open ? 'Thu gọn menu' : 'Mở rộng menu'
+  const Icon = open ? PanelLeftClose : PanelLeftOpen
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="size-8 shrink-0 text-muted-foreground hover:text-foreground"
+      onClick={toggleSidebar}
+      aria-label={label}
+      title={label}
+      aria-expanded={open}
+    >
+      <Icon className="size-4" />
+    </Button>
   )
 }
 
