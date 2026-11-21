@@ -14,7 +14,7 @@ import { authApi } from './auth.api'
 import { ME_QUERY_KEY, markLoggedOut, useLogin, useMe } from './use-auth'
 
 const GOOGLE_ERROR: Record<string, string> = {
-  google_email: 'Email Google này chưa có tài khoản. Dùng đúng email đã được cấp, hoặc đăng nhập bằng mật khẩu.',
+  google_email: 'Không tạo được tài khoản từ Google. Hãy thử lại.',
   google_unverified: 'Email Google chưa được xác minh.',
   google_locked: 'Tài khoản đã bị khóa.',
   google_cancel: 'Bạn đã hủy đăng nhập Google.',
