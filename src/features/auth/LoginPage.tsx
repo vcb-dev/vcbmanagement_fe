@@ -63,7 +63,7 @@ export function LoginPage() {
           toast.error('Google xác thực xong nhưng chưa giữ được phiên. Hãy thử lại.', { id: 'oauth-result' })
         }
       })()
-    } else {
+    } else if (error) {
       toast.error(GOOGLE_ERROR[error] ?? error, { id: 'oauth-result' })
     }
     setSearchParams({}, { replace: true })
