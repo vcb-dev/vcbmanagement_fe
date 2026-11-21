@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useMe } from '@/features/auth/use-auth'
-import { shiftLabel } from '@/features/departments/departments.types'
+import { shiftLabel, type Department } from '@/features/departments/departments.types'
 import { useDepartments } from '@/features/departments/use-departments'
 import { useUsers } from '@/features/users/use-users'
 import { UserProfileDialog } from '@/features/users/UserProfileDialog'
@@ -28,6 +28,81 @@ const UNASSIGNED = 'unassigned'
 const PAGE_SIZE = 15
 /** Tiêu đề bảng canh giữa, chữ đậm, cùng kiểu với các bảng khác. */
 const HEAD = 'text-center text-sm font-semibold'
+
+function EmploymentBadge({ user }: { user: UserProfile }) {
+  return (
+    <Badge
+      variant="secondary"
+      className={cn(user.employmentType === 'part_time' && 'bg-violet-500/10 text-violet-700 dark:text-violet-400')}
+    >
+      {EMPLOYMENT_LABEL[user.employmentType]}
+    </Badge>
+  )
+}
+
+function UnassignedBadge() {
+  return (
+    <Badge variant="secondary" className="bg-amber-500/10 text-amber-700 dark:text-amber-400">
+      Chưa gán
+    </Badge>
+  )
+}
+
+function LockedBadge() {
+  return (
+    <Badge variant="outline" className="ml-2">
+      Đã khoá
+    </Badge>
+  )
+}
+
+/** Thẻ một nhân sự cho màn hình điện thoại, thay cho một dòng của bảng. */
+function UserCard({
+  user: u,
+  department,
+  canEdit,
+  onEdit,
+}: {
+  user: UserProfile
+  department: Department | undefined
+  canEdit: boolean
+  onEdit: () => void
+}) {
+  return (
+    <li className={cn('space-y-3 rounded-lg border p-3', !u.isActive && 'opacity-60')}>
+      <div className="flex items-start gap-3">
+        <UserAvatar user={u} className="size-9 rounded-lg" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-medium">
+            {displayName(u)}
+            {!u.isActive && <LockedBadge />}
+          </p>
+          <p className="truncate text-xs text-muted-foreground">{u.email}</p>
+        </div>
+        {canEdit && (
+          <Button variant="outline" size="sm" className="shrink-0" onClick={onEdit}>
+            <Pencil />
+            Sửa
+          </Button>
+        )}
+      </div>
+      <dl className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5 text-sm">
+        <dt className="text-xs text-muted-foreground">Loại</dt>
+        <dd>
+          <EmploymentBadge user={u} />
+        </dd>
+        <dt className="text-xs text-muted-foreground">Bộ phận</dt>
+        <dd className="min-w-0 truncate">{u.department ? u.department.name : <UnassignedBadge />}</dd>
+        <dt className="text-xs text-muted-foreground">Ca làm</dt>
+        <dd className="text-muted-foreground tabular-nums">{department ? shiftLabel(department) : 'Giờ mặc định'}</dd>
+        <dt className="text-xs text-muted-foreground">Ngày ký HĐ</dt>
+        <dd className="tabular-nums">
+          {u.contractStartDate ? formatDate(u.contractStartDate) : <span className="text-muted-foreground">—</span>}
+        </dd>
+      </dl>
+    </li>
+  )
+}
 
 export function UsersPage() {
   const { data: me } = useMe()
@@ -68,8 +143,9 @@ export function UsersPage() {
 
       <Card>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            <div className="relative min-w-56 flex-1 sm:max-w-sm">
+          {/* Điện thoại: ô tìm hết hàng, hai ô chọn chia đôi hàng dưới. */}
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            <div className="relative col-span-2 sm:min-w-56 sm:flex-1 sm:max-w-sm">
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
@@ -80,7 +156,7 @@ export function UsersPage() {
               />
             </div>
             <Select value={departmentFilter} onValueChange={(next) => resetPageAfter(() => setDepartmentFilter(next))}>
-              <SelectTrigger aria-label="Lọc theo bộ phận" className="min-w-44">
+              <SelectTrigger aria-label="Lọc theo bộ phận" className="w-full min-w-0 sm:w-fit sm:min-w-44">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -94,7 +170,7 @@ export function UsersPage() {
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={(next) => resetPageAfter(() => setTypeFilter(next))}>
-              <SelectTrigger aria-label="Lọc theo loại nhân sự" className="min-w-40">
+              <SelectTrigger aria-label="Lọc theo loại nhân sự" className="w-full min-w-0 sm:w-fit sm:min-w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -124,76 +200,72 @@ export function UsersPage() {
               <p className="text-sm text-muted-foreground">Không có nhân sự phù hợp. Thử đổi từ khoá hoặc bộ lọc.</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className={HEAD}>Nhân sự</TableHead>
-                  <TableHead className={HEAD}>Loại</TableHead>
-                  <TableHead className={HEAD}>Bộ phận</TableHead>
-                  <TableHead className={cn(HEAD, 'hidden lg:table-cell')}>Ca làm</TableHead>
-                  <TableHead className={cn(HEAD, 'hidden md:table-cell')}>Ngày ký HĐ</TableHead>
-                  {canEdit && <TableHead className="w-20" />}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pageRows.map((u) => {
-                  const department = departments.find((d) => d.id === u.department?.id)
-                  return (
-                    <TableRow key={u.id} className={cn(!u.isActive && 'opacity-60')}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <UserAvatar user={u} className="size-8 rounded-lg" />
-                          <div className="min-w-0">
-                            <p className="truncate font-medium">
-                              {displayName(u)}
-                              {!u.isActive && (
-                                <Badge variant="outline" className="ml-2">
-                                  Đã khoá
-                                </Badge>
-                              )}
-                            </p>
-                            <p className="truncate text-xs text-muted-foreground">{u.email}</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge
-                          variant="secondary"
-                          className={cn(
-                            u.employmentType === 'part_time' && 'bg-violet-500/10 text-violet-700 dark:text-violet-400',
-                          )}
-                        >
-                          {EMPLOYMENT_LABEL[u.employmentType]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {u.department ? (
-                          u.department.name
-                        ) : (
-                          <Badge variant="secondary" className="bg-amber-500/10 text-amber-700 dark:text-amber-400">
-                            Chưa gán
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="hidden text-center text-muted-foreground tabular-nums lg:table-cell">
-                        {department ? shiftLabel(department) : 'Giờ mặc định'}
-                      </TableCell>
-                      <TableCell className="hidden text-center tabular-nums md:table-cell">
-                        {u.contractStartDate ? formatDate(u.contractStartDate) : <span className="text-muted-foreground">—</span>}
-                      </TableCell>
-                      {canEdit && (
-                        <TableCell className="text-center">
-                          <Button variant="outline" size="sm" onClick={() => setEditing(u)}>
-                            <Pencil />
-                            Sửa
-                          </Button>
-                        </TableCell>
-                      )}
+            <>
+              <ul className="space-y-2 md:hidden">
+                {pageRows.map((u) => (
+                  <UserCard
+                    key={u.id}
+                    user={u}
+                    department={departments.find((d) => d.id === u.department?.id)}
+                    canEdit={canEdit}
+                    onEdit={() => setEditing(u)}
+                  />
+                ))}
+              </ul>
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className={HEAD}>Nhân sự</TableHead>
+                      <TableHead className={HEAD}>Loại</TableHead>
+                      <TableHead className={HEAD}>Bộ phận</TableHead>
+                      <TableHead className={cn(HEAD, 'hidden lg:table-cell')}>Ca làm</TableHead>
+                      <TableHead className={cn(HEAD, 'hidden md:table-cell')}>Ngày ký HĐ</TableHead>
+                      {canEdit && <TableHead className="w-20" />}
                     </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {pageRows.map((u) => {
+                      const department = departments.find((d) => d.id === u.department?.id)
+                      return (
+                        <TableRow key={u.id} className={cn(!u.isActive && 'opacity-60')}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <UserAvatar user={u} className="size-8 rounded-lg" />
+                              <div className="min-w-0">
+                                <p className="truncate font-medium">
+                                  {displayName(u)}
+                                  {!u.isActive && <LockedBadge />}
+                                </p>
+                                <p className="truncate text-xs text-muted-foreground">{u.email}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <EmploymentBadge user={u} />
+                          </TableCell>
+                          <TableCell className="text-center">{u.department ? u.department.name : <UnassignedBadge />}</TableCell>
+                          <TableCell className="hidden text-center text-muted-foreground tabular-nums lg:table-cell">
+                            {department ? shiftLabel(department) : 'Giờ mặc định'}
+                          </TableCell>
+                          <TableCell className="hidden text-center tabular-nums md:table-cell">
+                            {u.contractStartDate ? formatDate(u.contractStartDate) : <span className="text-muted-foreground">—</span>}
+                          </TableCell>
+                          {canEdit && (
+                            <TableCell className="text-center">
+                              <Button variant="outline" size="sm" onClick={() => setEditing(u)}>
+                                <Pencil />
+                                Sửa
+                              </Button>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
           {users && filtered.length > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
