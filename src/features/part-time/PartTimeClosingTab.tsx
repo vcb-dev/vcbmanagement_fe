@@ -35,7 +35,7 @@ export function PartTimeClosingTab({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <MonthNav month={month} max={currentMonth} onChange={onMonthChange} />
-          <CloseMonthButton month={month} />
+          <CloseMonthButton month={month} className="pointer-coarse:h-10" />
         </div>
       </div>
 

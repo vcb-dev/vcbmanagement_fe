@@ -28,11 +28,13 @@ export function PartTimeTimesheetsPage() {
     <PageContainer>
       <PageHeader
         title="Công part-time"
+        hideTitleOnPhone
         description="Bảng chấm công và chốt công nhân sự bán thời gian."
       />
 
       <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'grid' | 'closing')} className="space-y-4">
-        <TabsList>
+        {/* Màn cảm ứng: tab cao 33px thay vì 25px cho dễ chạm. */}
+        <TabsList className="pointer-coarse:group-data-horizontal/tabs:h-10">
           <TabsTrigger value="grid">Bảng chấm công</TabsTrigger>
           <TabsTrigger value="closing">Chốt công tháng</TabsTrigger>
         </TabsList>

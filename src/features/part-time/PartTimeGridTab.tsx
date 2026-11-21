@@ -28,6 +28,9 @@ import type { PartTimeGridRow, PartTimeShiftView } from './part-time.types'
 import { ShiftHoursDialog } from './ShiftHoursDialog'
 import { usePartTimeGrid } from './use-part-time-admin'
 
+/** Ô chọn cao bằng ô tìm (36px), màn cảm ứng 40px. Phải đi qua data-[size] mới thắng chiều cao mặc định của SelectTrigger. */
+const SELECT_HEIGHT = 'data-[size=default]:h-9 pointer-coarse:data-[size=default]:h-10'
+
 const MODE_LABEL: Record<GridMode, string> = {
   week: 'Theo tuần',
   month: 'Theo tháng',
@@ -137,18 +140,19 @@ export function PartTimeGridTab() {
 
         <div className="flex flex-wrap items-center gap-2 p-3 sm:p-4">
           <div className="relative w-full sm:w-auto sm:flex-1 sm:max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Tìm tên hoặc email…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-9 pl-8"
+              aria-label="Tìm nhân viên"
+              className="h-9 pl-8 pointer-coarse:h-10"
             />
           </div>
 
           <Select value={selectedDeptId} onValueChange={setSelectedDeptId}>
-            <SelectTrigger className="h-9 w-full sm:w-44">
+            <SelectTrigger className={cn('w-full sm:w-44', SELECT_HEIGHT)} aria-label="Lọc theo bộ phận">
               <SelectValue placeholder="Tất cả bộ phận" />
             </SelectTrigger>
             <SelectContent>
@@ -165,7 +169,7 @@ export function PartTimeGridTab() {
             <Button
               variant="outline"
               size="icon"
-              className="h-9 w-9"
+              className="size-9 pointer-coarse:size-10"
               onClick={() => setAnchor((prev) => moveAnchor(mode, prev, -1))}
               aria-label={mode === 'week' ? 'Tuần trước' : 'Tháng trước'}
             >
@@ -176,7 +180,7 @@ export function PartTimeGridTab() {
               value={mode === 'week' ? range.from : anchorMonth}
               onValueChange={handleRangeSelect}
             >
-              <SelectTrigger className="h-9 min-w-0 flex-1 sm:w-[190px] sm:flex-none" aria-label="Chọn kỳ xem">
+              <SelectTrigger className={cn('min-w-0 flex-1 sm:w-[190px] sm:flex-none', SELECT_HEIGHT)} aria-label="Chọn kỳ xem">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -197,7 +201,7 @@ export function PartTimeGridTab() {
             <Button
               variant="outline"
               size="icon"
-              className="h-9 w-9"
+              className="size-9 pointer-coarse:size-10"
               onClick={() => setAnchor((prev) => moveAnchor(mode, prev, 1))}
               disabled={isNextDisabled}
               aria-label={mode === 'week' ? 'Tuần sau' : 'Tháng sau'}

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   Tooltip,
@@ -6,6 +6,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useElementWidth } from '@/hooks/use-element-width'
 import { formatDayMonth, formatHours, formatTime, todayYmd, weekdayShort } from '@/lib/format'
 import { initials } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
@@ -19,12 +20,27 @@ const SHIFT_ROW_LABEL: Record<WorkShift, string> = {
   evening: 'Tối',
 }
 
+/**
+ * Khung hẹp hơn mức này (điện thoại, máy tính bảng, laptop có sidebar mở) thì dùng bộ cột ghim gọn.
+ * Chọn theo bề rộng khung chứ không theo màn hình: bộ cột đầy đủ đã chiếm 408px, khung 650px chỉ còn thấy vài ngày.
+ */
+const WIDE_GRID_MIN_WIDTH = 900
+
 // Các cột ghim bên trái; offset `left` của cột sau = tổng độ rộng các cột trước.
-// Dưới md (không có cột Bộ phận): ghim Nhân sự 128px (không ảnh đại diện, tên xuống dòng, bộ phận thay email)
+// Gọn (không có cột Bộ phận): ghim Nhân sự 128px (không ảnh đại diện, tên xuống dòng, bộ phận thay email)
 // + Buổi 40px, cùng cỡ với các bảng chấm công khác, để thấy được vài ngày bên cạnh.
-const COL_STAFF = 'sticky left-0 w-32 min-w-32 max-w-32 md:w-[220px] md:min-w-[220px] md:max-w-[220px]'
-const COL_DEPT = 'hidden w-[128px] min-w-[128px] max-w-[128px] md:sticky md:left-[220px] md:table-cell'
-const COL_SHIFT = 'sticky left-32 w-10 min-w-10 max-w-10 md:left-[348px] md:w-[60px] md:min-w-[60px] md:max-w-[60px]'
+const COLS = {
+  compact: {
+    staff: 'sticky left-0 w-32 min-w-32 max-w-32',
+    dept: 'hidden',
+    shift: 'sticky left-32 w-10 min-w-10 max-w-10',
+  },
+  wide: {
+    staff: 'sticky left-0 w-[220px] min-w-[220px] max-w-[220px]',
+    dept: 'sticky left-[220px] w-[128px] min-w-[128px] max-w-[128px]',
+    shift: 'sticky left-[348px] w-[60px] min-w-[60px] max-w-[60px]',
+  },
+}
 
 type CellKind = 'online' | 'manual' | 'missing' | 'progress' | 'warn' | 'hours' | 'none'
 
@@ -215,29 +231,32 @@ export function PartTimeGrid({ rows, dates, onEdit }: PartTimeGridProps) {
   const today = todayYmd()
   const stickyHead = 'sticky top-0 z-20 border-b border-r bg-muted'
   const stickyHeadLeft = 'z-30'
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const [boxRef, boxWidth] = useElementWidth<HTMLDivElement>()
+  const compact = boxWidth < WIDE_GRID_MIN_WIDTH
+  const col = compact ? COLS.compact : COLS.wide
 
-  // Điện thoại chỉ thấy 3-4 ngày: mở bảng ở hôm nay (cột hôm nay sát mép phải) thay vì ngày đầu kỳ, như bảng Tăng ca.
+  // Khung hẹp chỉ thấy 3-4 ngày: mở bảng ở hôm nay (cột hôm nay sát mép phải) thay vì ngày đầu kỳ, như bảng Tăng ca.
+  // Đo thẳng khung ở đây vì lần dựng đầu `boxWidth` còn là 0.
   useLayoutEffect(() => {
-    const box = scrollRef.current
+    const box = boxRef.current
     const cell = box?.querySelector<HTMLElement>('th[data-today]')
-    if (!box || !cell || window.innerWidth >= 768) return
+    if (!box || !cell || box.clientWidth >= WIDE_GRID_MIN_WIDTH) return
     box.scrollLeft = Math.max(0, cell.offsetLeft + cell.offsetWidth - box.clientWidth + 8)
-  }, [dates])
+  }, [dates, boxRef])
 
   return (
     <TooltipProvider delayDuration={150}>
-      <div ref={scrollRef} className="max-h-[70vh] overflow-auto border-t">
+      <div ref={boxRef} className="max-h-[70vh] overflow-auto border-t">
         <table className="w-full border-separate border-spacing-0 text-sm">
           <thead>
             <tr className="text-xs font-semibold text-foreground">
-              <th className={cn(stickyHead, stickyHeadLeft, COL_STAFF, 'h-11 px-3 text-center')}>
+              <th className={cn(stickyHead, stickyHeadLeft, col.staff, 'h-11 px-3 text-center')}>
                 Nhân sự
               </th>
-              <th className={cn(stickyHead, stickyHeadLeft, COL_DEPT, 'px-2 text-center')}>
+              <th className={cn(stickyHead, stickyHeadLeft, col.dept, 'px-2 text-center')}>
                 Bộ phận
               </th>
-              <th className={cn(stickyHead, stickyHeadLeft, COL_SHIFT, 'px-1 text-center')}>
+              <th className={cn(stickyHead, stickyHeadLeft, col.shift, 'px-1 text-center')}>
                 Buổi
               </th>
               {dates.map((d) => {
@@ -268,7 +287,8 @@ export function PartTimeGrid({ rows, dates, onEdit }: PartTimeGridProps) {
               <th
                 className={cn(
                   stickyHead,
-                  'z-30 w-20 min-w-20 border-l border-r-0 px-2 text-center whitespace-nowrap md:sticky md:right-0',
+                  'z-30 w-20 min-w-20 border-l border-r-0 px-2 text-center whitespace-nowrap',
+                  !compact && 'right-0',
                 )}
               >
                 Tổng giờ
@@ -303,30 +323,39 @@ export function PartTimeGrid({ rows, dates, onEdit }: PartTimeGridProps) {
                     rowSpan={span}
                     className={cn(
                       groupBorder,
-                      COL_STAFF,
-                      'z-10 border-r bg-card px-2 py-1.5 md:px-3',
+                      col.staff,
+                      'z-10 border-r bg-card py-1.5',
+                      compact ? 'px-2' : 'px-3',
                     )}
                   >
                     <div className="flex items-center gap-2.5">
-                      <Avatar className="hidden size-8 md:flex">
-                        <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-600 text-[11px] font-semibold text-white">
-                          {initials({ fullName: row.user.name, email: row.user.email })}
-                        </AvatarFallback>
-                      </Avatar>
+                      {!compact && (
+                        <Avatar className="size-8">
+                          <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-600 text-[11px] font-semibold text-white">
+                            {initials({ fullName: row.user.name, email: row.user.email })}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
                       <div className="min-w-0">
                         <div
-                          className="text-[13px] leading-tight font-medium break-words text-foreground md:truncate md:text-sm md:leading-5"
+                          className={cn(
+                            'font-medium text-foreground',
+                            compact ? 'text-[13px] leading-tight break-words' : 'truncate text-sm leading-5',
+                          )}
                           title={row.user.name}
                         >
                           {row.user.name}
                         </div>
-                        <div className="hidden truncate text-xs text-muted-foreground md:block" title={subline}>
-                          {subline}
-                        </div>
-                        {/* Điện thoại không có cột Bộ phận: hiện bộ phận ngay dưới tên. */}
-                        <div className="truncate text-[11px] text-muted-foreground md:hidden" title={mobileSubline}>
-                          {mobileSubline}
-                        </div>
+                        {compact ? (
+                          // Bộ cột gọn không có cột Bộ phận: hiện bộ phận ngay dưới tên.
+                          <div className="truncate text-[11px] text-muted-foreground" title={mobileSubline}>
+                            {mobileSubline}
+                          </div>
+                        ) : (
+                          <div className="truncate text-xs text-muted-foreground" title={subline}>
+                            {subline}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </td>
@@ -338,7 +367,7 @@ export function PartTimeGrid({ rows, dates, onEdit }: PartTimeGridProps) {
                     title={deptName}
                     className={cn(
                       groupBorder,
-                      COL_DEPT,
+                      col.dept,
                       'z-10 border-r bg-card px-2 text-center text-xs text-muted-foreground',
                     )}
                   >
@@ -351,7 +380,8 @@ export function PartTimeGrid({ rows, dates, onEdit }: PartTimeGridProps) {
                     rowSpan={span}
                     className={cn(
                       groupBorder,
-                      'z-10 w-20 min-w-20 border-l bg-card px-2 text-center font-semibold tabular-nums text-foreground md:sticky md:right-0',
+                      'z-10 w-20 min-w-20 border-l bg-card px-2 text-center font-semibold tabular-nums text-foreground',
+                      !compact && 'sticky right-0',
                     )}
                   >
                     {String(row.totalHours)}
@@ -359,7 +389,7 @@ export function PartTimeGrid({ rows, dates, onEdit }: PartTimeGridProps) {
                 )
 
                 const shiftLabelClass = cn(
-                  COL_SHIFT,
+                  col.shift,
                   'z-10 border-r bg-card px-1 text-center text-xs font-medium text-muted-foreground',
                 )
 
