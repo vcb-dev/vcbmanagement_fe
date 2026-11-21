@@ -30,6 +30,139 @@ function num(val: number): string {
   })
 }
 
+/** Nhãn trạng thái bản chốt, số phản hồi đang mở và cảnh báo lệch sau chốt. */
+function StatusBadges({ row }: { row: PartTimeSheetRow }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {row.sheet ? (
+        <Badge
+          variant="outline"
+          className={cn('text-xs font-normal', STATUS_STYLE[row.sheet.status])}
+        >
+          {SHEET_STATUS_LABEL[row.sheet.status]}
+        </Badge>
+      ) : (
+        <Badge variant="secondary" className="text-xs font-normal">
+          Tạm tính
+        </Badge>
+      )}
+
+      {row.openFeedbackCount > 0 && (
+        <Badge
+          variant="outline"
+          className="flex items-center gap-1 border-sky-500/30 bg-sky-500/10 text-xs font-normal text-sky-700 dark:text-sky-400"
+        >
+          <MessageSquare className="h-3 w-3" />
+          <span>{row.openFeedbackCount} phản hồi</span>
+        </Badge>
+      )}
+
+      {row.outdated && (
+        <Badge
+          variant="outline"
+          className="flex items-center gap-1 border-amber-500/30 bg-amber-500/10 text-xs font-normal text-amber-700 dark:text-amber-400"
+        >
+          <AlertTriangle className="h-3 w-3" />
+          <span>Lệch sau chốt</span>
+        </Badge>
+      )}
+    </div>
+  )
+}
+
+const EMPTY_TEXT = 'Không có dữ liệu nhân viên part-time trong tháng này.'
+
+/** Một ô số trong thẻ điện thoại: nhãn nhỏ phía trên, số phía dưới; `—` khi chưa có số liệu. */
+function Stat({ label, value, className }: { label: string; value: string; className?: string }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-[11px] text-muted-foreground">{label}</dt>
+      <dd className={cn('text-sm tabular-nums', className)}>{value}</dd>
+    </div>
+  )
+}
+
+/** Danh sách thẻ cho điện thoại, thay cho bảng 9 cột. Bấm thẻ mở sheet xem và sửa công như bấm dòng. */
+function PartTimeSheetCards({
+  rows,
+  onSelect,
+}: {
+  rows: PartTimeSheetRow[]
+  onSelect: (userId: string) => void
+}) {
+  if (rows.length === 0) {
+    return (
+      <p className="rounded-md border bg-card px-4 py-10 text-center text-sm text-muted-foreground md:hidden">
+        {EMPTY_TEXT}
+      </p>
+    )
+  }
+
+  return (
+    <ul className="space-y-2 md:hidden">
+      {rows.map((row) => {
+        const data = row.sheet ?? row.live
+        const totalHours = data ? data.offlineHours + data.onlineHours : null
+        return (
+          <li key={row.user.id}>
+            <button
+              type="button"
+              onClick={() => onSelect(row.user.id)}
+              aria-label={`Xem và sửa công của ${row.user.name}`}
+              className="w-full space-y-2.5 rounded-lg border bg-card p-3 text-left transition-colors active:bg-muted/50"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium text-foreground">{row.user.name}</span>
+                    {!row.user.isActive && (
+                      <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                        Đã nghỉ
+                      </Badge>
+                    )}
+                  </div>
+                  {/* Chưa gán bộ phận thì lý do bỏ qua ngay dưới đã nói, không lặp lại. */}
+                  {(row.department || !row.skipReason) && (
+                    <div className="truncate text-xs text-muted-foreground">{row.department?.name ?? '—'}</div>
+                  )}
+                  {row.skipReason && (
+                    <Badge variant="destructive" className="w-fit text-[10px] font-normal">
+                      {row.skipReason}
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex shrink-0 flex-col items-end">
+                  <span className="text-[11px] text-muted-foreground">Tổng</span>
+                  <span className="text-lg leading-tight font-semibold tabular-nums">
+                    {totalHours != null ? `${num(totalHours)}h` : '—'}
+                  </span>
+                </div>
+              </div>
+
+              <dl className="grid grid-cols-4 gap-2 rounded-md bg-muted/50 px-3 py-2">
+                <Stat label="Offline" value={data ? `${num(data.offlineHours)}h` : '—'} />
+                <Stat label="Online" value={data ? `${num(data.onlineHours)}h` : '—'} />
+                <Stat
+                  label="Muộn"
+                  value={data ? String(data.lateCount) : '—'}
+                  className={cn(data && data.lateCount > 0 && 'font-medium text-amber-600')}
+                />
+                <Stat
+                  label="Thiếu"
+                  value={data ? String(data.missingPunchCount) : '—'}
+                  className={cn(data && data.missingPunchCount > 0 && 'font-medium text-rose-600')}
+                />
+              </dl>
+
+              <StatusBadges row={row} />
+            </button>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
 export function PartTimeSheetTable({
   rows,
   onSelect,
@@ -39,7 +172,8 @@ export function PartTimeSheetTable({
 }) {
   return (
     <TooltipProvider delayDuration={150}>
-      <div className="rounded-md border bg-card">
+      <PartTimeSheetCards rows={rows} onSelect={onSelect} />
+      <div className="hidden rounded-md border bg-card md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -60,7 +194,7 @@ export function PartTimeSheetTable({
             {rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="h-32 text-center text-muted-foreground">
-                  Không có dữ liệu nhân viên part-time trong tháng này.
+                  {EMPTY_TEXT}
                 </TableCell>
               </TableRow>
             ) : (
@@ -128,40 +262,7 @@ export function PartTimeSheetTable({
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {row.sheet ? (
-                          <Badge
-                            variant="outline"
-                            className={cn('text-xs font-normal', STATUS_STYLE[row.sheet.status])}
-                          >
-                            {SHEET_STATUS_LABEL[row.sheet.status]}
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="text-xs font-normal">
-                            Tạm tính
-                          </Badge>
-                        )}
-
-                        {row.openFeedbackCount > 0 && (
-                          <Badge
-                            variant="outline"
-                            className="flex items-center gap-1 border-sky-500/30 bg-sky-500/10 text-xs font-normal text-sky-700 dark:text-sky-400"
-                          >
-                            <MessageSquare className="h-3 w-3" />
-                            <span>{row.openFeedbackCount} phản hồi</span>
-                          </Badge>
-                        )}
-
-                        {row.outdated && (
-                          <Badge
-                            variant="outline"
-                            className="flex items-center gap-1 border-amber-500/30 bg-amber-500/10 text-xs font-normal text-amber-700 dark:text-amber-400"
-                          >
-                            <AlertTriangle className="h-3 w-3" />
-                            <span>Lệch sau chốt</span>
-                          </Badge>
-                        )}
-                      </div>
+                      <StatusBadges row={row} />
                     </TableCell>
                     <TableCell className="text-right">
                       <Tooltip>

@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   Tooltip,
@@ -18,10 +19,12 @@ const SHIFT_ROW_LABEL: Record<WorkShift, string> = {
   evening: 'Tối',
 }
 
-// Độ rộng 3 cột cố định bên trái; offset `left` của cột sau = tổng độ rộng các cột trước.
-const COL_STAFF = 'w-[220px] min-w-[220px] max-w-[220px]'
-const COL_DEPT = 'w-[128px] min-w-[128px] max-w-[128px] md:left-[220px]'
-const COL_SHIFT = 'w-[60px] min-w-[60px] max-w-[60px] md:left-[348px]'
+// Các cột ghim bên trái; offset `left` của cột sau = tổng độ rộng các cột trước.
+// Dưới md (không có cột Bộ phận): ghim Nhân sự 128px (không ảnh đại diện, tên xuống dòng, bộ phận thay email)
+// + Buổi 40px, cùng cỡ với các bảng chấm công khác, để thấy được vài ngày bên cạnh.
+const COL_STAFF = 'sticky left-0 w-32 min-w-32 max-w-32 md:w-[220px] md:min-w-[220px] md:max-w-[220px]'
+const COL_DEPT = 'hidden w-[128px] min-w-[128px] max-w-[128px] md:sticky md:left-[220px] md:table-cell'
+const COL_SHIFT = 'sticky left-32 w-10 min-w-10 max-w-10 md:left-[348px] md:w-[60px] md:min-w-[60px] md:max-w-[60px]'
 
 type CellKind = 'online' | 'manual' | 'missing' | 'progress' | 'warn' | 'hours' | 'none'
 
@@ -211,11 +214,20 @@ interface PartTimeGridProps {
 export function PartTimeGrid({ rows, dates, onEdit }: PartTimeGridProps) {
   const today = todayYmd()
   const stickyHead = 'sticky top-0 z-20 border-b border-r bg-muted'
-  const stickyHeadLeft = 'z-30 md:sticky md:left-0'
+  const stickyHeadLeft = 'z-30'
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Điện thoại chỉ thấy 3-4 ngày: mở bảng ở hôm nay (cột hôm nay sát mép phải) thay vì ngày đầu kỳ, như bảng Tăng ca.
+  useLayoutEffect(() => {
+    const box = scrollRef.current
+    const cell = box?.querySelector<HTMLElement>('th[data-today]')
+    if (!box || !cell || window.innerWidth >= 768) return
+    box.scrollLeft = Math.max(0, cell.offsetLeft + cell.offsetWidth - box.clientWidth + 8)
+  }, [dates])
 
   return (
     <TooltipProvider delayDuration={150}>
-      <div className="max-h-[70vh] overflow-auto border-t">
+      <div ref={scrollRef} className="max-h-[70vh] overflow-auto border-t">
         <table className="w-full border-separate border-spacing-0 text-sm">
           <thead>
             <tr className="text-xs font-semibold text-foreground">
@@ -233,6 +245,7 @@ export function PartTimeGrid({ rows, dates, onEdit }: PartTimeGridProps) {
                 return (
                   <th
                     key={d}
+                    data-today={isToday || undefined}
                     className={cn(
                       stickyHead,
                       'min-w-[52px] px-1 text-center whitespace-nowrap',
@@ -282,6 +295,8 @@ export function PartTimeGrid({ rows, dates, onEdit }: PartTimeGridProps) {
                 const subline = row.user.isActive
                   ? row.user.email
                   : `Ngừng hoạt động · ${row.user.email}`
+                const deptName = row.department?.name ?? 'Chưa gán bộ phận'
+                const mobileSubline = row.user.isActive ? deptName : `Ngừng hoạt động · ${deptName}`
 
                 const staffCell = (
                   <td
@@ -289,26 +304,34 @@ export function PartTimeGrid({ rows, dates, onEdit }: PartTimeGridProps) {
                     className={cn(
                       groupBorder,
                       COL_STAFF,
-                      'z-10 border-r bg-card px-3 py-1.5 md:sticky md:left-0',
+                      'z-10 border-r bg-card px-2 py-1.5 md:px-3',
                     )}
                   >
                     <div className="flex items-center gap-2.5">
-                      <Avatar className="size-8">
+                      <Avatar className="hidden size-8 md:flex">
                         <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-600 text-[11px] font-semibold text-white">
                           {initials({ fullName: row.user.name, email: row.user.email })}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <div className="truncate font-medium text-foreground">{row.user.name}</div>
-                        <div className="truncate text-xs text-muted-foreground" title={subline}>
+                        <div
+                          className="text-[13px] leading-tight font-medium break-words text-foreground md:truncate md:text-sm md:leading-5"
+                          title={row.user.name}
+                        >
+                          {row.user.name}
+                        </div>
+                        <div className="hidden truncate text-xs text-muted-foreground md:block" title={subline}>
                           {subline}
+                        </div>
+                        {/* Điện thoại không có cột Bộ phận: hiện bộ phận ngay dưới tên. */}
+                        <div className="truncate text-[11px] text-muted-foreground md:hidden" title={mobileSubline}>
+                          {mobileSubline}
                         </div>
                       </div>
                     </div>
                   </td>
                 )
 
-                const deptName = row.department?.name ?? 'Chưa gán bộ phận'
                 const deptCell = (
                   <td
                     rowSpan={span}
@@ -316,7 +339,7 @@ export function PartTimeGrid({ rows, dates, onEdit }: PartTimeGridProps) {
                     className={cn(
                       groupBorder,
                       COL_DEPT,
-                      'z-10 border-r bg-card px-2 text-center text-xs text-muted-foreground md:sticky',
+                      'z-10 border-r bg-card px-2 text-center text-xs text-muted-foreground',
                     )}
                   >
                     <div className="truncate">{deptName}</div>
@@ -337,7 +360,7 @@ export function PartTimeGrid({ rows, dates, onEdit }: PartTimeGridProps) {
 
                 const shiftLabelClass = cn(
                   COL_SHIFT,
-                  'z-10 border-r bg-card px-1 text-center text-xs font-medium text-muted-foreground md:sticky',
+                  'z-10 border-r bg-card px-1 text-center text-xs font-medium text-muted-foreground',
                 )
 
                 if (!shifts) {

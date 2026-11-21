@@ -105,6 +105,8 @@ export function PartTimeGridTab() {
       <p className="text-xs text-muted-foreground">
         Giờ ca lấy theo bộ phận (sáng, chiều và ca tối nếu bộ phận có): chỉ tính phần trong giờ
         ca, tối đa bằng độ dài ca. Ô quản lý đã sửa lấy đúng số giờ đã nhập, không tính đi muộn.
+        {/* Gợi ý ở chân bảng chỉ hiện từ sm; điện thoại cần biết bấm ô để sửa và vuốt ngang để xem ngày khác. */}
+        <span className="sm:hidden"> Bấm ô để nhập hoặc sửa số giờ, vuốt ngang để xem các ngày khác.</span>
       </p>
 
       <div className="overflow-hidden rounded-xl border bg-card">
@@ -146,7 +148,7 @@ export function PartTimeGridTab() {
           </div>
 
           <Select value={selectedDeptId} onValueChange={setSelectedDeptId}>
-            <SelectTrigger className="h-9 w-44">
+            <SelectTrigger className="h-9 w-full sm:w-44">
               <SelectValue placeholder="Tất cả bộ phận" />
             </SelectTrigger>
             <SelectContent>
@@ -159,7 +161,7 @@ export function PartTimeGridTab() {
             </SelectContent>
           </Select>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex w-full items-center gap-1.5 sm:w-auto">
             <Button
               variant="outline"
               size="icon"
@@ -174,7 +176,7 @@ export function PartTimeGridTab() {
               value={mode === 'week' ? range.from : anchorMonth}
               onValueChange={handleRangeSelect}
             >
-              <SelectTrigger className="h-9 w-[190px]" aria-label="Chọn kỳ xem">
+              <SelectTrigger className="h-9 min-w-0 flex-1 sm:w-[190px] sm:flex-none" aria-label="Chọn kỳ xem">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
