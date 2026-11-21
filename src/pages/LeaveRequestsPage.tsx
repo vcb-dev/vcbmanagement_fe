@@ -13,6 +13,7 @@ import { LATE_EXCUSE_MINUTES, STATUS_LABEL, TYPE_META, TYPE_ORDER } from '@/feat
 import type { LeaveRequestStatus, LeaveRequestType } from '@/features/leave-requests/leave-requests.types'
 import { useLeaveRequests } from '@/features/leave-requests/use-leave-requests'
 import { FEATURES } from '@/lib/features'
+import { NO_SCROLLBAR } from '@/lib/scroll'
 import { cn } from '@/lib/utils'
 
 type StatusTab = 'all' | LeaveRequestStatus
@@ -56,18 +57,30 @@ export function LeaveRequestsPage() {
     <PageContainer>
       <PageHeader
         title="Duyệt đơn xin phép"
-        description={`Đơn nghỉ phép, đi muộn, về sớm, làm việc ngoài văn phòng của nhân sự. Duyệt nghỉ phép có trừ phép năm thì tự cộng vào phép tháng; đi muộn được duyệt thì trừ vào ${LATE_EXCUSE_MINUTES} phút đi muộn có phép mỗi tháng của người đó, hết thì vẫn tính đi muộn.`}
+        description={
+          <>
+            Đơn nghỉ phép, đi muộn, về sớm, làm việc ngoài văn phòng của nhân sự.
+            {/* Điện thoại ẩn phần quy tắc (5 dòng); chi tiết từng đơn đã ghi rõ duyệt xong trừ phép / quỹ đi muộn ra sao. */}
+            <span className="hidden sm:inline">
+              {' '}
+              Duyệt nghỉ phép có trừ phép năm thì tự cộng vào phép tháng; đi muộn được duyệt thì trừ vào {LATE_EXCUSE_MINUTES}{' '}
+              phút đi muộn có phép mỗi tháng của người đó, hết thì vẫn tính đi muộn.
+            </span>
+          </>
+        }
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {/* Điện thoại bỏ ba thẻ số: hàng tab ngay dưới đã có đủ số đơn từng trạng thái. */}
+      <div className="hidden gap-4 sm:grid sm:grid-cols-3">
         <StatCard icon={Clock} label="Chờ duyệt" value={counts?.pending ?? 0} tone="amber" loading={loading} />
         <StatCard icon={CheckCircle2} label="Đã duyệt" value={counts?.approved ?? 0} tone="emerald" loading={loading} />
         <StatCard icon={XCircle} label="Từ chối" value={counts?.rejected ?? 0} tone="rose" loading={loading} />
       </div>
 
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <Tabs value={status} onValueChange={resetPage((v: string) => setStatus(v as StatusTab))}>
-          <TabsList className="h-9 max-w-full overflow-x-auto">
+        <Tabs value={status} onValueChange={resetPage((v: string) => setStatus(v as StatusTab))} className="max-w-full min-w-0">
+          {/* justify-start: canh giữa thì khi tràn, tab đầu bị cắt mất bên trái và không vuốt tới được. */}
+          <TabsList className={cn('h-9 max-w-full justify-start overflow-x-auto', NO_SCROLLBAR)}>
             {TABS.map((t) => (
               <TabsTrigger key={t} value={t} className="text-xs">
                 {t === 'all' ? 'Tất cả' : STATUS_LABEL[t]} ({counts?.[t] ?? 0})
@@ -77,7 +90,7 @@ export function LeaveRequestsPage() {
         </Tabs>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[200px] flex-1 sm:w-60 sm:flex-initial">
+          <div className="relative min-w-0 flex-1 sm:w-60 sm:min-w-[200px] sm:flex-initial">
             <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
@@ -91,7 +104,7 @@ export function LeaveRequestsPage() {
             />
           </div>
           <Select value={type} onValueChange={resetPage((v: string) => setType(v as 'all' | LeaveRequestType))}>
-            <SelectTrigger className="h-9 w-48 text-xs" aria-label="Hình thức">
+            <SelectTrigger className="h-9 w-36 shrink-0 text-xs sm:w-48" aria-label="Hình thức">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

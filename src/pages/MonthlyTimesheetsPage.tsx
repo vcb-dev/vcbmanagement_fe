@@ -30,7 +30,9 @@ import { useFullTimeTimesheets, useUpdateFullTimeTimesheet } from '@/features/mo
 import { getApiErrorMessage } from '@/lib/api-client'
 import { FEATURES } from '@/lib/features'
 import { formatMonth, normalizeSearch, todayYmd } from '@/lib/format'
+import { NO_SCROLLBAR } from '@/lib/scroll'
 import { displayName } from '@/lib/user-display'
+import { cn } from '@/lib/utils'
 
 const PAGE_SIZE = 12
 /** Radix Select không nhận giá trị rỗng. */
@@ -110,7 +112,7 @@ export function MonthlyTimesheetsPage() {
     <PageContainer>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 space-y-1.5">
-          <h2 className="text-2xl font-semibold tracking-tight">Chốt công {formatMonth(month).toLowerCase()}</h2>
+          <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Chốt công {formatMonth(month).toLowerCase()}</h2>
           {report && (
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <RefreshCw className={isFetching ? 'size-3 animate-spin' : 'size-3'} />
@@ -135,10 +137,18 @@ export function MonthlyTimesheetsPage() {
       </div>
 
       <Card className="gap-0 py-0">
-        {/* Tab và bộ lọc chung một hàng. Hẹp không đủ chỗ thì bộ lọc lên trên (wrap-reverse) để tab vẫn sát đường kẻ. */}
-        <div className="flex flex-wrap-reverse items-center justify-between gap-x-4 gap-y-2 border-b px-3 pt-2 pb-[5px]">
-          <Tabs value={tab} onValueChange={(next) => resetPageAfter(() => setTab(next))}>
-            <TabsList variant="line" className="flex-wrap justify-start gap-y-1.5 group-data-horizontal/tabs:h-auto">
+        {/* Tab và bộ lọc chung một hàng. Hẹp không đủ chỗ thì bộ lọc lên trên (wrap-reverse) để tab vẫn sát đường kẻ.
+            Điện thoại: tab giữ một dòng, vuốt ngang để xem tab còn lại (đệm dưới nằm trong khung cuộn để gạch chân không bị cắt). */}
+        <div className="flex flex-wrap-reverse items-center justify-between gap-x-4 gap-y-2 border-b px-3 pt-2 sm:pb-[5px]">
+          <Tabs value={tab} onValueChange={(next) => resetPageAfter(() => setTab(next))} className="max-w-full min-w-0">
+            <TabsList
+              variant="line"
+              className={cn(
+                'max-w-full justify-start gap-y-1.5 overflow-x-auto pb-[5px] group-data-horizontal/tabs:h-auto',
+                'sm:flex-wrap sm:overflow-visible sm:pb-[3px]',
+                NO_SCROLLBAR,
+              )}
+            >
               <TabsTrigger value={ALL} className={TAB_TRIGGER}>
                 Tất cả
               </TabsTrigger>
@@ -161,8 +171,9 @@ export function MonthlyTimesheetsPage() {
               ))}
             </TabsList>
           </Tabs>
-          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-            <div className="relative min-w-48 flex-1 sm:w-48 sm:flex-none">
+          {/* Điện thoại: ô tìm hết hàng, các ô chọn chia đôi hàng, đủ rộng mà không chiếm nhiều dòng. */}
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+            <div className="relative col-span-2 min-w-48 flex-1 sm:w-48 sm:flex-none">
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
@@ -173,7 +184,7 @@ export function MonthlyTimesheetsPage() {
               />
             </div>
             <Select value={department} onValueChange={(next) => resetPageAfter(() => setDepartment(next))}>
-              <SelectTrigger aria-label="Lọc theo bộ phận" className="min-w-44">
+              <SelectTrigger aria-label="Lọc theo bộ phận" className="w-full min-w-0 sm:w-fit sm:min-w-44">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -187,7 +198,7 @@ export function MonthlyTimesheetsPage() {
               </SelectContent>
             </Select>
             <Select value={extra} onValueChange={(next) => resetPageAfter(() => setExtra(next))}>
-              <SelectTrigger aria-label="Lọc bổ sung" className="min-w-44">
+              <SelectTrigger aria-label="Lọc bổ sung" className="w-full min-w-0 sm:w-fit sm:min-w-44">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

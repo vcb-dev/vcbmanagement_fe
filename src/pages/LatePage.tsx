@@ -134,7 +134,7 @@ export function LatePage() {
     <PageContainer>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 space-y-1.5">
-          <h2 className="text-2xl font-semibold tracking-tight">Đi muộn {formatMonth(month).toLowerCase()}</h2>
+          <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Đi muộn {formatMonth(month).toLowerCase()}</h2>
           <p className="text-xs text-muted-foreground">
             Mỗi ca vào sau giờ vào ca của bộ phận là một lần đi muộn. Bấm vào tên để xem chi tiết cả tháng.
           </p>
@@ -167,8 +167,9 @@ export function LatePage() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-            <div className="relative min-w-48 flex-1 sm:w-48 sm:flex-none">
+          {/* Điện thoại: ô tìm hết hàng, các ô chọn chia đôi hàng, đủ rộng mà không chiếm nhiều dòng. */}
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+            <div className="relative col-span-2 min-w-48 flex-1 sm:w-48 sm:flex-none">
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
@@ -179,7 +180,7 @@ export function LatePage() {
               />
             </div>
             <Select value={department} onValueChange={(next) => resetPageAfter(() => setDepartment(next))}>
-              <SelectTrigger aria-label="Lọc theo bộ phận" className="min-w-44">
+              <SelectTrigger aria-label="Lọc theo bộ phận" className="w-full min-w-0 sm:w-fit sm:min-w-44">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -193,16 +194,22 @@ export function LatePage() {
               </SelectContent>
             </Select>
             <Select value={show} onValueChange={(next) => resetPageAfter(() => setShow(next))}>
-              <SelectTrigger aria-label="Nhân sự hiển thị" className="min-w-44">
+              <SelectTrigger aria-label="Nhân sự hiển thị" className="w-full min-w-0 sm:w-fit sm:min-w-44">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={LATE_ONLY}>Chỉ người có đi muộn</SelectItem>
+                <SelectItem value={LATE_ONLY}>Người có đi muộn</SelectItem>
                 <SelectItem value={ALL}>Tất cả nhân sự</SelectItem>
               </SelectContent>
             </Select>
             {mode !== 'week' && (
-              <WeekRangePicker month={month} weeks={weeks} value={range} onChange={(next) => resetPageAfter(() => setRange(next))} />
+              <WeekRangePicker
+                className="col-span-2"
+                month={month}
+                weeks={weeks}
+                value={range}
+                onChange={(next) => resetPageAfter(() => setRange(next))}
+              />
             )}
           </div>
         </div>

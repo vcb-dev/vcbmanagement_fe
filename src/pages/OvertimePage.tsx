@@ -85,7 +85,7 @@ export function OvertimePage() {
     <PageContainer>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 space-y-1.5">
-          <h2 className="text-2xl font-semibold tracking-tight">Tăng ca {formatMonth(month).toLowerCase()}</h2>
+          <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Tăng ca {formatMonth(month).toLowerCase()}</h2>
           {report && (
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <RefreshCw className={isFetching ? 'size-3 animate-spin' : 'size-3'} />
@@ -122,19 +122,19 @@ export function OvertimePage() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-            <div className="relative min-w-48 flex-1 sm:w-48 sm:flex-none">
+          <div className="flex w-full items-center gap-2 sm:w-auto sm:flex-wrap">
+            <div className="relative min-w-0 flex-1 sm:w-48 sm:min-w-48 sm:flex-none">
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
                 onChange={(e) => resetPageAfter(() => setQuery(e.target.value))}
-                placeholder="Tìm tên hoặc email…"
+                placeholder="Tìm tên, email…"
                 aria-label="Tìm nhân sự tăng ca"
                 className="pl-9"
               />
             </div>
             <Select value={department} onValueChange={(next) => resetPageAfter(() => setDepartment(next))}>
-              <SelectTrigger aria-label="Lọc theo bộ phận" className="min-w-44">
+              <SelectTrigger aria-label="Lọc theo bộ phận" className="w-36 shrink-0 sm:w-fit sm:min-w-44">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

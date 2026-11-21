@@ -14,11 +14,14 @@ export const SUNDAY = 'bg-muted/50'
 /** Ô Chủ nhật trên header: nền đặc, đậm hơn bg-muted một chút. */
 export const SUNDAY_HEAD = 'bg-[color-mix(in_oklab,var(--muted),var(--foreground)_5%)]'
 
-/** Cột tên và bộ phận giữ cố định, phần rộng còn lại dành cho các ô giờ. */
-export const PERSON_COL = 'w-40 max-w-40 min-w-40 sm:w-44 sm:max-w-44 sm:min-w-44'
+/**
+ * Cột tên và bộ phận giữ cố định, phần rộng còn lại dành cho các ô giờ.
+ * Điện thoại: cột Nhân sự hẹp lại (128px, không ảnh đại diện, tên xuống dòng) để thấy được vài ngày bên cạnh.
+ */
+export const PERSON_COL = 'w-32 max-w-32 min-w-32 sm:w-44 sm:max-w-44 sm:min-w-44'
 export const DEPARTMENT_COL = 'w-28 max-w-28 min-w-28'
 /** Cột Buổi dính ngay sau cột Nhân sự khi cuộn ngang (cột Bộ phận trượt xuống dưới). */
-export const SHIFT_COL = 'sticky left-40 w-12 max-w-12 min-w-12 sm:left-44'
+export const SHIFT_COL = 'sticky left-32 w-10 max-w-10 min-w-10 sm:left-44 sm:w-12 sm:max-w-12 sm:min-w-12'
 /**
  * Ô giờ không đặt độ rộng cố định để giãn ra khi xem một tuần.
  * Tối thiểu 56px: giờ "08:05" chiếm khoảng 33px, còn chừa khoảng trống để Vào và Ra không dính nhau khi xem cả tháng.
@@ -50,13 +53,17 @@ export function PersonCell({
       className={cn(PERSON_COL, 'sticky left-0 z-1 border-r border-b bg-card px-2.5 py-1 group-hover/row:bg-muted', className)}
     >
       <button type="button" onClick={onClick} className="group/name flex w-full items-center gap-2 text-left">
-        <UserAvatar user={user} className="size-6 shrink-0 rounded-md text-[10px]" />
+        <UserAvatar user={user} className="hidden size-6 shrink-0 rounded-md text-[10px] sm:flex" />
         <span className="min-w-0">
-          <span className="block truncate text-[13px] leading-tight font-medium group-hover/name:underline">{displayName(user)}</span>
+          <span className="block text-[13px] leading-tight font-medium break-words group-hover/name:underline sm:truncate">
+            {displayName(user)}
+          </span>
           <span className="block truncate text-[11px] leading-tight text-muted-foreground">
             {!user.isActive && 'Đã khoá · '}
             {person.employmentType === 'part_time' && `${EMPLOYMENT_LABEL.part_time} · `}
-            {user.email}
+            {/* Màn hẹp không có cột Bộ phận nên hiện bộ phận thay cho email. */}
+            <span className="md:hidden">{person.department?.name ?? 'Chưa gán bộ phận'}</span>
+            <span className="hidden md:inline">{user.email}</span>
           </span>
         </span>
       </button>

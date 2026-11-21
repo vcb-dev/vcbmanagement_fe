@@ -1,12 +1,18 @@
-import { useRef, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { PaginationBar } from '@/components/pagination-bar'
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { LeaveRequestDetailPanel } from './LeaveRequestDetailPanel'
 import { LeaveRequestList } from './LeaveRequestList'
 import type { LeaveRequestPage } from './leave-requests.types'
 
-/** Hai cột: danh sách đơn (có phân trang) bên trái, chi tiết đơn đang chọn bên phải. Màn hẹp thì xếp chồng. */
+/**
+ * Màn rộng: hai cột, danh sách đơn (có phân trang) bên trái, chi tiết đơn đang chọn bên phải (mặc định đơn đầu tiên).
+ * Màn hẹp (điện thoại, máy tính bảng dọc): chỉ có danh sách, bấm một đơn thì chi tiết mở trong sheet phủ màn hình,
+ * đóng sheet là về đúng chỗ đang xem trong danh sách. `selectedId` có sẵn (vd `?id=` trên URL) thì mở sheet ngay.
+ */
 export function LeaveRequestBoard({
   data,
   isPending,
@@ -28,19 +34,19 @@ export function LeaveRequestBoard({
   page: number
   onPageChange: (page: number) => void
   selectedId: string | null
-  onSelect: (id: string) => void
+  /** `null` khi đóng sheet chi tiết ở màn hẹp. */
+  onSelect: (id: string | null) => void
   emptyText: ReactNode
   showUser?: boolean
 }) {
-  const detailRef = useRef<HTMLDivElement | null>(null)
+  const wide = useMediaQuery('(min-width: 1024px)')
   const items = data?.items ?? []
   const pageCount = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1
   const activeId = selectedId && items.some((i) => i.id === selectedId) ? selectedId : (items[0]?.id ?? null)
 
-  function select(id: string) {
-    onSelect(id)
-    if (window.innerWidth < 1024) detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
+  // Giữ đơn vừa xem trong sheet lúc sheet đang trượt ra, để nội dung không biến mất giữa chừng.
+  const [sheetId, setSheetId] = useState(selectedId)
+  if (selectedId !== null && selectedId !== sheetId) setSheetId(selectedId)
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
@@ -63,7 +69,7 @@ export function LeaveRequestBoard({
             {emptyText}
           </p>
         ) : (
-          <LeaveRequestList items={items} selectedId={activeId} onSelect={select} showUser={showUser} />
+          <LeaveRequestList items={items} selectedId={wide ? activeId : selectedId} onSelect={onSelect} showUser={showUser} />
         )}
         {pageCount > 1 && (
           <div className="flex justify-center">
@@ -71,9 +77,21 @@ export function LeaveRequestBoard({
           </div>
         )}
       </div>
-      <div ref={detailRef} className="min-w-0 scroll-mt-20">
-        <LeaveRequestDetailPanel id={activeId} showUser={showUser} />
-      </div>
+      {wide ? (
+        <div className="min-w-0">
+          <LeaveRequestDetailPanel id={activeId} showUser={showUser} />
+        </div>
+      ) : (
+        <Sheet open={selectedId !== null} onOpenChange={(open) => !open && onSelect(null)}>
+          <SheetContent className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-lg">
+            <SheetTitle className="sr-only">Chi tiết đơn xin phép</SheetTitle>
+            <SheetDescription className="sr-only">Thông tin đơn, phép năm và chấm công liên quan, thao tác với đơn.</SheetDescription>
+            <div className="flex-1 overflow-y-auto overscroll-contain p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+              {sheetId && <LeaveRequestDetailPanel id={sheetId} showUser={showUser} variant="sheet" />}
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
     </div>
   )
 }
