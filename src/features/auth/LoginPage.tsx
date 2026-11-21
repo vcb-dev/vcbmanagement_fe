@@ -13,6 +13,16 @@ import { getApiErrorMessage } from '@/lib/api-client'
 import { authApi } from './auth.api'
 import { ME_QUERY_KEY, markLoggedOut, useLogin, useMe } from './use-auth'
 
+const GOOGLE_ERROR: Record<string, string> = {
+  google_email: 'Email Google này chưa có tài khoản. Dùng đúng email đã được cấp, hoặc đăng nhập bằng mật khẩu.',
+  google_unverified: 'Email Google chưa được xác minh.',
+  google_locked: 'Tài khoản đã bị khóa.',
+  google_cancel: 'Bạn đã hủy đăng nhập Google.',
+  google_code: 'Thiếu mã xác thực từ Google. Hãy thử lại.',
+  google_state: 'Phiên đăng nhập Google hết hạn. Hãy bấm Đăng nhập với Google lại.',
+  google_failed: 'Đăng nhập Google thất bại. Hãy thử lại.',
+}
+
 const HIGHLIGHTS = [
   { icon: Users, title: 'Quản lý tập trung', desc: 'Nhân sự, khách hàng và vận hành trên một nền tảng.' },
   { icon: Sparkles, title: 'Trợ lý AI', desc: 'Hỏi đáp, tổng hợp và gợi ý dựa trên dữ liệu nội bộ.' },
@@ -54,7 +64,7 @@ export function LoginPage() {
         }
       })()
     } else {
-      toast.error(error, { id: 'oauth-result' })
+      toast.error(GOOGLE_ERROR[error] ?? error, { id: 'oauth-result' })
     }
     setSearchParams({}, { replace: true })
   }, [searchParams, setSearchParams, queryClient])
