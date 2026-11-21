@@ -6,10 +6,9 @@ import { Toaster } from '@/components/ui/sonner'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
 import { toast } from 'sonner'
-import { markLoggedOut } from '@/features/auth/use-auth'
+import { markLoggedOut, useMe } from '@/features/auth/use-auth'
 import { setSessionExpiredHandler } from '@/lib/api-client'
 
-const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 const AttendancePage = lazy(() => import('@/pages/AttendancePage').then((m) => ({ default: m.AttendancePage })))
 const AttendanceBoardPage = lazy(() =>
   import('@/pages/AttendanceBoardPage').then((m) => ({ default: m.AttendanceBoardPage })),
@@ -49,6 +48,13 @@ function useSessionExpiredRedirect() {
   }, [navigate, queryClient])
 }
 
+/** Trang chủ `/`: admin / quản lý vào Tổng quan, nhân viên vào Công của tôi. */
+function HomeRedirect() {
+  const { data: user } = useMe()
+  const isManager = user?.role === 'admin' || user?.role === 'manager'
+  return <Navigate to={isManager ? '/overview' : '/my-timesheet'} replace />
+}
+
 export default function App() {
   useSessionExpiredRedirect()
 
@@ -66,7 +72,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            <Route path="/" element={<DashboardPage />} />
+            <Route path="/" element={<HomeRedirect />} />
             <Route element={<ProtectedRoute roles={['staff']} />}>
               <Route path="/my-timesheet" element={<MyTimesheetPage />} />
               <Route path="/my-feedbacks" element={<MyFeedbacksPage />} />

@@ -10,7 +10,6 @@ import {
   ClockPlus,
   FileCheck,
   FileClock,
-  LayoutDashboard,
   MessageSquare,
   ScanFace,
   ShieldCheck,
@@ -39,7 +38,6 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Tổng quan',
     items: [
-      { title: 'Bảng điều khiển', url: '/', icon: LayoutDashboard, description: 'Tổng quan hoạt động' },
       {
         title: 'Tổng quan',
         url: '/overview',
