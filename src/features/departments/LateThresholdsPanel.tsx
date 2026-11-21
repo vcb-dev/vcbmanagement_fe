@@ -1,4 +1,4 @@
-import { AlarmClock, Pencil, Plus, Trash2 } from 'lucide-react'
+import { AlarmClock, ChevronRight, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Badge } from '@/components/ui/badge'
@@ -64,15 +64,32 @@ export function LateThresholdsPanel({ departments, canEdit }: { departments: Dep
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Mốc đi muộn</CardTitle>
-        <CardDescription>
-          Vào ca sau giờ vào ca là tính đi muộn, các mốc dùng để xếp lần đi muộn đó theo số phút muộn. Mỗi người dùng bộ mốc của
-          đối tượng khớp cụ thể nhất: bộ phận và loại nhân sự, rồi chỉ bộ phận, chỉ loại nhân sự, cuối cùng là bộ mốc chung. Đổi
-          mốc có hiệu lực từ tháng hiện tại, các tháng trước giữ nguyên.
+        {/* Ghim hàng cho từng phần: nút "Thêm mốc" đã ghim chỗ nên phần còn lại không tự rơi sang cột của nút. */}
+        <CardTitle className="col-start-1 row-start-1">Mốc đi muộn</CardTitle>
+        <CardDescription className="col-start-1 row-start-2">
+          Xếp lần đi muộn theo số phút muộn. Đổi mốc áp dụng từ tháng này, các tháng trước giữ nguyên.
         </CardDescription>
+        <details className="group col-start-1 row-start-3 text-sm">
+          <summary className="inline-flex min-h-7 cursor-pointer list-none items-center gap-1 rounded-sm font-medium text-foreground/80 outline-none select-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 pointer-coarse:min-h-10 [&::-webkit-details-marker]:hidden">
+            <ChevronRight
+              className="size-4 shrink-0 transition-transform group-open:rotate-90 motion-reduce:transition-none"
+              aria-hidden="true"
+            />
+            Mỗi người dùng bộ mốc nào?
+          </summary>
+          <div className="mt-1 w-fit max-w-full rounded-lg bg-muted/60 px-3 py-2.5 pr-6 text-muted-foreground">
+            <p>Bộ mốc khớp cụ thể nhất, xét lần lượt:</p>
+            <ol className="mt-1 list-decimal space-y-0.5 pl-5">
+              <li>Đúng bộ phận và loại nhân sự</li>
+              <li>Chỉ bộ phận</li>
+              <li>Chỉ loại nhân sự</li>
+              <li>Bộ mốc chung</li>
+            </ol>
+          </div>
+        </details>
         {canEdit && (
-          // Điện thoại: nút xuống dưới đoạn mô tả và rộng hết hàng, để đoạn mô tả không bị ép thành cột hẹp.
-          <CardAction className="col-start-1 row-start-3 mt-2 justify-self-stretch sm:col-start-2 sm:mt-0 sm:row-span-2 sm:row-start-1 sm:justify-self-end">
+          // Điện thoại: nút xuống cuối phần đầu thẻ và rộng hết hàng; từ sm trở lên về góc phải như thẻ khác.
+          <CardAction className="col-start-1 row-start-4 mt-2 justify-self-stretch sm:col-start-2 sm:mt-0 sm:row-span-2 sm:row-start-1 sm:justify-self-end">
             <Button size="sm" className="w-full sm:w-auto pointer-coarse:h-10" onClick={() => setForm({ threshold: null })}>
               <Plus />
               Thêm mốc
