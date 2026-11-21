@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { BarChart3, Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, Sparkles, Users } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
@@ -29,6 +29,13 @@ export function LoginPage() {
   const queryClient = useQueryClient()
   const me = useMe()
   const login = useLogin()
+  const providers = useQuery({
+    queryKey: ['auth', 'providers'],
+    queryFn: authApi.providers,
+    staleTime: 5 * 60_000,
+    retry: 0,
+  })
+  const [googlePending, setGooglePending] = useState(false)
 
   const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname || '/'
 
@@ -37,8 +44,15 @@ export function LoginPage() {
     const oauthOk = searchParams.get('oauth') === 'ok'
     if (!error && !oauthOk) return
     if (oauthOk) {
-      toast.success('Đăng nhập thành công', { id: 'oauth-result' })
-      void queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY })
+      void (async () => {
+        try {
+          const user = await authApi.me()
+          queryClient.setQueryData(ME_QUERY_KEY, user)
+          toast.success('Đăng nhập thành công', { id: 'oauth-result' })
+        } catch {
+          toast.error('Google xác thực xong nhưng chưa giữ được phiên. Hãy thử lại.', { id: 'oauth-result' })
+        }
+      })()
     } else {
       toast.error(error, { id: 'oauth-result' })
     }
@@ -179,7 +193,7 @@ export function LoginPage() {
 
               <Button
                 type="submit"
-                disabled={login.isPending}
+                disabled={login.isPending || googlePending}
                 className="h-12 w-full bg-[#4f46e5] bg-clip-border text-base text-white hover:bg-[#4338ca] disabled:opacity-70"
                 style={{ backgroundColor: '#4f46e5', color: '#fff' }}
               >
@@ -189,11 +203,57 @@ export function LoginPage() {
             </FieldGroup>
           </form>
 
+          {providers.data?.google && (
+            <div className="mt-5 space-y-5">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />
+                hoặc
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={login.isPending || googlePending}
+                className="h-12 w-full bg-background text-base text-foreground"
+                onClick={() => {
+                  setGooglePending(true)
+                  window.location.assign(authApi.googleLoginUrl())
+                }}
+              >
+                {googlePending ? <Loader2 className="animate-spin" /> : <GoogleMark />}
+                Đăng nhập với Google
+              </Button>
+            </div>
+          )}
+
           <p className="mt-6 text-center text-xs text-muted-foreground lg:text-left">
-            Chưa có tài khoản? Liên hệ quản trị viên để được cấp quyền truy cập.
+            Chưa có tài khoản? Liên hệ quản trị viên để được cấp quyền truy cập. Google chỉ nhận email đã có trong hệ thống.
           </p>
         </div>
       </main>
     </div>
+  )
+}
+
+function GoogleMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-5" aria-hidden>
+      <path
+        fill="#4285F4"
+        d="M23.49 12.27c0-.82-.07-1.64-.23-2.43H12v4.6h6.46a5.52 5.52 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.55-5.17 3.55-8.8Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.96-1.07 7.95-2.93l-3.88-3c-1.08.72-2.47 1.14-4.07 1.14-3.13 0-5.78-2.11-6.73-4.96H1.27v3.09A12 12 0 0 0 12 24Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.27 14.25A7.2 7.2 0 0 1 4.89 12c0-.78.14-1.53.38-2.25V6.66H1.27A12 12 0 0 0 0 12c0 1.94.46 3.77 1.27 5.34l4-3.09Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.45-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.27 6.66l4 3.09C6.22 6.86 8.87 4.75 12 4.75Z"
+      />
+    </svg>
   )
 }
