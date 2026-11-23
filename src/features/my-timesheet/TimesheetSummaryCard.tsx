@@ -7,7 +7,7 @@ import { formatOvertime } from '@/features/monthly-timesheets/monthly-timesheets
 import { formatDayMonth, formatDuration, todayYmd } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { isSunday, needsAttention, type LedgerDay } from './day-ledger'
-import type { LedgerFilter } from './DayLedger'
+import type { LedgerFilter } from './day-ledger'
 import { daysOfMonth } from './day-status'
 import { MonthActions } from './MonthActions'
 import { planOf, type BadgeTone } from './month-plan'

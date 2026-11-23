@@ -252,6 +252,16 @@ export function needsAttention(day: LedgerDay): boolean {
   return day.lateCount > 0 || day.earlyCount > 0 || day.missingCount > 0
 }
 
+/** Bộ lọc ngày, mở từ các chỉ số ở thẻ tổng công ("Xem ngày tăng ca", "Xem ngày cần chú ý"...). */
+export type LedgerFilter = 'all' | 'attention' | 'overtime' | 'online'
+
+export function filterDays(days: LedgerDay[], filter: LedgerFilter): LedgerDay[] {
+  if (filter === 'attention') return days.filter(needsAttention)
+  if (filter === 'overtime') return days.filter((d) => d.overtime > 0)
+  if (filter === 'online') return days.filter((d) => d.onlineMinutes > 0)
+  return days
+}
+
 /** Số ngày của từng bộ lọc trên bảng theo ngày. */
 export function ledgerCounts(days: LedgerDay[]) {
   return {
