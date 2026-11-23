@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { MonthNav } from '@/components/month-nav'
 import { PageContainer } from '@/components/page-container'
@@ -106,6 +106,8 @@ export function MyTimesheetPage() {
     setFocus(null)
   }
 
+  const disputeDay = useCallback((text: string) => setDayDispute({ text, at: Date.now() }), [])
+
   /** Lọc lịch theo các ngày đó và cuộn tới lịch, khi bấm một chỉ số ở thẻ tổng công. */
   function showDays(next: LedgerFilter) {
     setFilter(next)
@@ -142,7 +144,7 @@ export function MyTimesheetPage() {
       filter={filter}
       onFilterChange={setFilter}
       focus={focus}
-      onDispute={dispute ? (text) => setDayDispute({ text, at: Date.now() }) : undefined}
+      onDispute={dispute ? disputeDay : undefined}
       className="@min-[1136px]:flex-1"
     />
   ) : (

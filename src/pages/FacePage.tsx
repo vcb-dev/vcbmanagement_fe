@@ -14,7 +14,7 @@ export function FacePage() {
       <PageHeader
         hideTitleOnPhone
         title="Khuôn mặt"
-        description="Đăng ký khuôn mặt trên điện thoại: nhìn thẳng, quay trái, quay phải. Xong là chấm công được."
+        description="Đăng ký khuôn mặt trên điện thoại: nhìn thẳng, quay trái, quay phải. Quản lý duyệt xong mới chấm công được."
       />
       <MyFace />
     </div>

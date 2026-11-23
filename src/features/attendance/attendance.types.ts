@@ -70,8 +70,8 @@ export interface AttendanceToday {
     /** Đúng Wi‑Fi tầng được gán (admin/manager được cả 5 và 6). */
     floorMatch?: boolean
     clientIp?: string | null
-    wifiFloor?: 5 | 6 | null
-    assignedFloor?: 5 | 6 | null
+    wifiFloor?: 4 | 5 | 6 | null
+    assignedFloor?: 4 | 5 | 6 | null
   }
   record: AttendanceRecord | null
   /** null = đã chấm đủ trong ngày. */

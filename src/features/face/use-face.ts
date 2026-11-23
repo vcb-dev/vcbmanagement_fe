@@ -20,6 +20,8 @@ export interface ScanFrameResult {
   hint: string
   poseOk?: boolean
   streak?: number
+  /** Số giây còn lại trước khi chụp ảnh nhìn thẳng. */
+  holdSeconds?: number | null
   saving?: boolean
   livenessExpiresAt?: string
   me?: FaceMe

@@ -11,10 +11,35 @@ import {
 } from './attendance.types'
 import type { GeoReading } from './use-geolocation'
 
+const DIRECT_API = 'https://vcb-management-be-production.up.railway.app/api/v1'
+
+let networkProofCache: { token: string; at: number } | null = null
+
+/**
+ * iPhone mở web qua IPv6 nên IP Vercel chuyển tiếp không trùng IPv4 Wi‑Fi đã lưu.
+ * Gọi thẳng Railway (chỉ có bản ghi IPv4) để server tự thấy IP thật rồi ký lại.
+ */
+async function officeNetworkHeader(): Promise<Record<string, string>> {
+  if (typeof window === 'undefined' || !window.location.hostname.endsWith('.vercel.app')) return {}
+  if (networkProofCache && Date.now() - networkProofCache.at < 60_000) {
+    return { 'X-Office-Network': networkProofCache.token }
+  }
+  try {
+    const res = await fetch(`${DIRECT_API}/attendance/network-proof`, { cache: 'no-store' })
+    if (!res.ok) return {}
+    const token = (await res.json())?.data?.token
+    if (typeof token !== 'string' || !token) return {}
+    networkProofCache = { token, at: Date.now() }
+    return { 'X-Office-Network': token }
+  } catch {
+    return {}
+  }
+}
+
 const KEY = ['attendance'] as const
 
 async function get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
-  const res = await apiClient.get<{ data: T }>(url, { params })
+  const res = await apiClient.get<{ data: T }>(url, { params, headers: await officeNetworkHeader() })
   return res.data.data
 }
 
@@ -22,6 +47,7 @@ export function useAttendanceToday() {
   return useQuery({
     queryKey: [...KEY, 'today'],
     queryFn: () => get<AttendanceToday>('/attendance/today'),
+    staleTime: 15_000,
   })
 }
 
@@ -70,7 +96,9 @@ export function usePhotoCheck() {
       const form = new FormData()
       form.append('photo', photo, 'check.jpg')
       appendClientTime(form)
-      const res = await apiClient.post<{ data: PhotoCheckResult }>('/attendance/photo-check', form)
+      const res = await apiClient.post<{ data: PhotoCheckResult }>('/attendance/photo-check', form, {
+        headers: await officeNetworkHeader(),
+      })
       return res.data.data
     },
   })
@@ -79,13 +107,13 @@ export function usePhotoCheck() {
 export function useRegisterOfficeWifi() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ location, floor }: { location?: GeoReading; floor: 5 | 6 }) => {
+    mutationFn: async ({ location, floor }: { location?: GeoReading; floor: 4 | 5 | 6 }) => {
       const res = await apiClient.post<{ data: { ipAddress: string; floor: number } }>('/attendance/office-wifi', {
         floor,
         latitude: location?.latitude,
         longitude: location?.longitude,
         accuracy: location?.accuracy,
-      })
+      }, { headers: await officeNetworkHeader() })
       return res.data.data
     },
     onSuccess: ({ ipAddress }) => {
@@ -100,7 +128,9 @@ export function useUnregisterOfficeWifi() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async () => {
-      const res = await apiClient.delete<{ data: { ipAddress: string } }>('/attendance/office-wifi')
+      const res = await apiClient.delete<{ data: { ipAddress: string } }>('/attendance/office-wifi', {
+        headers: await officeNetworkHeader(),
+      })
       return res.data.data
     },
     onSuccess: ({ ipAddress }) => {
@@ -138,6 +168,7 @@ export function usePunch() {
       const res = await apiClient.post<{ data: { slot: AttendanceSlot; record: AttendanceRecord } }>(
         '/attendance/punch',
         form,
+        { headers: await officeNetworkHeader() },
       )
       return res.data.data
     },
