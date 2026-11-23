@@ -42,7 +42,7 @@ export function UserProfileDialog({
         input: {
           departmentId: departmentId === NONE ? null : departmentId,
           employmentType,
-          officeFloor: officeFloor === NONE ? null : (Number(officeFloor) as 5 | 6),
+          officeFloor: officeFloor === NONE ? null : (Number(officeFloor) as 4 | 5 | 6),
           contractStartDate: contract || null,
         },
       },
@@ -86,11 +86,12 @@ export function UserProfileDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NONE}>Chưa gán tầng</SelectItem>
+                  <SelectItem value="4">Tầng 4</SelectItem>
                   <SelectItem value="5">Tầng 5</SelectItem>
                   <SelectItem value="6">Tầng 6</SelectItem>
                 </SelectContent>
               </Select>
-              <FieldDescription>Nhân sự chỉ chấm công khi nối Wi‑Fi đúng tầng này. Quản lý được cả hai tầng.</FieldDescription>
+              <FieldDescription>Nhân sự chỉ chấm khi Wi‑Fi và nền ảnh đúng tầng này. Ảnh tầng khác sẽ bị từ chối.</FieldDescription>
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field>

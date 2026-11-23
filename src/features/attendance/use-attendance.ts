@@ -107,7 +107,7 @@ export function usePhotoCheck() {
 export function useRegisterOfficeWifi() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ location, floor }: { location?: GeoReading; floor: 5 | 6 }) => {
+    mutationFn: async ({ location, floor }: { location?: GeoReading; floor: 4 | 5 | 6 }) => {
       const res = await apiClient.post<{ data: { ipAddress: string; floor: number } }>('/attendance/office-wifi', {
         floor,
         latitude: location?.latitude,

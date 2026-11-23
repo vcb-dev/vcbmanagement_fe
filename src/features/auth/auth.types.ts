@@ -9,7 +9,7 @@ export interface User {
   employmentType: EmploymentType
   departmentId: string | null
   /** 5 hoặc 6. null = chưa gán tầng chấm công. */
-  officeFloor: 5 | 6 | null
+  officeFloor: 4 | 5 | 6 | null
   contractStartDate: string | null
   isActive: boolean
   createdAt: string

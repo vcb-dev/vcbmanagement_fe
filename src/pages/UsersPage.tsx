@@ -201,6 +201,7 @@ export function UsersPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>Tất cả tầng</SelectItem>
+                <SelectItem value="4">Tầng 4</SelectItem>
                 <SelectItem value="5">Tầng 5</SelectItem>
                 <SelectItem value="6">Tầng 6</SelectItem>
                 <SelectItem value={UNASSIGNED}>Chưa gán tầng</SelectItem>

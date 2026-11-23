@@ -105,7 +105,7 @@ export function ClockCard({ className }: { className?: string }) {
   const unregisterWifi = useUnregisterOfficeWifi()
   const [note, setNote] = useState('')
   const [photo, setPhoto] = useState<Blob | null>(null)
-  const [registerFloor, setRegisterFloor] = useState<'5' | '6'>('5')
+  const [registerFloor, setRegisterFloor] = useState<'4' | '5' | '6'>('5')
 
   const record = data?.record ?? null
   const nextSlot = data?.nextSlot ?? null
@@ -273,20 +273,21 @@ export function ClockCard({ className }: { className?: string }) {
                       ? 'Gán tầng cho nhân sự, rồi ghi nhận Wi‑Fi từng tầng. Tầng 1 dùng mạng khác sẽ không chấm được.'
                       : wifiOk
                         ? canManageWifi
-                          ? 'Quản lý được chấm ở tầng 5 hoặc 6.'
+                          ? 'Quản lý được chấm ở tầng 4, 5 hoặc 6.'
                           : `Bạn chấm công tầng ${assignedFloor}.`
                         : !assignedFloor && !canManageWifi
-                          ? 'Liên hệ quản lý gán tầng 5 hoặc tầng 6 trong mục Nhân sự.'
+                          ? 'Liên hệ quản lý gán tầng 4, 5 hoặc 6 trong mục Nhân sự.'
                           : `Tắt 4G, nối Wi‑Fi ${assignedFloor ? `tầng ${assignedFloor}` : 'đúng tầng của bạn'} rồi tải lại trang.`}
                     {wifi?.clientIp ? ` IP: ${wifi.clientIp}.` : ''}
                   </p>
                   {canManageWifi && (
                     <div className="flex flex-wrap items-center gap-2">
-                      <Select value={registerFloor} onValueChange={(v) => setRegisterFloor(v as '5' | '6')}>
+                      <Select value={registerFloor} onValueChange={(v) => setRegisterFloor(v as '4' | '5' | '6')}>
                         <SelectTrigger aria-label="Tầng của Wi‑Fi này" className="h-9 w-28">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="4">Tầng 4</SelectItem>
                           <SelectItem value="5">Tầng 5</SelectItem>
                           <SelectItem value="6">Tầng 6</SelectItem>
                         </SelectContent>
@@ -300,7 +301,7 @@ export function ClockCard({ className }: { className?: string }) {
                         onClick={() =>
                           registerWifi.mutate({
                             location: geo.state.status === 'ok' ? geo.state.reading : undefined,
-                            floor: Number(registerFloor) as 5 | 6,
+                            floor: Number(registerFloor) as 4 | 5 | 6,
                           })
                         }
                       >
