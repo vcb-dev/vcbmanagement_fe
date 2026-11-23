@@ -143,10 +143,6 @@ export function LoginPage() {
             {googlePending ? <Loader2 className="animate-spin" /> : <GoogleMark />}
             Đăng nhập với Google
           </Button>
-
-          <p className="mt-6 text-center text-xs text-muted-foreground lg:text-left">
-            Chỉ email nhân sự tầng 5 và tầng 6 mới vào được hệ thống. Chưa có quyền? Liên hệ quản trị viên.
-          </p>
         </div>
       </main>
     </div>
