@@ -51,16 +51,6 @@ void queryClient
     },
   })
   .catch(() => queryClient.removeQueries({ queryKey: ['attendance', 'my-timesheet', bootMonth] }))
-void queryClient
-  .prefetchQuery({
-    queryKey: ['attendance', 'today'],
-    staleTime: 60_000,
-    queryFn: async () => {
-      const res = await apiClient.get<{ data: unknown }>('/attendance/today')
-      return res.data.data
-    },
-  })
-  .catch(() => queryClient.removeQueries({ queryKey: ['attendance', 'today'] }))
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
