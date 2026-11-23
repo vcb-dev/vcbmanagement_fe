@@ -139,8 +139,12 @@ function CollapseButton() {
 }
 
 function TodayWidget({ onNavigate }: { onNavigate: () => void }) {
-  const { data } = useAttendanceToday()
-  if (!data) return null
+  const { data, isPending } = useAttendanceToday()
+  if (isPending || !data) {
+    return (
+      <div className="mx-0.5 mb-1 min-h-[5.75rem] rounded-xl border bg-card p-3 group-data-[collapsible=icon]:hidden" />
+    )
+  }
   const { record, nextSlot } = data
   const last = record?.punches.at(-1)
   const working = !!last?.slot.endsWith('_in')

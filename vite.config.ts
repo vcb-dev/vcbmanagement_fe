@@ -68,7 +68,7 @@ export default defineConfig({
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'pwa-192.png', 'pwa-512.png'],
       manifest,
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2,woff}'],
+        globPatterns: ['**/*.{js,css,html,svg,png}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/assets\//],
       },
@@ -78,6 +78,16 @@ export default defineConfig({
   build: {
     target: ['es2020', 'safari15'],
     modulePreload: { polyfill: false },
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/') || id.includes('node_modules/scheduler')) {
+            return 'react'
+          }
+          if (id.includes('node_modules/recharts')) return 'charts'
+        },
+      },
+    },
   },
   resolve: {
     alias: { '@': path.resolve(import.meta.dirname, './src') },

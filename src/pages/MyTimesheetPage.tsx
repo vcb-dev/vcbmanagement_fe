@@ -15,16 +15,9 @@ import { useMyTimesheet } from '@/features/my-timesheet/use-my-timesheet'
 import { DisputeDialog } from '@/features/part-time/DisputeDialog'
 import { FeedbackThread } from '@/features/part-time/FeedbackThread'
 import { useMyPartTimeDays } from '@/features/part-time/use-part-time'
-import { useElementWidth } from '@/hooks/use-element-width'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { formatDate, formatMonth, todayYmd } from '@/lib/format'
 import { EMPLOYMENT_LABEL } from '@/lib/user-display'
-
-/**
- * Từ bề rộng này trang chia hai cột: danh sách ngày bên trái (đủ 800px cho bảng) và cột phải 20rem
- * giữ thẻ tổng công cùng nút xác nhận luôn trong tầm mắt khi cuộn qua các ngày.
- */
-const TWO_COLUMN_MIN = 1136
 
 /** Vị trí dính ngay dưới thanh tiêu đề của app. */
 const BELOW_APP_HEADER = 'calc(3.5rem + env(safe-area-inset-top, 0px))'
@@ -80,8 +73,6 @@ export function MyTimesheetPage() {
   const [filter, setFilter] = useState<LedgerFilter>('all')
   /** Báo sai một ngày: nội dung điền sẵn; `at` làm key để hộp nạp lại nội dung mỗi lần mở. */
   const [dayDispute, setDayDispute] = useState<{ text: string; at: number } | null>(null)
-  const [pageRef, pageWidth] = useElementWidth<HTMLDivElement>()
-  const wide = pageWidth >= TWO_COLUMN_MIN
 
   const sheet = useMyTimesheet(month)
   const monthReady = sheet.data?.month === month
@@ -112,7 +103,14 @@ export function MyTimesheetPage() {
     setFocus({ at: Date.now() })
   }
 
-  if (!user) return null
+  if (!user) {
+    return (
+      <PageContainer>
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-96 w-full rounded-xl" />
+      </PageContainer>
+    )
+  }
 
   const variant = isPartTime ? 'part_time' : 'full_time'
   const dispute = data ? planOf(data).dispute : null
@@ -166,7 +164,7 @@ export function MyTimesheetPage() {
 
   return (
     <PageContainer>
-      <div ref={pageRef} className="space-y-4">
+      <div className="@container space-y-4">
         {/* Điện thoại: chọn tháng dính dưới thanh tiêu đề, đổi tháng được ở bất kỳ đâu trong danh sách ngày. */}
         <div className="sticky z-20 -mx-3 -mt-4 border-b bg-background px-3 py-2 sm:hidden" style={{ top: BELOW_APP_HEADER }}>
           <MonthNav month={month} max={currentMonth} onChange={changeMonth} className="justify-between" />
@@ -189,28 +187,13 @@ export function MyTimesheetPage() {
               </button>
             </CardContent>
           </Card>
-        ) : wide ? (
-          <div className="grid grid-cols-[minmax(0,1fr)_20rem] gap-4">
-            {/* Cột phải đứng trước trong DOM: bàn phím và trình đọc màn hình gặp kết luận và nút xác nhận trước. */}
-            {/* Cả cột dính cùng nhau; cao hơn màn hình thì cuộn bên trong cột, không có thẻ nào trượt dưới thẻ nào. */}
-            <aside
-              aria-label="Tổng kết tháng"
-              className="sticky col-start-2 row-start-1 min-w-0 space-y-4 self-start overflow-y-auto overscroll-contain rounded-xl [scrollbar-width:thin]"
-              style={{
-                top: `calc(${BELOW_APP_HEADER} + 1rem)`,
-                maxHeight: `calc(100dvh - ${BELOW_APP_HEADER} - 2rem)`,
-              }}
-            >
-              {verdict}
-              {conversation}
-            </aside>
-            <div className="col-start-1 row-start-1 min-w-0">{ledger}</div>
-          </div>
         ) : (
-          <div className="space-y-6">
-            {verdict}
-            {ledger}
-            {conversation}
+          <div className="flex flex-col gap-6 @min-[1136px]:grid @min-[1136px]:grid-cols-[minmax(0,1fr)_20rem] @min-[1136px]:grid-rows-[auto_auto] @min-[1136px]:gap-4">
+            <div className="order-1 min-w-0 @min-[1136px]:col-start-2 @min-[1136px]:row-start-1 @min-[1136px]:sticky @min-[1136px]:self-start" style={{ top: `calc(${BELOW_APP_HEADER} + 1rem)` }}>
+              {verdict}
+            </div>
+            <div className="order-2 min-w-0 @min-[1136px]:col-start-1 @min-[1136px]:row-span-2 @min-[1136px]:row-start-1">{ledger}</div>
+            <div className="order-3 min-w-0 @min-[1136px]:col-start-2 @min-[1136px]:row-start-2">{conversation}</div>
           </div>
         )}
 

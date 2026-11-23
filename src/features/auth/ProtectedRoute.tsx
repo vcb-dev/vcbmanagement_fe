@@ -2,7 +2,6 @@ import { Loader2, ShieldAlert, WifiOff } from 'lucide-react'
 import { useEffect } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { BrandMark } from '@/components/brand-logo'
 import { Button } from '@/components/ui/button'
 import type { UserRole } from './auth.types'
 import { homePath, useMe } from './use-auth'
@@ -28,15 +27,7 @@ export function ProtectedRoute({ roles }: Props) {
   }, [user, location.pathname, location.search, navigate])
 
   if (isPending) {
-    return (
-      <FullScreen>
-        <BrandMark className="size-12 animate-pulse rounded-2xl" />
-        <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" />
-          Đang xác thực phiên đăng nhập…
-        </p>
-      </FullScreen>
-    )
+    return <Outlet />
   }
 
   if (isError) {

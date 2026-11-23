@@ -30,8 +30,18 @@ export function AppLayout() {
 
   if (!user) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-background p-6 text-sm text-muted-foreground">
-        Đang tải…
+      <div className="flex min-h-dvh bg-background">
+        <div className="hidden w-64 shrink-0 border-r bg-sidebar md:block" />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header
+            className="shrink-0 border-b"
+            style={{ height: 'calc(3.5rem + env(safe-area-inset-top, 0px))' }}
+          />
+          <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            Đang tải…
+          </div>
+        </div>
       </div>
     )
   }
