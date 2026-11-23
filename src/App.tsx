@@ -48,11 +48,11 @@ function useSessionExpiredRedirect() {
   }, [navigate, queryClient])
 }
 
-/** Trang chủ `/`: admin / quản lý vào Tổng quan, nhân viên vào Công của tôi. */
+/** Trang chủ `/`: admin / quản lý vào Tổng quan, nhân viên vào Chấm công (điện thoại). */
 function HomeRedirect() {
   const { data: user } = useMe()
   const isManager = user?.role === 'admin' || user?.role === 'manager'
-  return <Navigate to={isManager ? '/overview' : '/my-timesheet'} replace />
+  return <Navigate to={isManager ? '/overview' : '/attendance'} replace />
 }
 
 export default function App() {

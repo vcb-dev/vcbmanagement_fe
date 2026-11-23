@@ -10,10 +10,11 @@ import { cn } from '@/lib/utils'
 
 export function FacePage() {
   return (
-    <div className="mx-auto w-full min-w-0 max-w-5xl space-y-6 overflow-x-clip p-3 sm:p-4 md:p-6 lg:p-8">
+    <div className="mx-auto w-full min-w-0 max-w-5xl space-y-4 overflow-x-clip p-3 pb-8 sm:space-y-6 sm:p-4 md:p-6 lg:p-8">
       <PageHeader
+        hideTitleOnPhone
         title="Khuôn mặt"
-        description="Đăng ký khuôn mặt một lần (nhìn thẳng, quay trái, quay phải). Quản lý duyệt xong, mỗi lần chấm công đối chiếu khuôn mặt trong ảnh camera."
+        description="Đăng ký khuôn mặt trên điện thoại: nhìn thẳng, quay trái, quay phải. Xong là chấm công được."
       />
       <MyFace />
     </div>
@@ -53,13 +54,13 @@ function MyFace() {
                   Trạng thái: {FACE_STATUS_LABEL[profile.status]} · {profile.photoCount} ảnh
                 </p>
                 {profile.status === 'pending' && (
-                  <p className="text-xs text-muted-foreground">Đang chờ quản lý duyệt. Bạn có thể đăng ký lại bằng camera.</p>
+                  <p className="text-xs text-muted-foreground">Đang chờ duyệt. Bạn có thể đăng ký lại bằng camera.</p>
                 )}
                 {profile.status === 'rejected' && (
                   <p className="text-xs text-destructive">{profile.rejectReason ?? 'Đăng ký bị từ chối, hãy chụp lại.'}</p>
                 )}
                 {profile.status === 'approved' && (
-                  <p className="text-xs text-muted-foreground">Có thể chấm công. Đăng ký lại nếu ngoại hình đổi nhiều.</p>
+                  <p className="text-xs text-muted-foreground">Đã lưu. Có thể chấm công trên điện thoại.</p>
                 )}
               </div>
             )}

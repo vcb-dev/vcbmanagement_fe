@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { cn } from '@/lib/utils'
-import { prepareVideoEl } from '@/lib/camera'
+import { attachCameraStream } from '@/lib/camera'
 import { captureJpeg, openUserCamera } from './capture-frame'
 import { STEP_LABEL, type LivenessStep } from './face.types'
 import { useScanFrame, useScanStatus, useStartScan, type ScanFrameResult } from './use-face'
@@ -57,10 +57,8 @@ export function FaceScan({
     const video = videoRef.current
     if (!live || !sessionId || !video || !streamRef.current) return
     let cancelled = false
-    prepareVideoEl(video)
-    video.srcObject = streamRef.current
     const loop = async () => {
-      await video.play().catch(() => undefined)
+      await attachCameraStream(video, streamRef.current!)
       setHint('Đang chỉnh sáng camera…')
       await new Promise((r) => window.setTimeout(r, CAMERA_WARMUP_MS))
       while (!cancelled && liveRef.current && sessionRef.current) {
@@ -118,9 +116,10 @@ export function FaceScan({
   const begin = async () => {
     setError(null)
     try {
-      const session = await start.mutateAsync(kind)
+      // iPhone: getUserMedia phải chạy trong cùng lần chạm, trước await mạng.
       const stream = await openUserCamera()
       streamRef.current = stream
+      const session = await start.mutateAsync(kind)
       sessionRef.current = session.sessionId
       liveRef.current = true
       savingRef.current = false
@@ -133,6 +132,8 @@ export function FaceScan({
       setSaving(false)
       setLive(true)
     } catch (err) {
+      streamRef.current?.getTracks().forEach((t) => t.stop())
+      streamRef.current = null
       setError(getApiErrorMessage(err))
     }
   }
@@ -143,8 +144,8 @@ export function FaceScan({
   return (
     <div className="space-y-3">
       {live ? (
-        <div className="mx-auto w-full max-w-sm min-w-0 space-y-3">
-          <div className="relative h-[min(58dvh,26rem)] w-full overflow-hidden rounded-3xl border bg-black sm:h-auto sm:aspect-[3/4]">
+        <div className="mx-auto w-full max-w-sm min-w-0 space-y-3 max-md:fixed max-md:inset-0 max-md:z-50 max-md:flex max-md:max-w-none max-md:flex-col max-md:overflow-y-auto max-md:bg-black max-md:p-3 max-md:pt-[max(0.75rem,env(safe-area-inset-top))] max-md:pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="relative h-[min(70dvh,32rem)] w-full overflow-hidden rounded-3xl border bg-black max-md:min-h-0 max-md:flex-1 sm:h-auto sm:aspect-[3/4]">
             <video ref={videoRef} playsInline muted autoPlay className="size-full -scale-x-100 object-cover" />
             <OvalGuide step={step} poseOk={poseOk} blocked={blocked} saving={saving} />
             <p className="absolute inset-x-0 bottom-3 line-clamp-2 px-10 text-center text-sm font-semibold text-white drop-shadow">
@@ -159,7 +160,9 @@ export function FaceScan({
               Huỷ
             </Button>
           </div>
-          <StepRail steps={steps} current={stepIndex} poseOk={poseOk} saving={saving} />
+          <div className="shrink-0 max-md:rounded-xl max-md:bg-white/95 max-md:p-2">
+            <StepRail steps={steps} current={stepIndex} poseOk={poseOk} saving={saving} />
+          </div>
         </div>
       ) : (
         <Button type="button" variant="outline" className="h-12 w-full text-base" onClick={begin} disabled={start.isPending}>
