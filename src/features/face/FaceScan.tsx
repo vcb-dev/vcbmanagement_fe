@@ -39,6 +39,7 @@ export function FaceScan({
   const [stepIndex, setStepIndex] = useState(0)
   const [hint, setHint] = useState('Đưa mặt vào khung hình')
   const [poseOk, setPoseOk] = useState(false)
+  const [holdSeconds, setHoldSeconds] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -88,6 +89,7 @@ export function FaceScan({
       setHint(result.hint)
       setStepIndex(result.stepIndex)
       setPoseOk(!!result.poseOk)
+      setHoldSeconds(result.holdSeconds ?? null)
       setSaving(!!result.saving)
       savingRef.current = !!result.saving
       if (result.done) {
@@ -129,6 +131,7 @@ export function FaceScan({
       setStepIndex(session.stepIndex)
       setHint(session.hint)
       setPoseOk(false)
+      setHoldSeconds(null)
       setSaving(false)
       setLive(true)
     } catch (err) {
@@ -147,7 +150,7 @@ export function FaceScan({
         <div className="mx-auto w-full max-w-sm min-w-0 space-y-3 max-md:fixed max-md:inset-0 max-md:z-50 max-md:flex max-md:max-w-none max-md:flex-col max-md:overflow-y-auto max-md:bg-black max-md:p-3 max-md:pt-[max(0.75rem,env(safe-area-inset-top))] max-md:pb-[max(1rem,env(safe-area-inset-bottom))]">
           <div className="relative h-[min(70dvh,32rem)] w-full overflow-hidden rounded-3xl border bg-black max-md:min-h-0 max-md:flex-1 sm:h-auto sm:aspect-[3/4]">
             <video ref={videoRef} playsInline muted autoPlay className="size-full -scale-x-100 object-cover" />
-            <OvalGuide step={step} poseOk={poseOk} blocked={blocked} saving={saving} />
+            <OvalGuide step={step} poseOk={poseOk} blocked={blocked} saving={saving} holdSeconds={holdSeconds} />
             <p className="absolute inset-x-0 bottom-3 line-clamp-2 px-10 text-center text-sm font-semibold text-white drop-shadow">
               {hint}
             </p>
@@ -161,7 +164,7 @@ export function FaceScan({
             </Button>
           </div>
           <div className="shrink-0 max-md:rounded-xl max-md:bg-white/95 max-md:p-2">
-            <StepRail steps={steps} current={stepIndex} poseOk={poseOk} saving={saving} />
+            <StepRail steps={steps} current={stepIndex} poseOk={poseOk} saving={saving} holding={holdSeconds != null} />
           </div>
         </div>
       ) : (
@@ -185,11 +188,13 @@ function OvalGuide({
   poseOk,
   blocked,
   saving,
+  holdSeconds,
 }: {
   step: LivenessStep
   poseOk: boolean
   blocked: boolean
   saving: boolean
+  holdSeconds: number | null
 }) {
   return (
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -201,6 +206,11 @@ function OvalGuide({
             blocked ? 'border-rose-400' : poseOk || saving ? 'border-emerald-400' : 'border-white/90',
           )}
         />
+        {holdSeconds != null && !saving && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+            <span className="text-6xl font-semibold tabular-nums drop-shadow">{holdSeconds}</span>
+          </div>
+        )}
         {saving && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white">
             <Check className="size-10 drop-shadow" />
@@ -227,11 +237,13 @@ function StepRail({
   current,
   poseOk,
   saving,
+  holding,
 }: {
   steps: LivenessStep[]
   current: number
   poseOk: boolean
   saving: boolean
+  holding: boolean
 }) {
   return (
     <ol className={cn('grid gap-2', steps.length === 1 ? 'grid-cols-1' : 'grid-cols-3')}>
@@ -251,7 +263,7 @@ function StepRail({
             )}
           >
             <span className="flex size-7 items-center justify-center rounded-full bg-background shadow-sm">
-              {done || (active && poseOk) ? (
+              {done || (active && poseOk && !holding) ? (
                 <Check className="size-4 text-emerald-600" />
               ) : active ? (
                 <Loader2 className="size-4 animate-spin text-primary" />
