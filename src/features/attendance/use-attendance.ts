@@ -22,6 +22,7 @@ export function useAttendanceToday() {
   return useQuery({
     queryKey: [...KEY, 'today'],
     queryFn: () => get<AttendanceToday>('/attendance/today'),
+    staleTime: 60_000,
   })
 }
 

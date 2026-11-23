@@ -11,7 +11,7 @@ import {
   TriangleAlert,
   type LucideIcon,
 } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, memo } from 'react'
 import type { AttendanceSlot } from '@/features/attendance/attendance.types'
 import { formatOvertime } from '@/features/monthly-timesheets/monthly-timesheets.types'
 import type { WorkShift } from '@/features/part-time/part-time.types'
@@ -339,7 +339,7 @@ function DisputeDayButton({
   )
 }
 
-function DayRow({ day, variant, thresholds, onDispute }: RowProps) {
+const DayRow = memo(function DayRow({ day, variant, thresholds, onDispute }: RowProps) {
   const sunday = isSunday(day.date)
   const notes = notesOf(day, thresholds, variant)
 
@@ -407,7 +407,7 @@ function DayRow({ day, variant, thresholds, onDispute }: RowProps) {
       </td>
     </tr>
   )
-}
+})
 
 /** Một ca trên điện thoại: biểu tượng, tên ca, rồi Vào – Ra trên cùng một dòng. */
 function ShiftLine({ day, s, variant }: { day: LedgerDay; s: LedgerShift; variant: Variant }) {
@@ -481,7 +481,7 @@ function DayMetrics({ day, variant }: { day: LedgerDay; variant: Variant }) {
  * Một ngày trên điện thoại: ngày ở cột trái, từng ca một dòng ở giữa, công ở cột phải; ghi chú nằm ngay dưới
  * giờ để không phải vuốt ngang mới thấy. Ngày không chấm công chỉ hiện ghi chú, không lặp các gạch trống.
  */
-function DayItem({ day, variant, thresholds, onDispute }: RowProps) {
+const DayItem = memo(function DayItem({ day, variant, thresholds, onDispute }: RowProps) {
   const sunday = isSunday(day.date)
   const notes = notesOf(day, thresholds, variant)
   const punched = day.shifts.some((s) => s.mode !== 'none' || s.missing)
@@ -490,7 +490,11 @@ function DayItem({ day, variant, thresholds, onDispute }: RowProps) {
     <li
       id={`ledger-${day.date}`}
       aria-current={day.isToday ? 'date' : undefined}
-      className={cn('flex scroll-mt-32 gap-3 px-3 py-2.5', sunday && 'bg-muted/60', day.isToday && 'bg-primary/[0.04]')}
+      className={cn(
+        'flex scroll-mt-32 gap-3 px-3 py-2.5 [content-visibility:auto] [contain-intrinsic-size:auto_3.5rem]',
+        sunday && 'bg-muted/60',
+        day.isToday && 'bg-primary/[0.04]',
+      )}
     >
       <div className="w-11 shrink-0 pt-0.5">
         <p className={cn('text-sm leading-5 font-semibold tabular-nums', day.isToday && 'text-primary')}>{formatDayMonth(day.date)}</p>
@@ -532,7 +536,7 @@ function DayItem({ day, variant, thresholds, onDispute }: RowProps) {
       </div>
     </li>
   )
-}
+})
 
 /** Ô tiêu đề có biểu tượng phía trên chữ, gộp hai tầng. */
 function IconHead({ icon: Icon, label, sub, className }: { icon: LucideIcon; label: string; sub?: string; className?: string }) {

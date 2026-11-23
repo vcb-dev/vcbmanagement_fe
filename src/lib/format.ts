@@ -1,8 +1,13 @@
 const TZ = 'Asia/Ho_Chi_Minh'
+const TIME_FMT = new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: TZ })
+const DAY_FMT = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: TZ })
+const WORK_DATE_SHORT = new Intl.DateTimeFormat('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' })
+const WORK_DATE_LONG = new Intl.DateTimeFormat('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
+const TODAY_FMT = new Intl.DateTimeFormat('en-CA', { timeZone: TZ })
 
 export function formatTime(iso: string | null | undefined): string {
   if (!iso) return '--:--'
-  return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: TZ })
+  return TIME_FMT.format(new Date(iso))
 }
 
 /** 495 → "8g 15p" */
@@ -44,17 +49,11 @@ export function weekdayShort(ymd: string): string {
 
 /** "2026-11-02" → "T2, 02/11" */
 export function formatWorkDate(ymd: string, opts?: { long?: boolean }): string {
-  const date = new Date(`${ymd}T00:00:00`)
-  return date.toLocaleDateString('vi-VN', {
-    weekday: opts?.long ? 'long' : 'short',
-    day: '2-digit',
-    month: '2-digit',
-    ...(opts?.long ? { year: 'numeric' } : {}),
-  })
+  return (opts?.long ? WORK_DATE_LONG : WORK_DATE_SHORT).format(new Date(`${ymd}T00:00:00`))
 }
 
 export function todayYmd(): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date())
+  return TODAY_FMT.format(new Date())
 }
 
 export function shiftYmd(ymd: string, days: number): string {
@@ -93,7 +92,5 @@ export function formatMonth(month: string): string {
 /** ISO → "15:20 · 10/11/2026" theo giờ Việt Nam. */
 export function formatDateTime(iso: string): string {
   const date = new Date(iso)
-  const time = date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: TZ })
-  const day = date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: TZ })
-  return `${time} · ${day}`
+  return `${TIME_FMT.format(date)} · ${DAY_FMT.format(date)}`
 }

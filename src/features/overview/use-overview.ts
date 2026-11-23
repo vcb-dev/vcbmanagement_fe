@@ -18,6 +18,7 @@ export function useOverview(date: string, { isToday, enabled }: { isToday: boole
     },
     placeholderData: keepPreviousData,
     refetchInterval: isToday ? LIVE_REFRESH_MS : false,
+    staleTime: 30_000,
     enabled,
   })
 }
@@ -31,6 +32,7 @@ export function useOverviewMonth(month: string, { enabled }: { enabled: boolean 
       return res.data.data
     },
     placeholderData: keepPreviousData,
+    staleTime: 60_000,
     enabled,
   })
 }

@@ -8,8 +8,9 @@ import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
 import { toast } from 'sonner'
 import { homePath, markLoggedOut, useMe } from '@/features/auth/use-auth'
 import { setSessionExpiredHandler } from '@/lib/api-client'
-import { AttendancePage } from '@/pages/AttendancePage'
 import { MyTimesheetPage } from '@/pages/MyTimesheetPage'
+
+const AttendancePage = lazy(() => import('@/pages/AttendancePage').then((m) => ({ default: m.AttendancePage })))
 
 const AttendanceBoardPage = lazy(() =>
   import('@/pages/AttendanceBoardPage').then((m) => ({ default: m.AttendanceBoardPage })),

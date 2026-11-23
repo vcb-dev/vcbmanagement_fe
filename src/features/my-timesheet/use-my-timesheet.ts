@@ -11,6 +11,7 @@ export function useMyTimesheet(month: string) {
       return res.data.data
     },
     placeholderData: (prev) => prev,
+    staleTime: 60_000,
   })
 }
 

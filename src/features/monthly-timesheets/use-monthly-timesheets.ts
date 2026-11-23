@@ -9,7 +9,7 @@ import type {
 } from './monthly-timesheets.types'
 
 /** Tự tải lại theo chu kỳ để số công máy, thiếu chấm, đi muộn theo kịp chấm công. */
-const REFRESH_MS = 30_000
+const REFRESH_MS = 60_000
 
 /** Key nằm dưới `attendance` để chấm công xong số liệu tự tải lại. */
 const reportKey = (month: string) => ['attendance', 'full-time-timesheets', month] as const
@@ -23,6 +23,7 @@ export function useFullTimeTimesheets(month: string) {
       return res.data.data
     },
     refetchInterval: REFRESH_MS,
+    staleTime: 30_000,
   })
 }
 
