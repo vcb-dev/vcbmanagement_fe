@@ -6,17 +6,17 @@ import { Toaster } from '@/components/ui/sonner'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
 import { toast } from 'sonner'
-import { markLoggedOut, useMe } from '@/features/auth/use-auth'
+import { homePath, markLoggedOut, useMe } from '@/features/auth/use-auth'
 import { setSessionExpiredHandler } from '@/lib/api-client'
+import { AttendancePage } from '@/pages/AttendancePage'
+import { MyTimesheetPage } from '@/pages/MyTimesheetPage'
 
-const AttendancePage = lazy(() => import('@/pages/AttendancePage').then((m) => ({ default: m.AttendancePage })))
 const AttendanceBoardPage = lazy(() =>
   import('@/pages/AttendanceBoardPage').then((m) => ({ default: m.AttendanceBoardPage })),
 )
 const AssistantPage = lazy(() => import('@/pages/AssistantPage').then((m) => ({ default: m.AssistantPage })))
 const FacePage = lazy(() => import('@/pages/FacePage').then((m) => ({ default: m.FacePage })))
 const FaceReviewPage = lazy(() => import('@/pages/FaceReviewPage').then((m) => ({ default: m.FaceReviewPage })))
-const MyTimesheetPage = lazy(() => import('@/pages/MyTimesheetPage').then((m) => ({ default: m.MyTimesheetPage })))
 const MyFeedbacksPage = lazy(() => import('@/pages/MyFeedbacksPage').then((m) => ({ default: m.MyFeedbacksPage })))
 const MyLeaveRequestsPage = lazy(() =>
   import('@/pages/MyLeaveRequestsPage').then((m) => ({ default: m.MyLeaveRequestsPage })),
@@ -50,9 +50,16 @@ function useSessionExpiredRedirect() {
 
 /** Trang chủ `/`: admin / quản lý vào Tổng quan, nhân viên vào Công của tôi. */
 function HomeRedirect() {
-  const { data: user } = useMe()
-  const isManager = user?.role === 'admin' || user?.role === 'manager'
-  return <Navigate to={isManager ? '/overview' : '/my-timesheet'} replace />
+  const { data: user, isPending } = useMe()
+  if (isPending) {
+    return (
+      <div className="flex flex-1 items-center justify-center py-24 text-sm text-muted-foreground">
+        Đang tải…
+      </div>
+    )
+  }
+  if (!user) return null
+  return <Navigate to={homePath(user.role)} replace />
 }
 
 export default function App() {
@@ -61,13 +68,7 @@ export default function App() {
   return (
     <>
       <Toaster closeButton />
-      <Suspense
-        fallback={
-          <div className="flex min-h-dvh items-center justify-center bg-background text-sm text-muted-foreground">
-            Đang tải…
-          </div>
-        }
-      >
+      <Suspense fallback={null}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route element={<ProtectedRoute />}>

@@ -52,8 +52,9 @@ export function AttendancePage() {
   const onTimeRate = shiftsIn > 0 ? Math.round((onTimeShifts / shiftsIn) * 100) : null
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-7xl space-y-6 overflow-x-clip p-3 sm:p-4 md:p-6 lg:p-8">
+    <div className="mx-auto w-full min-w-0 max-w-7xl space-y-4 overflow-x-clip p-3 pb-8 sm:space-y-6 sm:p-4 md:p-6 lg:p-8">
       <PageHeader
+        hideTitleOnPhone
         title="Chấm công"
         description={
           today

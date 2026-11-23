@@ -28,11 +28,18 @@ function writeHidden() {
 }
 
 export function InstallHint() {
-  const [show, setShow] = useState(false)
+  const [show, setShow] = useState(() => {
+    if (typeof window === 'undefined') return false
+    if (isStandalone() || readHidden()) return false
+    return isIos() || window.innerWidth < 768
+  })
 
   useEffect(() => {
-    if (isStandalone() || readHidden()) return
-    if (isIos() || !window.matchMedia('(min-width: 768px)').matches) setShow(true)
+    if (isStandalone() || readHidden()) {
+      setShow(false)
+      return
+    }
+    setShow(isIos() || window.innerWidth < 768)
   }, [])
 
   if (!show) return null

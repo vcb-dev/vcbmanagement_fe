@@ -2,7 +2,11 @@ import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tansta
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { authApi } from './auth.api'
-import type { User } from './auth.types'
+import type { User, UserRole } from './auth.types'
+
+export function homePath(role: UserRole) {
+  return role === 'admin' || role === 'manager' ? '/overview' : '/my-timesheet'
+}
 
 export const ME_QUERY_KEY = ['auth', 'me'] as const
 
@@ -12,20 +16,22 @@ export function markLoggedOut(queryClient: QueryClient) {
   queryClient.setQueryData<User | null>(ME_QUERY_KEY, null)
 }
 
+export async function fetchMe(): Promise<User | null> {
+  try {
+    return await authApi.me()
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response?.status === 401) return null
+    throw err
+  }
+}
+
 export function useMe() {
   return useQuery<User | null>({
     queryKey: ME_QUERY_KEY,
-    queryFn: async () => {
-      try {
-        return await authApi.me()
-      } catch (err) {
-        if (axios.isAxiosError(err) && err.response?.status === 401) return null
-        throw err
-      }
-    },
+    queryFn: fetchMe,
     staleTime: 5 * 60_000,
     retry: 1,
-    retryDelay: 800,
+    retryDelay: 200,
     refetchOnReconnect: false,
   })
 }

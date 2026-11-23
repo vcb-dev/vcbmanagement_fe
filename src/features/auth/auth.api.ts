@@ -6,8 +6,8 @@ export const authApi = {
     return `${apiClient.defaults.baseURL}/auth/google`
   },
 
-  async providers(): Promise<{ google: boolean }> {
-    const res = await apiClient.get<ApiResponse<{ google: boolean }>>('/auth/providers')
+  async providers(): Promise<{ google: boolean; password?: boolean }> {
+    const res = await apiClient.get<ApiResponse<{ google: boolean; password?: boolean }>>('/auth/providers')
     return res.data.data
   },
 

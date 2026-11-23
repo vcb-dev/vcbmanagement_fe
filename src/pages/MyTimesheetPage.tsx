@@ -15,23 +15,16 @@ import { useMyTimesheet } from '@/features/my-timesheet/use-my-timesheet'
 import { DisputeDialog } from '@/features/part-time/DisputeDialog'
 import { FeedbackThread } from '@/features/part-time/FeedbackThread'
 import { useMyPartTimeDays } from '@/features/part-time/use-part-time'
-import { useElementWidth } from '@/hooks/use-element-width'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { formatDate, formatMonth, todayYmd } from '@/lib/format'
 import { EMPLOYMENT_LABEL } from '@/lib/user-display'
-
-/**
- * Từ bề rộng này trang chia hai cột: danh sách ngày bên trái (đủ 800px cho bảng) và cột phải 20rem
- * giữ thẻ tổng công cùng nút xác nhận luôn trong tầm mắt khi cuộn qua các ngày.
- */
-const TWO_COLUMN_MIN = 1136
 
 /** Vị trí dính ngay dưới thanh tiêu đề của app. */
 const BELOW_APP_HEADER = 'calc(3.5rem + env(safe-area-inset-top, 0px))'
 
 /**
- * Màn rộng: trang cao tối thiểu bằng phần màn hình dưới thanh tiêu đề (trừ lề khung 0,5rem × 2 và đệm trang 1rem × 2),
- * để lịch và cột phải kéo xuống tới đáy thay vì dồn lên trên, chừa khoảng trống phía dưới.
+ * Trang cao tối thiểu bằng phần màn hình dưới thanh tiêu đề (trừ lề khung 0,5rem × 2 và đệm trang 1rem × 2).
+ * Chỉ màn rộng (hai cột) mới giãn theo, để lịch và cột phải kéo xuống tới đáy thay vì dồn lên trên.
  * Trần 50rem: màn rất cao thì dừng lại, mỗi dòng của bảng tuần không cao quá ~80px.
  */
 const FILL_HEIGHT = `min(calc(100dvh - ${BELOW_APP_HEADER} - 3rem), 50rem)`
@@ -87,8 +80,6 @@ export function MyTimesheetPage() {
   const [filter, setFilter] = useState<LedgerFilter>('all')
   /** Báo sai một ngày: nội dung điền sẵn; `at` làm key để hộp nạp lại nội dung mỗi lần mở. */
   const [dayDispute, setDayDispute] = useState<{ text: string; at: number } | null>(null)
-  const [pageRef, pageWidth] = useElementWidth<HTMLDivElement>()
-  const wide = pageWidth >= TWO_COLUMN_MIN
 
   const sheet = useMyTimesheet(month)
   const monthReady = sheet.data?.month === month
@@ -121,7 +112,14 @@ export function MyTimesheetPage() {
     setFocus({ at: Date.now() })
   }
 
-  if (!user) return null
+  if (!user) {
+    return (
+      <PageContainer>
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-96 w-full rounded-xl" />
+      </PageContainer>
+    )
+  }
 
   const variant = isPartTime ? 'part_time' : 'full_time'
   const dispute = data ? planOf(data).dispute : null
@@ -145,10 +143,10 @@ export function MyTimesheetPage() {
       onFilterChange={setFilter}
       focus={focus}
       onDispute={dispute ? (text) => setDayDispute({ text, at: Date.now() }) : undefined}
-      className={wide ? 'flex-1' : undefined}
+      className="@min-[1136px]:flex-1"
     />
   ) : (
-    <Skeleton className={wide ? 'w-full flex-1 rounded-xl' : 'h-96 w-full rounded-xl'} />
+    <Skeleton className="h-96 w-full rounded-xl @min-[1136px]:h-auto @min-[1136px]:flex-1" />
   )
 
   const conversation = data && (
@@ -164,7 +162,7 @@ export function MyTimesheetPage() {
 
   return (
     <PageContainer>
-      <div ref={pageRef} className="flex flex-col gap-4" style={wide ? { minHeight: FILL_HEIGHT } : undefined}>
+      <div className="@container flex flex-col gap-4" style={{ minHeight: FILL_HEIGHT }}>
         {/* Điện thoại: chọn tháng dính dưới thanh tiêu đề, đổi tháng được ở bất kỳ đâu trong danh sách ngày. */}
         <div className="sticky z-20 -mx-3 -mt-4 border-b bg-background px-3 py-2 sm:hidden" style={{ top: BELOW_APP_HEADER }}>
           <MonthNav month={month} max={currentMonth} onChange={changeMonth} className="justify-between" />
@@ -187,32 +185,14 @@ export function MyTimesheetPage() {
               </button>
             </CardContent>
           </Card>
-        ) : wide ? (
-          <div className="grid flex-1 grid-cols-[minmax(0,1fr)_20rem] gap-4">
-            {/* Cột phải đứng trước trong DOM: bàn phím và trình đọc màn hình gặp kết luận và nút xác nhận trước. */}
-            <aside aria-label="Tổng kết tháng" className="col-start-2 row-start-1 min-w-0">
-              {/*
-                Cao bằng lịch nhưng không quá một màn hình: cả cột dính cùng nhau khi lịch dài hơn màn hình,
-                cao hơn màn hình thì cuộn bên trong cột. Khối trao đổi giãn nốt phần còn lại để hai cột cùng chạm đáy.
-              */}
-              <div
-                className="sticky flex h-full flex-col gap-4 overflow-y-auto overscroll-contain rounded-xl [scrollbar-width:thin]"
-                style={{
-                  top: `calc(${BELOW_APP_HEADER} + 1rem)`,
-                  maxHeight: `calc(100dvh - ${BELOW_APP_HEADER} - 2rem)`,
-                }}
-              >
-                <div className="shrink-0">{verdict}</div>
-                {conversation && <div className="grid flex-[1_0_auto]">{conversation}</div>}
-              </div>
-            </aside>
-            <div className="col-start-1 row-start-1 flex min-w-0 flex-col">{ledger}</div>
-          </div>
         ) : (
-          <div className="space-y-6">
-            {verdict}
-            {ledger}
-            {conversation}
+          // Màn rộng: lưới giãn kín chiều cao trang; hàng 2 (1fr) để khối trao đổi kéo xuống, lịch trải hai hàng, hai cột cùng chạm đáy.
+          <div className="flex flex-col gap-6 @min-[1136px]:grid @min-[1136px]:flex-1 @min-[1136px]:grid-cols-[minmax(0,1fr)_20rem] @min-[1136px]:grid-rows-[auto_1fr] @min-[1136px]:gap-4">
+            <div className="order-1 min-w-0 @min-[1136px]:col-start-2 @min-[1136px]:row-start-1 @min-[1136px]:sticky @min-[1136px]:self-start" style={{ top: `calc(${BELOW_APP_HEADER} + 1rem)` }}>
+              {verdict}
+            </div>
+            <div className="order-2 flex min-w-0 flex-col @min-[1136px]:col-start-1 @min-[1136px]:row-span-2 @min-[1136px]:row-start-1">{ledger}</div>
+            <div className="order-3 min-w-0 @min-[1136px]:col-start-2 @min-[1136px]:row-start-2 @min-[1136px]:grid">{conversation}</div>
           </div>
         )}
 
