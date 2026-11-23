@@ -6,9 +6,11 @@ import { cn } from '@/lib/utils'
 import { prepareVideoEl } from '@/lib/camera'
 import { captureJpeg, openUserCamera } from './capture-frame'
 import { STEP_LABEL, type LivenessStep } from './face.types'
-import { useScanFrame, useStartScan, type ScanFrameResult } from './use-face'
+import { useScanFrame, useScanStatus, useStartScan, type ScanFrameResult } from './use-face'
 
 const TICK_GAP_MS = 50
+const SAVE_POLL_MS = 350
+const TRANSIENT = new Set([0, 502, 503, 504])
 /** Camera vừa mở thường tối (AE chưa ổn) — đợi rồi mới lấy ảnh nhìn thẳng. */
 const CAMERA_WARMUP_MS = 1100
 
@@ -23,13 +25,14 @@ export function FaceScan({
 }) {
   const start = useStartScan()
   const frame = useScanFrame()
+  const status = useScanStatus()
+  const reconnectsRef = useRef(0)
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const busyRef = useRef(false)
   const liveRef = useRef(false)
   const sessionRef = useRef<string | null>(null)
   const savingRef = useRef(false)
-  const lastBlobRef = useRef<Blob | null>(null)
   const [live, setLive] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [steps, setSteps] = useState<LivenessStep[]>([])
@@ -63,7 +66,7 @@ export function FaceScan({
       while (!cancelled && liveRef.current && sessionRef.current) {
         await tick()
         if (cancelled || !liveRef.current) break
-        await new Promise((r) => window.setTimeout(r, TICK_GAP_MS))
+        await new Promise((r) => window.setTimeout(r, savingRef.current ? SAVE_POLL_MS : TICK_GAP_MS))
       }
     }
     void loop()
@@ -80,10 +83,10 @@ export function FaceScan({
     if (!savingRef.current && !video.videoWidth) return
     busyRef.current = true
     try {
-      const blob =
-        savingRef.current && lastBlobRef.current ? lastBlobRef.current : await captureJpeg(video)
-      lastBlobRef.current = blob
-      const result = await frame.mutateAsync({ sessionId: sid, frame: blob })
+      const result = savingRef.current
+        ? await status.mutateAsync(sid)
+        : await frame.mutateAsync({ sessionId: sid, frame: await captureJpeg(video) })
+      reconnectsRef.current = 0
       setHint(result.hint)
       setStepIndex(result.stepIndex)
       setPoseOk(!!result.poseOk)
@@ -96,8 +99,10 @@ export function FaceScan({
         onDone(result)
       }
     } catch (err) {
-      const status = (err as { response?: { status?: number } })?.response?.status
-      if (status === 502 || status === 503 || status === 0) {
+      const code = (err as { response?: { status?: number } })?.response?.status ?? 0
+      const transient = TRANSIENT.has(code) || !(err as { response?: unknown })?.response
+      if (transient && reconnectsRef.current < 12) {
+        reconnectsRef.current += 1
         setHint('Đang kết nối lại máy chủ…')
       } else {
         setError(getApiErrorMessage(err))
@@ -119,7 +124,7 @@ export function FaceScan({
       sessionRef.current = session.sessionId
       liveRef.current = true
       savingRef.current = false
-      lastBlobRef.current = null
+      reconnectsRef.current = 0
       setSessionId(session.sessionId)
       setSteps(session.steps)
       setStepIndex(session.stepIndex)

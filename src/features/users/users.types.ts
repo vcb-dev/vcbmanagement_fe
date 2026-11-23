@@ -7,6 +7,7 @@ export interface UserProfile {
   role: UserRole
   employmentType: EmploymentType
   department: { id: string; name: string } | null
+  officeFloor: 5 | 6 | null
   /** "YYYY-MM-DD" */
   contractStartDate: string | null
   isActive: boolean
@@ -15,5 +16,6 @@ export interface UserProfile {
 export interface UserProfileInput {
   departmentId: string | null
   employmentType: EmploymentType
+  officeFloor: 5 | 6 | null
   contractStartDate: string | null
 }

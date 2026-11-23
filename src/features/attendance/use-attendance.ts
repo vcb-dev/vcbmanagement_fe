@@ -76,6 +76,41 @@ export function usePhotoCheck() {
   })
 }
 
+export function useRegisterOfficeWifi() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ location, floor }: { location?: GeoReading; floor: 5 | 6 }) => {
+      const res = await apiClient.post<{ data: { ipAddress: string; floor: number } }>('/attendance/office-wifi', {
+        floor,
+        latitude: location?.latitude,
+        longitude: location?.longitude,
+        accuracy: location?.accuracy,
+      })
+      return res.data.data
+    },
+    onSuccess: ({ ipAddress }) => {
+      toast.success(`Đã ghi nhận Wi‑Fi công ty (${ipAddress})`)
+      void queryClient.invalidateQueries({ queryKey: [...KEY, 'today'] })
+    },
+    onError: (err) => toast.error(getApiErrorMessage(err)),
+  })
+}
+
+export function useUnregisterOfficeWifi() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const res = await apiClient.delete<{ data: { ipAddress: string } }>('/attendance/office-wifi')
+      return res.data.data
+    },
+    onSuccess: ({ ipAddress }) => {
+      toast.success(`Đã gỡ IP ${ipAddress}`)
+      void queryClient.invalidateQueries({ queryKey: [...KEY, 'today'] })
+    },
+    onError: (err) => toast.error(getApiErrorMessage(err)),
+  })
+}
+
 export function usePunch() {
   const queryClient = useQueryClient()
   return useMutation({

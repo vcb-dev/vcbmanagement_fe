@@ -1,5 +1,7 @@
 import { Loader2, ShieldAlert, WifiOff } from 'lucide-react'
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { BrandMark } from '@/components/brand-logo'
 import { Button } from '@/components/ui/button'
 import type { UserRole } from './auth.types'
@@ -11,7 +13,18 @@ interface Props {
 
 export function ProtectedRoute({ roles }: Props) {
   const location = useLocation()
+  const navigate = useNavigate()
   const { data: user, isPending, isError, refetch, isRefetching } = useMe()
+
+  useEffect(() => {
+    if (!user) return
+    const params = new URLSearchParams(location.search)
+    if (params.get('oauth') !== 'ok') return
+    toast.success('Đăng nhập thành công', { id: 'oauth-result' })
+    params.delete('oauth')
+    const search = params.toString()
+    navigate({ pathname: location.pathname, search: search ? `?${search}` : '' }, { replace: true })
+  }, [user, location.pathname, location.search, navigate])
 
   if (isPending) {
     return (

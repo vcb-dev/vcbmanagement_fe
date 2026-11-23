@@ -1,9 +1,20 @@
+import { copyFileSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
 import { VitePWA, type ManifestOptions } from 'vite-plugin-pwa'
 import basicSsl from '@vitejs/plugin-basic-ssl'
+
+function spaNotFoundPage() {
+  return {
+    name: 'spa-not-found-page',
+    closeBundle() {
+      const index = path.resolve('dist/index.html')
+      if (existsSync(index)) copyFileSync(index, path.resolve('dist/404.html'))
+    },
+  }
+}
 
 const phoneHttps = process.env.VITE_DEV_HTTPS === '1'
 
@@ -62,6 +73,7 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api\//, /^\/assets\//],
       },
     }),
+    spaNotFoundPage(),
   ],
   build: {
     target: ['es2020', 'safari15'],

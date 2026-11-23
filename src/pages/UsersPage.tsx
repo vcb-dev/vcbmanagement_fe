@@ -67,7 +67,7 @@ function LockedBadge() {
 
 /**
  * Một nhân sự khi khung hẹp (điện thoại, máy tính bảng, laptop nhỏ có sidebar mở): ảnh bên trái, tên và email,
- * rồi loại, bộ phận, ca làm, ngày ký HĐ ngay dưới để không phải vuốt ngang; nút Sửa ở bên phải.
+ * rồi loại, bộ phận, tầng, ca làm, ngày ký HĐ ngay dưới để không phải vuốt ngang; nút Sửa ở bên phải.
  */
 function UserItem({
   user: u,
@@ -96,6 +96,7 @@ function UserItem({
           {u.department ? <span className="min-w-0 text-[13px]">{u.department.name}</span> : <UnassignedBadge full />}
         </div>
         <p className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground tabular-nums">
+          <span className="whitespace-nowrap">{u.officeFloor ? `Tầng ${u.officeFloor}` : 'Chưa gán tầng'}</span>
           <span>{department ? shiftLabel(department) : 'Giờ mặc định'}</span>
           <span className="whitespace-nowrap">
             {u.contractStartDate ? `Ký HĐ ${formatDate(u.contractStartDate)}` : 'Chưa có ngày ký HĐ'}
@@ -126,6 +127,7 @@ export function UsersPage() {
   const [query, setQuery] = useState('')
   const [departmentFilter, setDepartmentFilter] = useState(ALL)
   const [typeFilter, setTypeFilter] = useState(ALL)
+  const [floorFilter, setFloorFilter] = useState(ALL)
   const [page, setPage] = useState(1)
   const [editing, setEditing] = useState<UserProfile | null>(null)
   // Chọn bảng hay danh sách theo bề rộng khung thẻ, không theo màn hình: sidebar mở hay thu cũng tính đúng.
@@ -140,9 +142,12 @@ export function UsersPage() {
       const matchesDepartment =
         departmentFilter === ALL || (departmentFilter === UNASSIGNED ? !u.department : u.department?.id === departmentFilter)
       const matchesType = typeFilter === ALL || u.employmentType === typeFilter
-      return matchesText && matchesDepartment && matchesType
+      const matchesFloor =
+        floorFilter === ALL ||
+        (floorFilter === UNASSIGNED ? !u.officeFloor : String(u.officeFloor) === floorFilter)
+      return matchesText && matchesDepartment && matchesType && matchesFloor
     })
-  }, [users, query, departmentFilter, typeFilter])
+  }, [users, query, departmentFilter, typeFilter, floorFilter])
 
   // Sửa hồ sơ làm danh sách ngắn lại (vd đổi bộ phận khi đang lọc) thì giữ ở trang cuối còn dòng.
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
@@ -161,7 +166,7 @@ export function UsersPage() {
 
       <Card>
         <CardContent ref={boxRef} className="space-y-4">
-          {/* Điện thoại: ô tìm hết hàng, hai ô chọn chia đôi hàng dưới. */}
+          {/* Điện thoại: ô tìm và ô bộ phận (tên dài) hết hàng, tầng và loại chia đôi hàng dưới. */}
           <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             <div className="relative col-span-2 sm:min-w-56 sm:flex-1 sm:max-w-sm">
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -174,7 +179,10 @@ export function UsersPage() {
               />
             </div>
             <Select value={departmentFilter} onValueChange={(next) => resetPageAfter(() => setDepartmentFilter(next))}>
-              <SelectTrigger aria-label="Lọc theo bộ phận" className={cn('w-full min-w-0 sm:w-fit sm:min-w-44', TOUCH_SELECT)}>
+              <SelectTrigger
+                aria-label="Lọc theo bộ phận"
+                className={cn('col-span-2 w-full min-w-0 sm:w-fit sm:min-w-44', TOUCH_SELECT)}
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -185,6 +193,17 @@ export function UsersPage() {
                   </SelectItem>
                 ))}
                 <SelectItem value={UNASSIGNED}>Chưa gán bộ phận</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={floorFilter} onValueChange={(next) => resetPageAfter(() => setFloorFilter(next))}>
+              <SelectTrigger aria-label="Lọc theo tầng" className={cn('w-full min-w-0 sm:w-fit sm:min-w-36', TOUCH_SELECT)}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Tất cả tầng</SelectItem>
+                <SelectItem value="5">Tầng 5</SelectItem>
+                <SelectItem value="6">Tầng 6</SelectItem>
+                <SelectItem value={UNASSIGNED}>Chưa gán tầng</SelectItem>
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={(next) => resetPageAfter(() => setTypeFilter(next))}>
@@ -237,6 +256,7 @@ export function UsersPage() {
                   <TableHead className={HEAD}>Nhân sự</TableHead>
                   <TableHead className={HEAD}>Loại</TableHead>
                   <TableHead className={HEAD}>Bộ phận</TableHead>
+                  <TableHead className={HEAD}>Tầng</TableHead>
                   {showShift && <TableHead className={HEAD}>Ca làm</TableHead>}
                   <TableHead className={HEAD}>Ngày ký HĐ</TableHead>
                   {canEdit && <TableHead className="w-20" />}
@@ -263,6 +283,9 @@ export function UsersPage() {
                         <EmploymentBadge user={u} />
                       </TableCell>
                       <TableCell className="text-center">{u.department ? u.department.name : <UnassignedBadge />}</TableCell>
+                      <TableCell className="text-center whitespace-nowrap">
+                        {u.officeFloor ? `Tầng ${u.officeFloor}` : <UnassignedBadge />}
+                      </TableCell>
                       {showShift && (
                         <TableCell className="text-center text-muted-foreground tabular-nums">
                           {department ? shiftLabel(department) : 'Giờ mặc định'}

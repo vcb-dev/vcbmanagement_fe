@@ -2,6 +2,15 @@ import { apiClient, clearCsrfMemory } from '@/lib/api-client'
 import type { ApiResponse, LoginPayload, User } from './auth.types'
 
 export const authApi = {
+  googleLoginUrl() {
+    return `${apiClient.defaults.baseURL}/auth/google`
+  },
+
+  async providers(): Promise<{ google: boolean }> {
+    const res = await apiClient.get<ApiResponse<{ google: boolean }>>('/auth/providers')
+    return res.data.data
+  },
+
   async me(): Promise<User> {
     const res = await apiClient.get<ApiResponse<User>>('/auth/me')
     return res.data.data

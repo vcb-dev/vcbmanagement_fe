@@ -61,6 +61,15 @@ export function useScanFrame() {
   })
 }
 
+export function useScanStatus() {
+  return useMutation({
+    mutationFn: async (sessionId: string) => {
+      const res = await apiClient.get<{ data: ScanFrameResult }>(`/face/scan/${sessionId}`)
+      return res.data.data
+    },
+  })
+}
+
 export function useFaceAdmin(status?: FaceProfileStatus) {
   return useQuery({
     queryKey: [...KEY, 'admin', status ?? 'all'],
