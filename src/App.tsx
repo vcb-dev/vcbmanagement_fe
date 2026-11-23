@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
 import { toast } from 'sonner'
-import { markLoggedOut, useMe } from '@/features/auth/use-auth'
+import { homePath, markLoggedOut, useMe } from '@/features/auth/use-auth'
 import { setSessionExpiredHandler } from '@/lib/api-client'
 
 const AttendancePage = lazy(() => import('@/pages/AttendancePage').then((m) => ({ default: m.AttendancePage })))
@@ -48,11 +48,11 @@ function useSessionExpiredRedirect() {
   }, [navigate, queryClient])
 }
 
-/** Trang chủ `/`: admin / quản lý vào Tổng quan, nhân viên vào Chấm công (điện thoại). */
+/** Trang chủ `/`: admin / quản lý vào Tổng quan, nhân viên vào Công của tôi. */
 function HomeRedirect() {
   const { data: user } = useMe()
-  const isManager = user?.role === 'admin' || user?.role === 'manager'
-  return <Navigate to={isManager ? '/overview' : '/attendance'} replace />
+  if (!user) return null
+  return <Navigate to={homePath(user.role)} replace />
 }
 
 export default function App() {

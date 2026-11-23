@@ -20,6 +20,7 @@ import {
 import { SLOT_LABEL } from '@/features/attendance/attendance.types'
 import { useAttendanceToday } from '@/features/attendance/use-attendance'
 import type { User } from '@/features/auth/auth.types'
+import { homePath } from '@/features/auth/use-auth'
 import { useFeedbackCounts } from '@/features/feedbacks/use-feedbacks'
 import { useLeavePendingCount } from '@/features/leave-requests/use-leave-requests'
 import { formatTime } from '@/lib/format'
@@ -49,7 +50,7 @@ export function AppSidebar({ user }: { user: User }) {
         <SidebarMenu className="flex-row items-center gap-1 group-data-[collapsible=icon]:flex-col">
           <SidebarMenuItem className="min-w-0 flex-1">
             <SidebarMenuButton size="lg" asChild className="hover:bg-transparent">
-              <NavLink to="/" onClick={closeOnMobile}>
+              <NavLink to={homePath(user.role)} onClick={closeOnMobile}>
                 <BrandMark className="size-8 rounded-lg shadow-sm" />
                 <div className="grid flex-1 text-left leading-tight">
                   <span className="truncate text-sm font-semibold">VCB Management</span>
