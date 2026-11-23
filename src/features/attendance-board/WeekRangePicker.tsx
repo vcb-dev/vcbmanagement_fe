@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { formatMonth } from '@/lib/format'
+import { cn } from '@/lib/utils'
 import { WHOLE_MONTH, rangeLabel, type WeekRange } from './attendance-board.types'
 
 /** Chọn một tuần (thứ Hai – Chủ nhật, cắt theo tháng) hoặc cả tháng, kèm nút lùi / tiến từng tuần. */
@@ -10,15 +11,18 @@ export function WeekRangePicker({
   weeks,
   value,
   onChange,
+  className,
 }: {
   month: string
   weeks: WeekRange[]
   value: string
   onChange: (next: string) => void
+  /** Thêm `w-full` để ô chọn giãn hết chiều ngang (màn hẹp). */
+  className?: string
 }) {
   const index = value === WHOLE_MONTH ? -1 : Number(value)
   return (
-    <div className="flex items-center gap-1">
+    <div className={cn('flex items-center gap-1', className)}>
       <Button
         variant="outline"
         size="icon-sm"
@@ -29,7 +33,7 @@ export function WeekRangePicker({
         <ChevronLeft />
       </Button>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger aria-label="Khoảng ngày" className="min-w-44">
+        <SelectTrigger aria-label="Khoảng ngày" className="min-w-44 flex-1">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

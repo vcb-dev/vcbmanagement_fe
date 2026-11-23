@@ -11,7 +11,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={dark ? 'dark' : 'light'}
       className="toaster group"
       position="bottom-center"
-      offset="calc(4.25rem + env(safe-area-inset-bottom, 0px))"
+      offset="calc(1rem + env(safe-area-inset-bottom, 0px))"
       duration={2800}
       icons={{
         success: <CircleCheckIcon className="size-4" />,

@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 
 const SOURCES = [
   ['Công máy, thiếu in/out, đi muộn', 'Tự động từ chấm công, tính lại mỗi lần tải trang'],
+  ['Đi muộn', 'Tổng số phút muộn trong tháng. Ca có đơn xin đi muộn được duyệt được trừ vào 60 phút đi muộn có phép của tháng, hết thì tính như thường'],
   ['Làm ở nhà, ngày lễ', 'Quản lý nhập trên bảng hoặc trong chi tiết từng người'],
   ['Phép', 'Quản lý nhập, ghi thẳng vào phép tháng của phép năm nên số phép còn lại tự trừ'],
   ['Tăng ca', 'Quản lý nhập theo từng ngày trong chi tiết từng người'],

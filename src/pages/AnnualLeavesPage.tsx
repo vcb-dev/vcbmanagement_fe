@@ -32,6 +32,11 @@ import {
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { todayYmd } from '@/lib/format'
+import { cn } from '@/lib/utils'
+
+/** Ô nhập và ô chọn: trên màn cảm ứng cao 40px cho dễ bấm. */
+const TOUCH_FIELD = 'pointer-coarse:h-10'
+const TOUCH_SELECT = 'pointer-coarse:data-[size=default]:h-10'
 
 export function AnnualLeavesPage() {
   const currentYear = useMemo(() => Number(todayYmd().slice(0, 4)), [])
@@ -110,14 +115,29 @@ export function AnnualLeavesPage() {
     <PageContainer>
       <PageHeader
         title={`Phép năm ${year}`}
-        description="Mỗi người một dòng phép năm: phép cả năm và số ngày nghỉ từng tháng. Mỗi tháng đã hết, từ tháng ký hợp đồng, được 1 ngày phép (không vượt phép cả năm); sang năm tính lại. Số còn lại hệ thống tự tính. Tháng trước ngày ký hợp đồng hiện sọc chéo; chưa có ngày ký hợp đồng thì chưa có phép. Chỉ áp dụng cho nhân sự full-time."
+        hideTitleOnPhone
+        description={
+          <>
+            {/* Điện thoại: chỉ giữ ý chính, đoạn giải thích đầy đủ hiện từ md trở lên. */}
+            <span className="md:hidden">
+              Mỗi tháng đã hết, từ tháng ký hợp đồng, được 1 ngày phép. Chỉ áp dụng cho nhân sự full-time.
+            </span>
+            <span className="hidden md:inline">
+              Mỗi người một dòng phép năm: phép cả năm và số ngày nghỉ từng tháng. Mỗi tháng đã hết, từ tháng ký hợp
+              đồng, được 1 ngày phép (không vượt phép cả năm); sang năm tính lại. Số còn lại hệ thống tự tính. Tháng
+              trước ngày ký hợp đồng hiện sọc chéo; chưa có ngày ký hợp đồng thì chưa có phép. Chỉ áp dụng cho nhân sự
+              full-time.
+            </span>
+          </>
+        }
         actions={
-          <div className="flex items-center gap-2">
+          // Điện thoại: chọn năm rộng hết hàng, hai nút chia đôi hàng dưới.
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center">
             <Select
               value={String(year)}
               onValueChange={(val) => setYear(Number(val))}
             >
-              <SelectTrigger className="w-28">
+              <SelectTrigger className={cn('col-span-2 w-full sm:w-28', TOUCH_SELECT)} aria-label="Chọn năm">
                 <SelectValue placeholder="Chọn năm" />
               </SelectTrigger>
               <SelectContent>
@@ -131,7 +151,7 @@ export function AnnualLeavesPage() {
 
             <Button
               variant="outline"
-              className="gap-1.5"
+              className="gap-1.5 pointer-coarse:h-10"
               onClick={handleOpenRecordTop}
             >
               <CalendarPlus className="size-4" />
@@ -139,7 +159,7 @@ export function AnnualLeavesPage() {
             </Button>
 
             <Button
-              className="gap-1.5"
+              className="gap-1.5 pointer-coarse:h-10"
               onClick={() => setAddDialogOpen(true)}
             >
               <Plus className="size-4" />
@@ -156,7 +176,9 @@ export function AnnualLeavesPage() {
           onValueChange={(val) => setFilter(val as LeaveFilter)}
           className="w-full lg:w-auto"
         >
-          <TabsList className="grid grid-cols-2 sm:grid-cols-4">
+          {/* TabsList mặc định cao cố định h-8: xếp 2 hàng trên điện thoại thì hàng dưới tràn đè ô tìm kiếm,
+              nên bỏ chiều cao cố định và cho mỗi tab cao 26px (một hàng vẫn tròn 32px như cũ); màn cảm ứng cao 36px. */}
+          <TabsList className="grid w-full grid-cols-2 group-data-horizontal/tabs:h-auto *:data-[slot=tabs-trigger]:h-[26px] pointer-coarse:*:data-[slot=tabs-trigger]:h-9 sm:w-fit sm:grid-cols-4">
             <TabsTrigger value="all">Tất cả ({counts?.all ?? 0})</TabsTrigger>
             <TabsTrigger value="low">Sắp hết phép ({counts?.low ?? 0})</TabsTrigger>
             <TabsTrigger value="none">Chưa nghỉ ngày nào ({counts?.none ?? 0})</TabsTrigger>
@@ -164,15 +186,16 @@ export function AnnualLeavesPage() {
           </TabsList>
         </Tabs>
 
-        <div className="flex flex-col sm:flex-row items-center gap-2">
+        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+            <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Tìm theo tên nhân sự..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-8"
+              aria-label="Tìm theo tên nhân sự"
+              className={cn('pl-8', TOUCH_FIELD)}
             />
           </div>
 
@@ -180,7 +203,7 @@ export function AnnualLeavesPage() {
             value={sort}
             onValueChange={(val) => setSort(val as LeaveSort)}
           >
-            <SelectTrigger className="w-full sm:w-48">
+            <SelectTrigger className={cn('w-full sm:w-48', TOUCH_SELECT)} aria-label="Sắp xếp">
               <SelectValue placeholder="Sắp xếp" />
             </SelectTrigger>
             <SelectContent>

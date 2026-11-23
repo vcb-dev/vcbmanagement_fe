@@ -5,9 +5,11 @@ import {
   CalendarDays,
   CalendarHeart,
   CalendarRange,
+  ChartPie,
   ClipboardCheck,
   ClockPlus,
-  LayoutDashboard,
+  FileCheck,
+  FileClock,
   MessageSquare,
   ScanFace,
   ShieldCheck,
@@ -24,7 +26,7 @@ export interface NavItem {
   icon: LucideIcon
   description?: string
   roles?: UserRole[]
-  badge?: 'feedbackOpen'
+  badge?: 'feedbackOpen' | 'leavePending'
 }
 
 export interface NavGroup {
@@ -36,13 +38,33 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Tổng quan',
     items: [
-      { title: 'Bảng điều khiển', url: '/', icon: LayoutDashboard, description: 'Tổng quan hoạt động' },
+      {
+        title: 'Tổng quan',
+        url: '/overview',
+        icon: ChartPie,
+        description: 'Đi làm, không đi làm, đi muộn, đơn xin đi muộn / về sớm theo ngày và theo tháng',
+        roles: ['admin', 'manager'],
+      },
       {
         title: 'Công của tôi',
         url: '/my-timesheet',
         icon: CalendarDays,
         description: 'Lịch chấm công và công tháng của bạn',
         // Admin và quản lý chỉ dùng các màn quản lý.
+        roles: ['staff'],
+      },
+      {
+        title: 'Feedback của tôi',
+        url: '/my-feedbacks',
+        icon: MessageSquare,
+        description: 'Trao đổi với quản lý về công các tháng của bạn',
+        roles: ['staff'],
+      },
+      {
+        title: 'Đơn xin phép',
+        url: '/my-leave-requests',
+        icon: FileClock,
+        description: 'Xin nghỉ phép, đi muộn, về sớm, làm việc ngoài văn phòng',
         roles: ['staff'],
       },
     ],
@@ -95,6 +117,14 @@ export const NAV_GROUPS: NavGroup[] = [
         roles: ['admin', 'manager'],
       },
       {
+        title: 'Duyệt đơn xin phép',
+        url: '/leave-requests',
+        icon: FileCheck,
+        description: 'Duyệt đơn nghỉ phép, đi muộn, về sớm, làm việc ngoài văn phòng',
+        roles: ['admin', 'manager'],
+        badge: 'leavePending',
+      },
+      {
         title: 'Phép năm',
         url: '/annual-leaves',
         icon: CalendarHeart,
@@ -132,5 +162,3 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 ]
-
-export const NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap((g) => g.items)

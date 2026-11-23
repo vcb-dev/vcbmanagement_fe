@@ -6,10 +6,9 @@ import { Toaster } from '@/components/ui/sonner'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
 import { toast } from 'sonner'
-import { markLoggedOut } from '@/features/auth/use-auth'
+import { markLoggedOut, useMe } from '@/features/auth/use-auth'
 import { setSessionExpiredHandler } from '@/lib/api-client'
 
-const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 const AttendancePage = lazy(() => import('@/pages/AttendancePage').then((m) => ({ default: m.AttendancePage })))
 const AttendanceBoardPage = lazy(() =>
   import('@/pages/AttendanceBoardPage').then((m) => ({ default: m.AttendanceBoardPage })),
@@ -18,6 +17,11 @@ const AssistantPage = lazy(() => import('@/pages/AssistantPage').then((m) => ({ 
 const FacePage = lazy(() => import('@/pages/FacePage').then((m) => ({ default: m.FacePage })))
 const FaceReviewPage = lazy(() => import('@/pages/FaceReviewPage').then((m) => ({ default: m.FaceReviewPage })))
 const MyTimesheetPage = lazy(() => import('@/pages/MyTimesheetPage').then((m) => ({ default: m.MyTimesheetPage })))
+const MyFeedbacksPage = lazy(() => import('@/pages/MyFeedbacksPage').then((m) => ({ default: m.MyFeedbacksPage })))
+const MyLeaveRequestsPage = lazy(() =>
+  import('@/pages/MyLeaveRequestsPage').then((m) => ({ default: m.MyLeaveRequestsPage })),
+)
+const LeaveRequestsPage = lazy(() => import('@/pages/LeaveRequestsPage').then((m) => ({ default: m.LeaveRequestsPage })))
 const DepartmentsPage = lazy(() => import('@/pages/DepartmentsPage').then((m) => ({ default: m.DepartmentsPage })))
 const UsersPage = lazy(() => import('@/pages/UsersPage').then((m) => ({ default: m.UsersPage })))
 const LatePage = lazy(() => import('@/pages/LatePage').then((m) => ({ default: m.LatePage })))
@@ -25,6 +29,7 @@ const PartTimeTimesheetsPage = lazy(() => import('@/pages/PartTimeTimesheetsPage
 const AnnualLeavesPage = lazy(() => import('@/pages/AnnualLeavesPage').then((m) => ({ default: m.AnnualLeavesPage })))
 const FeedbacksPage = lazy(() => import('@/pages/FeedbacksPage').then((m) => ({ default: m.FeedbacksPage })))
 const OvertimePage = lazy(() => import('@/pages/OvertimePage').then((m) => ({ default: m.OvertimePage })))
+const OverviewPage = lazy(() => import('@/pages/OverviewPage').then((m) => ({ default: m.OverviewPage })))
 const MonthlyTimesheetsPage = lazy(() =>
   import('@/pages/MonthlyTimesheetsPage').then((m) => ({ default: m.MonthlyTimesheetsPage })),
 )
@@ -41,6 +46,13 @@ function useSessionExpiredRedirect() {
     })
     return () => setSessionExpiredHandler(null)
   }, [navigate, queryClient])
+}
+
+/** Trang chủ `/`: admin / quản lý vào Tổng quan, nhân viên vào Công của tôi. */
+function HomeRedirect() {
+  const { data: user } = useMe()
+  const isManager = user?.role === 'admin' || user?.role === 'manager'
+  return <Navigate to={isManager ? '/overview' : '/my-timesheet'} replace />
 }
 
 export default function App() {
@@ -60,14 +72,17 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            <Route path="/" element={<DashboardPage />} />
+            <Route path="/" element={<HomeRedirect />} />
             <Route element={<ProtectedRoute roles={['staff']} />}>
               <Route path="/my-timesheet" element={<MyTimesheetPage />} />
+              <Route path="/my-feedbacks" element={<MyFeedbacksPage />} />
+              <Route path="/my-leave-requests" element={<MyLeaveRequestsPage />} />
             </Route>
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/assistant" element={<AssistantPage />} />
             <Route path="/face" element={<FacePage />} />
             <Route element={<ProtectedRoute roles={['admin', 'manager']} />}>
+              <Route path="/overview" element={<OverviewPage />} />
               <Route path="/feedbacks" element={<FeedbacksPage />} />
               <Route path="/face/review" element={<FaceReviewPage />} />
               <Route path="/attendance-board" element={<AttendanceBoardPage />} />
@@ -76,6 +91,7 @@ export default function App() {
               <Route path="/late" element={<LatePage />} />
               <Route path="/part-time-timesheets" element={<PartTimeTimesheetsPage />} />
               <Route path="/annual-leaves" element={<AnnualLeavesPage />} />
+              <Route path="/leave-requests" element={<LeaveRequestsPage />} />
               <Route path="/departments" element={<DepartmentsPage />} />
               <Route path="/users" element={<UsersPage />} />
             </Route>

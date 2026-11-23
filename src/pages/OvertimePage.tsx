@@ -1,6 +1,7 @@
 import { Download, Info, RefreshCw, Search, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
+import { DayStrip } from '@/components/day-strip'
 import { MonthNav } from '@/components/month-nav'
 import { PageContainer } from '@/components/page-container'
 import { PaginationBar } from '@/components/pagination-bar'
@@ -13,10 +14,13 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDepartments } from '@/features/departments/use-departments'
 import { formatOvertime } from '@/features/monthly-timesheets/monthly-timesheets.types'
+import { daysOfMonth } from '@/features/my-timesheet/day-status'
 import { downloadOvertimeCsv } from '@/features/overtime/overtime-export'
-import type { OvertimeRow } from '@/features/overtime/overtime.types'
+import { overtimeOn, type OvertimeRow } from '@/features/overtime/overtime.types'
+import { OvertimeDayList } from '@/features/overtime/OvertimeDayList'
 import { OvertimeTable } from '@/features/overtime/OvertimeTable'
 import { useOvertimeReport, useSetOvertimeDay } from '@/features/overtime/use-overtime'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { FEATURES } from '@/lib/features'
 import { formatDayMonth, formatMonth, normalizeSearch, todayYmd } from '@/lib/format'
@@ -41,6 +45,9 @@ export function OvertimePage() {
   const [query, setQuery] = useState('')
   const [department, setDepartment] = useState(ALL)
   const [page, setPage] = useState(1)
+  /** Điện thoại nhập theo từng ngày (chọn ở dải ngày) thay cho bảng cả tháng phải vuốt ngang. */
+  const wide = useMediaQuery('(min-width: 640px)')
+  const [phoneDay, setPhoneDay] = useState(today)
 
   const { data: report, isPending, isError, error, refetch, isFetching, dataUpdatedAt } = useOvertimeReport(month)
   const { data: departments = [] } = useDepartments()
@@ -61,6 +68,15 @@ export function OvertimePage() {
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const currentPage = Math.min(page, pageCount)
   const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
+  const days = useMemo(() => daysOfMonth(month), [month])
+  const activeDay = days.includes(phoneDay) ? phoneDay : days.includes(today) ? today : days[0]
+  /** Ngày có người (trong bộ lọc) tăng ca, để chấm dưới dải ngày. */
+  const overtimeDays = useMemo(() => new Set(filtered.flatMap((r) => r.days.map((d) => d.date))), [filtered])
+  const dayTotal = useMemo(() => {
+    const hours = filtered.map((r) => overtimeOn(r, activeDay)).filter((h) => h > 0)
+    return { people: hours.length, hours: hours.reduce((a, b) => a + b, 0) }
+  }, [filtered, activeDay])
 
   /** Đổi bộ lọc thì quay về trang đầu. */
   function resetPageAfter(change: () => void) {
@@ -85,7 +101,7 @@ export function OvertimePage() {
     <PageContainer>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 space-y-1.5">
-          <h2 className="text-2xl font-semibold tracking-tight">Tăng ca {formatMonth(month).toLowerCase()}</h2>
+          <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Tăng ca {formatMonth(month).toLowerCase()}</h2>
           {report && (
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <RefreshCw className={isFetching ? 'size-3 animate-spin' : 'size-3'} />
@@ -122,19 +138,19 @@ export function OvertimePage() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-            <div className="relative min-w-48 flex-1 sm:w-48 sm:flex-none">
+          <div className="flex w-full items-center gap-2 sm:w-auto sm:flex-wrap">
+            <div className="relative min-w-0 flex-1 sm:w-48 sm:min-w-48 sm:flex-none">
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
                 onChange={(e) => resetPageAfter(() => setQuery(e.target.value))}
-                placeholder="Tìm tên hoặc email…"
+                placeholder="Tìm tên, email…"
                 aria-label="Tìm nhân sự tăng ca"
                 className="pl-9"
               />
             </div>
             <Select value={department} onValueChange={(next) => resetPageAfter(() => setDepartment(next))}>
-              <SelectTrigger aria-label="Lọc theo bộ phận" className="min-w-44">
+              <SelectTrigger aria-label="Lọc theo bộ phận" className="w-36 shrink-0 sm:w-fit sm:min-w-44">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -150,16 +166,37 @@ export function OvertimePage() {
           </div>
         </div>
 
-        {/* Hướng dẫn nhập luôn hiện, kể cả màn hẹp. */}
+        {/* Hướng dẫn nhập luôn hiện; điện thoại dùng bản rút gọn. */}
         <p className="flex items-start gap-2 border-b bg-muted/40 px-3 py-2 text-xs leading-5 text-muted-foreground">
           <Info className="mt-0.5 size-3.5 shrink-0" />
-          <span>
+          <span className="sm:hidden">
+            Nhập <b className="font-semibold text-foreground">số giờ</b>:{' '}
+            <b className="font-semibold text-foreground tabular-nums">1,5</b> = 1 giờ 30 phút ·{' '}
+            <b className="font-semibold text-foreground tabular-nums">0,25</b> = 15 phút. Xoá trống để bỏ.
+          </span>
+          <span className="hidden sm:inline">
             Nhập <b className="font-semibold text-foreground">số giờ</b> tăng ca của từng ngày, số thập phân, tối đa 3 chữ số sau dấu phẩy:{' '}
             <b className="font-semibold text-foreground tabular-nums">1,5</b> = 1 giờ 30 phút ·{' '}
             <b className="font-semibold text-foreground tabular-nums">0,25</b> = 15 phút ·{' '}
             <b className="font-semibold text-foreground tabular-nums">0,333</b> ≈ 20 phút. Xoá trống ô để bỏ tăng ca ngày đó.
           </span>
         </p>
+
+        {!wide && report && (
+          <div className="space-y-1.5 border-b px-1.5 pt-2 pb-2.5">
+            <DayStrip days={days} value={activeDay} today={today} marked={overtimeDays} onChange={setPhoneDay} />
+            <p className="px-1.5 text-xs text-muted-foreground tabular-nums">
+              {dayTotal.people > 0 ? (
+                <>
+                  <b className="font-semibold text-foreground">{dayTotal.people}</b> người tăng ca ngày này · tổng{' '}
+                  <b className="font-semibold text-primary">{formatOvertime(dayTotal.hours)}</b> giờ
+                </>
+              ) : (
+                'Chưa ai tăng ca ngày này.'
+              )}
+            </p>
+          </div>
+        )}
 
         {isPending ? (
           <div className="space-y-2 p-3">
@@ -185,6 +222,8 @@ export function OvertimePage() {
                   : 'Không có nhân sự phù hợp. Thử đổi từ khoá hoặc bộ lọc.'}
             </p>
           </div>
+        ) : !wide ? (
+          <OvertimeDayList rows={pageRows} date={activeDay} onSave={saveDay} />
         ) : (
           <OvertimeTable month={report.month} rows={pageRows} today={today} onSave={saveDay} />
         )}

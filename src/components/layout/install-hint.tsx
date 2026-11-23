@@ -10,11 +10,28 @@ function isIos() {
   return /iphone|ipad|ipod/i.test(navigator.userAgent)
 }
 
+/** Đã đóng gợi ý thì nhớ lâu dài, không hiện lại mỗi lần mở app. Bộ nhớ trình duyệt có thể bị chặn nên bọc try. */
+function readHidden() {
+  try {
+    return localStorage.getItem('vcb-hide-install') === '1' || sessionStorage.getItem('vcb-hide-install') === '1'
+  } catch {
+    return false
+  }
+}
+
+function writeHidden() {
+  try {
+    localStorage.setItem('vcb-hide-install', '1')
+  } catch {
+    // Không lưu được thì chỉ ẩn trong lần này.
+  }
+}
+
 export function InstallHint() {
   const [show, setShow] = useState(false)
 
   useEffect(() => {
-    if (isStandalone() || sessionStorage.getItem('vcb-hide-install') === '1') return
+    if (isStandalone() || readHidden()) return
     if (isIos() || !window.matchMedia('(min-width: 768px)').matches) setShow(true)
   }, [])
 
@@ -32,10 +49,10 @@ export function InstallHint() {
         type="button"
         variant="ghost"
         size="icon-sm"
-        className="size-8 shrink-0"
+        className="size-8 shrink-0 pointer-coarse:size-11"
         aria-label="Đóng hướng dẫn cài app"
         onClick={() => {
-          sessionStorage.setItem('vcb-hide-install', '1')
+          writeHidden()
           setShow(false)
         }}
       >

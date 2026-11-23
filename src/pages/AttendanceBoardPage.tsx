@@ -1,5 +1,6 @@
 import { Download, Info, RefreshCw, Search, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { DayStrip } from '@/components/day-strip'
 import { MonthNav } from '@/components/month-nav'
 import { PageContainer } from '@/components/page-container'
 import { PaginationBar } from '@/components/pagination-bar'
@@ -10,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AttendanceBoardTable } from '@/features/attendance-board/AttendanceBoardTable'
+import { BoardDayList, BoardDaySummary } from '@/features/attendance-board/BoardDayList'
 import {
   WHOLE_MONTH,
   dayIndex,
@@ -26,6 +28,7 @@ import { WeekRangePicker } from '@/features/attendance-board/WeekRangePicker'
 import { WeeklySummaryTable } from '@/features/attendance-board/WeeklySummaryTable'
 import { useDepartments } from '@/features/departments/use-departments'
 import { daysOfMonth } from '@/features/my-timesheet/day-status'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { FEATURES } from '@/lib/features'
 import { downloadCsv } from '@/lib/csv'
@@ -52,6 +55,9 @@ function personDay(row: BoardRow, days: string[], today: string): string {
   const past = days.filter((d) => d <= today)
   return past.find((d) => (byDate.get(d)?.missingCount ?? 0) > 0) ?? past[past.length - 1] ?? today
 }
+
+/** Ngày mở sẵn trên điện thoại khi đổi tuần: hôm nay nếu nằm trong tuần, không thì ngày đầu tuần. */
+const firstDay = (days: string[], today: string) => (days.includes(today) ? today : days[0])
 
 /** Nằm giữa dòng phân trang, dưới bảng. */
 function Legend() {
@@ -90,12 +96,18 @@ export function AttendanceBoardPage() {
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<{ userId: string; date: string } | null>(null)
   const [showSource, setShowSource] = useState(false)
+  /** Điện thoại xem từng ngày (chọn ở dải ngày); màn rộng xem cả tuần trên bảng. */
+  const wide = useMediaQuery('(min-width: 640px)')
+  const [phoneDay, setPhoneDay] = useState(today)
 
   const { data: board, isPending, isError, error, refetch, isFetching, dataUpdatedAt } = useAttendanceBoard(month)
   const { data: departments = [] } = useDepartments()
   const rows = useMemo(() => board?.rows ?? [], [board])
   const weeks = useMemo(() => weeksOfMonth(month), [month])
   const days = useMemo(() => (mode === 'week' ? daysOfMonth(month) : rangeDays(month, weeks, range)), [mode, month, weeks, range])
+  const activeDay = days.includes(phoneDay) ? phoneDay : firstDay(days, today)
+  const weekIndex = range === WHOLE_MONTH ? -1 : Number(range)
+  const phoneDayView = !wide && mode === 'day'
 
   const filtered = useMemo(() => {
     const q = normalizeSearch(query.trim())
@@ -141,11 +153,12 @@ export function AttendanceBoardPage() {
     <PageContainer>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 space-y-1.5">
-          <h2 className="text-2xl font-semibold tracking-tight">Bảng chấm công {formatMonth(month).toLowerCase()}</h2>
+          <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Bảng chấm công {formatMonth(month).toLowerCase()}</h2>
           {board && (
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <RefreshCw className={isFetching ? 'size-3 animate-spin' : 'size-3'} />
-              Tự tải lại mỗi 30 giây. Bấm vào ô giờ để xem chi tiết hoặc bổ sung giờ. Tải lúc {loadedAt(dataUpdatedAt)}
+              Tự tải lại mỗi 30 giây. {phoneDayView ? 'Bấm vào một người' : 'Bấm vào ô giờ'} để xem chi tiết hoặc bổ sung giờ.
+              Tải lúc {loadedAt(dataUpdatedAt)}
             </p>
           )}
         </div>
@@ -177,8 +190,9 @@ export function AttendanceBoardPage() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-            <div className="relative min-w-48 flex-1 sm:w-48 sm:flex-none">
+          {/* Điện thoại: ô tìm hết hàng, các ô chọn chia đôi hàng, đủ rộng mà không chiếm nhiều dòng. */}
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+            <div className="relative col-span-2 min-w-48 flex-1 sm:w-48 sm:flex-none">
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
@@ -189,7 +203,7 @@ export function AttendanceBoardPage() {
               />
             </div>
             <Select value={department} onValueChange={(next) => resetPageAfter(() => setDepartment(next))}>
-              <SelectTrigger aria-label="Lọc theo bộ phận" className="min-w-44">
+              <SelectTrigger aria-label="Lọc theo bộ phận" className="w-full min-w-0 sm:w-fit sm:min-w-44">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -203,11 +217,11 @@ export function AttendanceBoardPage() {
               </SelectContent>
             </Select>
             <Select value={employment} onValueChange={(next) => resetPageAfter(() => setEmployment(next))}>
-              <SelectTrigger aria-label="Lọc theo loại nhân sự" className="min-w-40">
+              <SelectTrigger aria-label="Lọc theo loại nhân sự" className="w-full min-w-0 sm:w-fit sm:min-w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>Tất cả loại nhân sự</SelectItem>
+                <SelectItem value={ALL}>Mọi loại nhân sự</SelectItem>
                 {EMPLOYMENT_TYPES.map((type) => (
                   <SelectItem key={type} value={type}>
                     {EMPLOYMENT_LABEL[type]}
@@ -215,11 +229,40 @@ export function AttendanceBoardPage() {
                 ))}
               </SelectContent>
             </Select>
-            {mode !== 'week' && (
-              <WeekRangePicker month={month} weeks={weeks} value={range} onChange={(next) => resetPageAfter(() => setRange(next))} />
+            {mode !== 'week' && !phoneDayView && (
+              <WeekRangePicker
+                className="col-span-2"
+                month={month}
+                weeks={weeks}
+                value={range}
+                onChange={(next) => resetPageAfter(() => setRange(next))}
+              />
             )}
           </div>
         </div>
+
+        {/* Điện thoại: chọn ngày trong tuần (hai mũi tên đổi tuần) thay cho bảng cả tuần phải vuốt ngang. */}
+        {phoneDayView && (
+          <div className="space-y-1.5 border-b px-1.5 pt-2 pb-2.5">
+            <DayStrip
+              days={days}
+              value={activeDay}
+              today={today}
+              disableFuture
+              onChange={setPhoneDay}
+              showArrows
+              onPrev={weekIndex > 0 ? () => resetPageAfter(() => setRange(String(weekIndex - 1))) : undefined}
+              onNext={
+                weekIndex >= 0 && weekIndex < weeks.length - 1 ? () => resetPageAfter(() => setRange(String(weekIndex + 1))) : undefined
+              }
+            />
+            {board && (
+              <div className="px-1.5">
+                <BoardDaySummary rows={filtered} date={activeDay} today={today} />
+              </div>
+            )}
+          </div>
+        )}
 
         {isPending ? (
           <div className="space-y-2 p-3">
@@ -243,6 +286,13 @@ export function AttendanceBoardPage() {
           </div>
         ) : mode === 'week' ? (
           <WeeklySummaryTable rows={pageRows} weeks={weeks} onSelectPerson={selectPerson} />
+        ) : phoneDayView ? (
+          <BoardDayList
+            rows={pageRows}
+            date={activeDay}
+            today={today}
+            onSelect={(userId) => setSelected({ userId, date: activeDay })}
+          />
         ) : (
           <AttendanceBoardTable
             rows={pageRows}
