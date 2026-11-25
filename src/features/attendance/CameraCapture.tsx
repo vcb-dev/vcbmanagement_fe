@@ -24,10 +24,12 @@ export function CameraCapture({
   photo,
   onChange,
   disabled,
+  className,
 }: {
   photo: Blob | null
   onChange: (photo: Blob | null) => void
   disabled?: boolean
+  className?: string
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -108,7 +110,8 @@ export function CameraCapture({
   return (
     <div
       className={cn(
-        'flex h-full min-w-0 flex-col gap-2',
+        'flex h-full min-h-0 min-w-0 flex-col gap-2',
+        className,
         state === 'live' &&
           'max-md:fixed max-md:inset-0 max-md:z-50 max-md:bg-black max-md:p-3 max-md:pt-[max(0.75rem,env(safe-area-inset-top))] max-md:pb-[max(1rem,env(safe-area-inset-bottom))]',
       )}
@@ -117,10 +120,10 @@ export function CameraCapture({
         className={cn(
           'relative w-full overflow-hidden rounded-xl border bg-zinc-100',
           state === 'live'
-            ? 'min-h-44 flex-1 max-md:min-h-0'
+            ? 'min-h-52 flex-1 max-md:min-h-0'
             : previewUrl
-              ? 'max-md:h-auto md:min-h-44 md:flex-1'
-              : 'min-h-36 flex-1',
+              ? 'max-md:h-auto md:aspect-[4/3] md:min-h-52 md:flex-1'
+              : 'min-h-52 flex-1 md:aspect-[4/3]',
         )}
       >
         <video

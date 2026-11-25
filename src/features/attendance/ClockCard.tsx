@@ -351,8 +351,9 @@ export function ClockCard({ className }: { className?: string }) {
                 </div>
               </div>
             )}
-            <div className="grid items-stretch gap-3 md:grid-cols-[17rem_minmax(0,1fr)] md:gap-6">
+            <div className="grid items-stretch gap-3 md:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)] md:gap-6 md:[&>*]:h-full">
             <CameraCapture
+              className="md:h-full"
               photo={photo}
               onChange={(blob) => {
                 punch.reset()
@@ -362,7 +363,7 @@ export function ClockCard({ className }: { className?: string }) {
               }}
               disabled={isPending || busy}
             />
-            <div className="flex h-full flex-col gap-3">
+            <div className="flex h-full min-h-0 flex-col gap-3">
             <p className="text-xs leading-5 text-muted-foreground">
               Chụp trực tiếp từ camera: <b className="font-medium text-foreground">mặt nhìn thẳng</b>, nền{' '}
               <b className="font-medium text-foreground">
