@@ -37,6 +37,13 @@ export interface NavGroup {
 
 export const NAV_GROUPS: NavGroup[] = [
   {
+    label: '',
+    items: [
+      { title: 'Chấm công', url: '/attendance', icon: CalendarClock, description: 'Vào ca, ra ca & bảng công' },
+      { title: 'Đăng ký khuôn mặt', url: '/face', icon: ScanFace, description: 'Đăng ký khuôn mặt của bạn' },
+    ],
+  },
+  {
     label: 'Tổng quan',
     items: [
       {
@@ -73,8 +80,6 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Nhân sự',
     items: [
-      { title: 'Chấm công', url: '/attendance', icon: CalendarClock, description: 'Vào ca, ra ca & bảng công' },
-      { title: 'Đăng ký khuôn mặt', url: '/face', icon: ScanFace, description: 'Đăng ký khuôn mặt của bạn' },
       {
         title: 'Duyệt khuôn mặt',
         url: '/face/review',

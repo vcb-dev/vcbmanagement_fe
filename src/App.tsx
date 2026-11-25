@@ -50,7 +50,7 @@ function useSessionExpiredRedirect() {
   }, [navigate, queryClient])
 }
 
-/** Trang chủ `/`: admin / quản lý vào Tổng quan, nhân viên vào Công của tôi. */
+/** Trang chủ `/`: mọi vai trò vào màn chấm công. */
 function HomeRedirect() {
   const { data: user, isPending } = useMe()
   if (isPending) {
@@ -61,7 +61,7 @@ function HomeRedirect() {
     )
   }
   if (!user) return null
-  return <Navigate to={homePath(user.role)} replace />
+  return <Navigate to={homePath()} replace />
 }
 
 export default function App() {

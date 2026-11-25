@@ -22,7 +22,7 @@ export function ProtectedRoute({ roles }: Props) {
     toast.success('Đăng nhập thành công', { id: 'oauth-result' })
     params.delete('oauth')
     const search = params.toString()
-    const pathname = location.pathname === '/' ? homePath(user.role) : location.pathname
+    const pathname = location.pathname === '/' ? homePath() : location.pathname
     navigate({ pathname, search: search ? `?${search}` : '' }, { replace: true })
   }, [user, location.pathname, location.search, navigate])
 

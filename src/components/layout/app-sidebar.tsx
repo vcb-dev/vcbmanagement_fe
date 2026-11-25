@@ -51,7 +51,7 @@ export function AppSidebar({ user }: { user: User }) {
         <SidebarMenu className="flex-row items-center gap-1 group-data-[collapsible=icon]:flex-col">
           <SidebarMenuItem className="min-w-0 flex-1">
             <SidebarMenuButton size="lg" asChild className="hover:bg-transparent">
-              <NavLink to={homePath(user.role)} onClick={closeOnMobile}>
+              <NavLink to={homePath()} onClick={closeOnMobile}>
                 <BrandMark className="size-8 rounded-lg shadow-sm" />
                 <div className="grid flex-1 text-left leading-tight">
                   <span className="truncate text-sm font-semibold">VCB Management</span>
@@ -72,8 +72,10 @@ export function AppSidebar({ user }: { user: User }) {
 
       <SidebarContent>
         {groups.map((group) => (
-          <SidebarGroup key={group.label}>
-            <SidebarGroupLabel className="text-[11px] tracking-wider uppercase">{group.label}</SidebarGroupLabel>
+          <SidebarGroup key={group.label || 'top'}>
+            {group.label ? (
+              <SidebarGroupLabel className="text-[11px] tracking-wider uppercase">{group.label}</SidebarGroupLabel>
+            ) : null}
             <SidebarGroupContent>
               <SidebarMenu>
                 {group.items.map((item) => {

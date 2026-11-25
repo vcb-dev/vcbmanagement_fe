@@ -2,11 +2,10 @@ import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tansta
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { authApi } from './auth.api'
-import { isManagerRole } from '@/lib/user-display'
-import type { User, UserRole } from './auth.types'
+import type { User } from './auth.types'
 
-export function homePath(role: UserRole) {
-  return isManagerRole(role) ? '/overview' : '/my-timesheet'
+export function homePath() {
+  return '/attendance'
 }
 
 export const ME_QUERY_KEY = ['auth', 'me'] as const
