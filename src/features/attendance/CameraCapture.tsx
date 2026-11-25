@@ -113,7 +113,12 @@ export function CameraCapture({
           'max-md:fixed max-md:inset-0 max-md:z-50 max-md:flex max-md:flex-col max-md:bg-black max-md:p-3 max-md:pt-[max(0.75rem,env(safe-area-inset-top))] max-md:pb-[max(1rem,env(safe-area-inset-bottom))]',
       )}
     >
-      <div className="relative h-[min(48dvh,22rem)] w-full overflow-hidden rounded-xl border bg-zinc-100 max-md:min-h-0 max-md:flex-1 sm:h-auto sm:aspect-[4/3]">
+      <div
+        className={cn(
+          'relative w-full overflow-hidden rounded-xl border bg-zinc-100',
+          state === 'live' ? 'h-44 max-md:h-auto max-md:min-h-0 max-md:flex-1 md:h-52' : 'h-36 md:h-44',
+        )}
+      >
         <video
           ref={videoRef}
           playsInline

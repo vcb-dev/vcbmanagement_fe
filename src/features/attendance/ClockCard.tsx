@@ -14,6 +14,7 @@ import {
   SHIFT_LABEL,
   SLOT_LABEL,
   type AttendanceSlot,
+  type AttendanceToday,
   type ShiftKey,
   type ShiftRecord,
   type WorkSchedule,
@@ -67,6 +68,7 @@ function toMinutes(hhmm: string) {
 }
 
 function slotTime(schedule: WorkSchedule, slot: AttendanceSlot) {
+  if (slot === 'overtime_in' || slot === 'overtime_out') return null
   return {
     morning_in: schedule.morningStart,
     morning_out: schedule.morningEnd,
@@ -85,9 +87,9 @@ function LiveClock({ serverTime }: { serverTime?: string }) {
       <p className="text-sm capitalize" style={{ color: '#c7d2fe' }}>
         {vnDateLabel(now)}
       </p>
-      <p className="mt-2 text-3xl font-semibold sm:text-5xl" style={{ color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+      <p className="mt-1 text-3xl font-semibold md:text-5xl" style={{ color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
         {clock.hour}:{clock.minute}
-        <span className="text-2xl" style={{ color: '#c7d2fe' }}>
+        <span className="text-xl md:text-2xl" style={{ color: '#c7d2fe' }}>
           :{clock.second}
         </span>
       </p>
@@ -106,6 +108,8 @@ export function ClockCard({ className }: { className?: string }) {
   const [note, setNote] = useState('')
   const [photo, setPhoto] = useState<Blob | null>(null)
   const [registerFloor, setRegisterFloor] = useState<'4' | '5' | '6'>('5')
+  const [mode, setMode] = useState<'shift' | 'overtime'>('shift')
+  const [openCheck, setOpenCheck] = useState<'gps' | 'wifi' | null>(null)
 
   const record = data?.record ?? null
   const nextSlot = data?.nextSlot ?? null
@@ -113,7 +117,7 @@ export function ClockCard({ className }: { className?: string }) {
   const busy = punch.isPending || photoCheck.isPending || registerWifi.isPending || unregisterWifi.isPending
   const photoOk = !!photo && photoCheck.isSuccess
   const fence = data?.geofence ?? null
-  const geo = useGeolocation(!!fence && (!!nextSlot || canManageWifi))
+  const geo = useGeolocation(!!fence && (mode === 'overtime' || !!nextSlot || canManageWifi))
   const verdict = fence ? geoVerdict(fence, geo.state) : null
   const locationOk = !verdict || verdict.allowed
   const wifi = data?.officeWifi
@@ -132,11 +136,18 @@ export function ClockCard({ className }: { className?: string }) {
     return Math.max(0, Math.round((now.getTime() - new Date(shift.inAt).getTime()) / 60_000))
   }
 
+  const overtime = record?.overtime ?? null
+  const overtimeSlot: AttendanceSlot | null = !overtime?.inAt ? 'overtime_in' : !overtime.outAt ? 'overtime_out' : null
+  const punchSlot = mode === 'overtime' ? overtimeSlot : nextSlot
+  const overtimeShift: ShiftRecord | undefined = overtime
+    ? { inAt: overtime.inAt, outAt: overtime.outAt, lateMinutes: null, earlyMinutes: null, workedMinutes: overtime.workedMinutes }
+    : undefined
+
   const submit = () => {
-    if (!photo || !photoOk || !nextSlot || !locationOk || !wifiOk || (faceRequired && !faceApproved)) return
+    if (!photo || !photoOk || !punchSlot || !locationOk || !wifiOk || (faceRequired && !faceApproved)) return
     punch.mutate(
       {
-        slot: nextSlot,
+        slot: punchSlot,
         photo,
         note: note.trim() || undefined,
         location: geo.state.status === 'ok' ? geo.state.reading : undefined,
@@ -151,13 +162,15 @@ export function ClockCard({ className }: { className?: string }) {
     )
   }
 
-  const target = data && nextSlot ? slotTime(data.schedule, nextSlot) : null
+  const target = data && mode === 'shift' && nextSlot ? slotTime(data.schedule, nextSlot) : null
   const lateNow = target && nextSlot && isInSlot(nextSlot) ? Math.max(0, nowMinutes - toMinutes(target)) : 0
-  const activeShift: ShiftKey | null = nextSlot ? (nextSlot.startsWith('morning') ? 'morning' : 'afternoon') : null
+  const activeShift: ShiftKey | null = mode === 'shift' && nextSlot ? (nextSlot.startsWith('morning') ? 'morning' : 'afternoon') : null
+  const finished = mode === 'overtime' ? !overtimeSlot : !nextSlot
+  const blocked = isPending || busy || !photoOk || !punchSlot || !locationOk || !wifiOk || (faceRequired && !faceApproved)
 
   return (
-    <Card className={cn('relative min-w-0 gap-0 p-0', className)}>
-      <div className="relative min-w-0 overflow-hidden p-4 text-white sm:p-6" style={{ backgroundColor: '#4f46e5' }}>
+    <Card className={cn('relative w-full min-w-0 gap-0 p-0', className)}>
+      <div className="relative min-w-0 overflow-hidden p-4 text-white md:p-6" style={{ backgroundColor: '#4f46e5' }}>
         {data && (
           <div className="mb-2 flex max-w-full flex-wrap gap-1.5">
             <SchedulePill label="Sáng" from={data.schedule.morningStart} to={data.schedule.morningEnd} />
@@ -167,7 +180,60 @@ export function ClockCard({ className }: { className?: string }) {
         <LiveClock serverTime={data?.serverTime} />
       </div>
 
-      <div className="min-w-0 space-y-5 p-4 sm:p-6">
+      <div className="flex min-w-0 flex-col gap-3 p-3 md:gap-4 md:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex rounded-full bg-muted p-1">
+            <ModeButton active={mode === 'shift'} onClick={() => setMode('shift')}>
+              Ca làm
+            </ModeButton>
+            <ModeButton active={mode === 'overtime'} onClick={() => setMode('overtime')}>
+              Tăng ca
+            </ModeButton>
+          </div>
+          <div className="flex items-center gap-2">
+            {verdict && (
+              <CheckIconButton
+                label="Vị trí"
+                open={openCheck === 'gps'}
+                tone={verdict.tone}
+                icon={verdict.tone === 'ok' ? MapPin : verdict.tone === 'bad' ? MapPinOff : LocateFixed}
+                onClick={() => setOpenCheck(openCheck === 'gps' ? null : 'gps')}
+              />
+            )}
+            {(wifi?.required || canManageWifi) && (
+              <CheckIconButton
+                label="Wi-Fi"
+                open={openCheck === 'wifi'}
+                tone={wifi?.required ? (wifiOk ? 'ok' : 'bad') : 'warn'}
+                icon={wifi?.required && wifiOk ? Wifi : WifiOff}
+                onClick={() => setOpenCheck(openCheck === 'wifi' ? null : 'wifi')}
+              />
+            )}
+          </div>
+        </div>
+        {openCheck === 'gps' && verdict && <LocationBox verdict={verdict} onRetry={geo.retry} />}
+        {openCheck === 'wifi' && (wifi?.required || canManageWifi) && (
+          <WifiPanel
+            wifi={wifi}
+            wifiOk={wifiOk}
+            assignedFloor={assignedFloor}
+            canManageWifi={canManageWifi}
+            registerFloor={registerFloor}
+            setRegisterFloor={setRegisterFloor}
+            busy={busy}
+            locationOk={locationOk}
+            onRegister={() =>
+              registerWifi.mutate({
+                location: geo.state.status === 'ok' ? geo.state.reading : undefined,
+                floor: Number(registerFloor) as 4 | 5 | 6,
+              })
+            }
+            onUnregister={() => unregisterWifi.mutate()}
+            registerPending={registerWifi.isPending}
+          />
+        )}
+
+        <div className="order-3">
         {isPending ? (
           <Skeleton className="h-28 w-full" />
         ) : (
@@ -178,27 +244,37 @@ export function ClockCard({ className }: { className?: string }) {
               <span className="py-2 text-center">Giờ ra</span>
               <span className="py-2 text-center">Đã làm</span>
             </div>
-            {(['morning', 'afternoon'] as const).map((key) => {
-              const shift = record?.[key]
-              return (
-                <div
-                  key={key}
-                  className={cn(
-                    'grid min-w-[17rem] grid-cols-[2.75rem_1fr_1fr_1fr] items-center border-t text-foreground',
-                    activeShift === key && 'bg-accent',
-                  )}
-                >
-                  <span className="px-3 py-3 text-sm font-medium">{SHIFT_LABEL[key]}</span>
-                  <TimeCell value={formatTime(shift?.inAt)} late={shift?.lateMinutes} />
-                  <TimeCell value={formatTime(shift?.outAt)} early={shift?.earlyMinutes} />
-                  <TimeCell value={formatDuration(liveWorked(shift))} />
-                </div>
-              )
-            })}
+            {mode === 'overtime' ? (
+              <div className="grid min-w-[17rem] grid-cols-[2.75rem_1fr_1fr_1fr] items-center border-t bg-accent text-foreground">
+                <span className="px-3 py-3 text-sm font-medium">TC</span>
+                <TimeCell value={formatTime(overtimeShift?.inAt)} />
+                <TimeCell value={formatTime(overtimeShift?.outAt)} />
+                <TimeCell value={formatDuration(liveWorked(overtimeShift))} />
+              </div>
+            ) : (
+              (['morning', 'afternoon'] as const).map((key) => {
+                const shift = record?.[key]
+                return (
+                  <div
+                    key={key}
+                    className={cn(
+                      'grid min-w-[17rem] grid-cols-[2.75rem_1fr_1fr_1fr] items-center border-t text-foreground',
+                      activeShift === key && 'bg-accent',
+                    )}
+                  >
+                    <span className="px-3 py-3 text-sm font-medium">{SHIFT_LABEL[key]}</span>
+                    <TimeCell value={formatTime(shift?.inAt)} late={shift?.lateMinutes} />
+                    <TimeCell value={formatTime(shift?.outAt)} early={shift?.earlyMinutes} />
+                    <TimeCell value={formatDuration(liveWorked(shift))} />
+                  </div>
+                )
+              })
+            )}
           </div>
         )}
+        </div>
 
-        <div className="space-y-2 text-sm">
+        <div className="order-4 space-y-2 text-sm">
           <div className="flex items-start justify-between gap-3">
             <span className="whitespace-nowrap text-muted-foreground">Trạng thái</span>
             {data && <AttendanceStatus record={record} live hideLate />}
@@ -222,111 +298,38 @@ export function ClockCard({ className }: { className?: string }) {
           )}
         </div>
 
-        {data && !nextSlot ? (
+        <div className="order-2">
+        {data && finished ? (
           <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm">
             <PartyPopper className="size-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
             <p>
-              Bạn đã chấm công đủ 2 ca hôm nay. <span className="text-muted-foreground">Nghỉ ngơi nhé!</span>
+              {mode === 'overtime' ? (
+                <>Đã chấm vào và ra tăng ca hôm nay.</>
+              ) : (
+                <>
+                  Bạn đã chấm công đủ 2 ca hôm nay. <span className="text-muted-foreground">Còn tăng ca thì chuyển sang mục Tăng ca.</span>
+                </>
+              )}
             </p>
           </div>
         ) : (
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
               <span className="font-medium">Chụp ảnh xác nhận</span>
-              {nextSlot && target && (
+              {punchSlot && (
                 <span className="text-xs text-muted-foreground">
-                  {SLOT_LABEL[nextSlot]} · giờ chuẩn <span className="font-medium text-foreground">{target}</span>
+                  {SLOT_LABEL[punchSlot]}
+                  {target && (
+                    <>
+                      {' '}
+                      · giờ chuẩn <span className="font-medium text-foreground">{target}</span>
+                    </>
+                  )}
                 </span>
               )}
             </div>
-            {verdict && <LocationBox verdict={verdict} onRetry={geo.retry} />}
-            {(wifi?.required || canManageWifi) && (
-              <div
-                className={cn(
-                  'flex items-start gap-3 rounded-xl border p-3 text-sm',
-                  wifi?.required
-                    ? wifiOk
-                      ? 'border-[#a7f3d0] bg-[#ecfdf5] text-[#047857]'
-                      : 'border-[#fecdd3] bg-[#fff1f2] text-[#be123c]'
-                    : 'border-amber-500/30 bg-amber-500/5 text-amber-950 dark:text-amber-100',
-                )}
-              >
-                {wifi?.required && wifiOk ? (
-                  <Wifi className="mt-0.5 size-4 shrink-0" />
-                ) : (
-                  <WifiOff className="mt-0.5 size-4 shrink-0" />
-                )}
-                <div className="min-w-0 flex-1 space-y-2">
-                  <p className="font-medium">
-                    {!wifi?.required
-                      ? 'Chưa bật lọc Wi‑Fi công ty'
-                      : wifiOk
-                        ? `Đang dùng Wi‑Fi ${wifi.wifiFloor ? `tầng ${wifi.wifiFloor}` : 'công ty'}`
-                        : !assignedFloor && !canManageWifi
-                          ? 'Chưa được gán tầng chấm công'
-                          : wifi?.connected && wifi.wifiFloor && assignedFloor && wifi.wifiFloor !== assignedFloor
-                            ? `Sai tầng: đang ở tầng ${wifi.wifiFloor}`
-                            : 'Chưa kết nối Wi‑Fi đúng tầng'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {!wifi?.required
-                      ? 'Gán tầng cho nhân sự, rồi ghi nhận Wi‑Fi từng tầng. Tầng 1 dùng mạng khác sẽ không chấm được.'
-                      : wifiOk
-                        ? canManageWifi
-                          ? 'Quản lý được chấm ở tầng 4, 5 hoặc 6.'
-                          : `Bạn chấm công tầng ${assignedFloor}.`
-                        : !assignedFloor && !canManageWifi
-                          ? 'Liên hệ quản lý gán tầng 4, 5 hoặc 6 trong mục Nhân sự.'
-                          : `Tắt 4G, nối Wi‑Fi ${assignedFloor ? `tầng ${assignedFloor}` : 'đúng tầng của bạn'} rồi tải lại trang.`}
-                    {wifi?.clientIp ? ` IP: ${wifi.clientIp}.` : ''}
-                  </p>
-                  {canManageWifi && (
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Select value={registerFloor} onValueChange={(v) => setRegisterFloor(v as '4' | '5' | '6')}>
-                        <SelectTrigger aria-label="Tầng của Wi‑Fi này" className="h-9 w-28">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="4">Tầng 4</SelectItem>
-                          <SelectItem value="5">Tầng 5</SelectItem>
-                          <SelectItem value="6">Tầng 6</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        className="h-9"
-                        disabled={busy || !locationOk}
-                        onClick={() =>
-                          registerWifi.mutate({
-                            location: geo.state.status === 'ok' ? geo.state.reading : undefined,
-                            floor: Number(registerFloor) as 4 | 5 | 6,
-                          })
-                        }
-                      >
-                        {registerWifi.isPending ? <Loader2 className="animate-spin" /> : <Wifi />}
-                        Ghi nhận Wi‑Fi này
-                      </Button>
-                      {wifi?.required && wifi.connected && (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          className="h-9"
-                          disabled={busy}
-                          onClick={() => unregisterWifi.mutate()}
-                        >
-                          Gỡ IP này
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
             {faceRequired && !faceApproved && (
-              <div className="flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/5 p-3 text-sm">
+              <div className="flex items-start gap-2 rounded-lg border border-amber-500/25 bg-amber-500/5 p-2 text-sm">
                 <ScanFace className="mt-0.5 size-4 shrink-0 text-amber-600" />
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">
@@ -345,13 +348,7 @@ export function ClockCard({ className }: { className?: string }) {
                 </div>
               </div>
             )}
-            <p className="-mt-1 text-xs leading-5 text-muted-foreground">
-              Chụp trực tiếp từ camera: <b className="font-medium text-foreground">mặt nhìn thẳng</b>, nền{' '}
-              <b className="font-medium text-foreground">
-                {assignedFloor ? `văn phòng tầng ${assignedFloor}` : 'văn phòng tầng 5 hoặc 6'}
-              </b>
-              . Không dùng ảnh có sẵn.
-            </p>
+            <div className="grid items-start gap-3 md:grid-cols-[17rem_minmax(0,1fr)] md:gap-6">
             <CameraCapture
               photo={photo}
               onChange={(blob) => {
@@ -362,6 +359,14 @@ export function ClockCard({ className }: { className?: string }) {
               }}
               disabled={isPending || busy}
             />
+            <div className="space-y-3">
+            <p className="text-xs leading-5 text-muted-foreground">
+              Chụp trực tiếp từ camera: <b className="font-medium text-foreground">mặt nhìn thẳng</b>, nền{' '}
+              <b className="font-medium text-foreground">
+                {assignedFloor ? `văn phòng tầng ${assignedFloor}` : 'văn phòng tầng 5 hoặc 6'}
+              </b>
+              . Không dùng ảnh có sẵn.
+            </p>
             {photo && <PhotoCheckBox check={photoCheck} />}
             {punch.isError && (
               <div
@@ -378,7 +383,7 @@ export function ClockCard({ className }: { className?: string }) {
               placeholder="Ghi chú (không bắt buộc)"
               maxLength={255}
               disabled={isPending || busy}
-              className="h-11 text-base md:h-8 md:text-sm"
+              className="h-11 text-base md:h-9 md:text-sm"
             />
             {lateNow > 0 && (
               <p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
@@ -389,15 +394,7 @@ export function ClockCard({ className }: { className?: string }) {
             <Button
               size="lg"
               onClick={submit}
-              disabled={
-                isPending ||
-                busy ||
-                !photoOk ||
-                !nextSlot ||
-                !locationOk ||
-                !wifiOk ||
-                (faceRequired && !faceApproved)
-              }
+              disabled={blocked}
               title={
                 faceRequired && !faceApproved
                   ? 'Cần đăng ký khuôn mặt và được duyệt'
@@ -411,28 +408,17 @@ export function ClockCard({ className }: { className?: string }) {
               }
               className="h-12 min-h-11 w-full bg-clip-border text-base text-white disabled:opacity-100"
               style={{
-                backgroundColor:
-                  isPending ||
-                  busy ||
-                  !photoOk ||
-                  !nextSlot ||
-                  !locationOk ||
-                  !wifiOk ||
-                  (faceRequired && !faceApproved)
-                    ? '#c7d2fe'
-                    : nextSlot && !isInSlot(nextSlot)
-                      ? '#e11d48'
-                      : '#4f46e5',
+                backgroundColor: blocked ? '#c7d2fe' : punchSlot && !isInSlot(punchSlot) ? '#e11d48' : mode === 'overtime' ? '#6d28d9' : '#4f46e5',
                 color: '#fff',
               }}
             >
-              {busy ? <Loader2 className="animate-spin" /> : nextSlot && !isInSlot(nextSlot) ? <LogOut /> : <LogIn />}
+              {busy ? <Loader2 className="animate-spin" /> : punchSlot && !isInSlot(punchSlot) ? <LogOut /> : <LogIn />}
               {photoCheck.isPending
                 ? 'Đang kiểm tra ảnh…'
                 : punch.isPending
                   ? 'Đang chấm công…'
-                  : nextSlot
-                  ? `Chấm công ${SLOT_LABEL[nextSlot].toLowerCase()}`
+                  : punchSlot
+                  ? `Chấm công ${SLOT_LABEL[punchSlot].toLowerCase()}`
                   : 'Chấm công'}
             </Button>
             {(!photoOk || !locationOk || !wifiOk || (faceRequired && !faceApproved)) && (
@@ -448,8 +434,11 @@ export function ClockCard({ className }: { className?: string }) {
                         : 'Chụp ảnh hợp lệ xong mới chấm công được'}
               </p>
             )}
+            </div>
+            </div>
           </div>
         )}
+        </div>
       </div>
     </Card>
   )
@@ -531,6 +520,140 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
     )
   }
   return null
+}
+
+function ModeButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn('rounded-full px-3 py-1.5 text-sm font-medium', active ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground')}
+    >
+      {children}
+    </button>
+  )
+}
+
+function CheckIconButton({
+  label,
+  open,
+  tone,
+  icon: Icon,
+  onClick,
+}: {
+  label: string
+  open: boolean
+  tone: GeoVerdict['tone']
+  icon: typeof MapPin
+  onClick: () => void
+}) {
+  const toneClass = {
+    ok: 'border-[#a7f3d0] bg-[#ecfdf5] text-[#047857]',
+    warn: 'border-[#fde68a] bg-[#fffbeb] text-[#b45309]',
+    bad: 'border-[#fecdd3] bg-[#fff1f2] text-[#be123c]',
+    pending: 'border-zinc-200 bg-zinc-50 text-zinc-500',
+  }[tone]
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      aria-expanded={open}
+      title={label}
+      onClick={onClick}
+      className={cn('flex size-10 items-center justify-center rounded-full border', toneClass)}
+    >
+      {tone === 'pending' ? <Loader2 className="size-4 animate-spin" /> : <Icon className="size-4" />}
+    </button>
+  )
+}
+
+function WifiPanel({
+  wifi,
+  wifiOk,
+  assignedFloor,
+  canManageWifi,
+  registerFloor,
+  setRegisterFloor,
+  busy,
+  locationOk,
+  onRegister,
+  onUnregister,
+  registerPending,
+}: {
+  wifi: AttendanceToday['officeWifi']
+  wifiOk: boolean
+  assignedFloor: 4 | 5 | 6 | null
+  canManageWifi: boolean
+  registerFloor: '4' | '5' | '6'
+  setRegisterFloor: (floor: '4' | '5' | '6') => void
+  busy: boolean
+  locationOk: boolean
+  onRegister: () => void
+  onUnregister: () => void
+  registerPending: boolean
+}) {
+  return (
+    <div
+      className={cn(
+        'flex items-start gap-3 rounded-xl border p-3 text-sm',
+        wifi?.required
+          ? wifiOk
+            ? 'border-[#a7f3d0] bg-[#ecfdf5] text-[#047857]'
+            : 'border-[#fecdd3] bg-[#fff1f2] text-[#be123c]'
+          : 'border-amber-500/30 bg-amber-500/5 text-amber-950 dark:text-amber-100',
+      )}
+    >
+      {wifi?.required && wifiOk ? <Wifi className="mt-0.5 size-4 shrink-0" /> : <WifiOff className="mt-0.5 size-4 shrink-0" />}
+      <div className="min-w-0 flex-1 space-y-2">
+        <p className="font-medium">
+          {!wifi?.required
+            ? 'Chưa bật lọc Wi‑Fi công ty'
+            : wifiOk
+              ? `Đang dùng Wi‑Fi ${wifi.wifiFloor ? `tầng ${wifi.wifiFloor}` : 'công ty'}`
+              : !assignedFloor && !canManageWifi
+                ? 'Chưa được gán tầng chấm công'
+                : wifi?.connected && wifi.wifiFloor && assignedFloor && wifi.wifiFloor !== assignedFloor
+                  ? `Sai tầng: đang ở tầng ${wifi.wifiFloor}`
+                  : 'Chưa kết nối Wi‑Fi đúng tầng'}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {!wifi?.required
+            ? 'Gán tầng cho nhân sự, rồi ghi nhận Wi‑Fi từng tầng.'
+            : wifiOk
+              ? canManageWifi
+                ? 'Quản lý được chấm ở tầng 4, 5 hoặc 6.'
+                : `Bạn chấm công tầng ${assignedFloor}.`
+              : !assignedFloor && !canManageWifi
+                ? 'Liên hệ quản lý gán tầng 4, 5 hoặc 6.'
+                : `Nối Wi‑Fi ${assignedFloor ? `tầng ${assignedFloor}` : 'đúng tầng'} rồi tải lại trang.`}
+          {wifi?.clientIp ? ` IP: ${wifi.clientIp}.` : ''}
+        </p>
+        {canManageWifi && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={registerFloor} onValueChange={(v) => setRegisterFloor(v as '4' | '5' | '6')}>
+              <SelectTrigger aria-label="Tầng của Wi‑Fi này" className="h-9 w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="4">Tầng 4</SelectItem>
+                <SelectItem value="5">Tầng 5</SelectItem>
+                <SelectItem value="6">Tầng 6</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button type="button" size="sm" variant="secondary" className="h-9" disabled={busy || !locationOk} onClick={onRegister}>
+              {registerPending ? <Loader2 className="animate-spin" /> : <Wifi />}
+              Ghi nhận Wi‑Fi này
+            </Button>
+            {wifi?.required && wifi.connected && (
+              <Button type="button" size="sm" variant="ghost" className="h-9" disabled={busy} onClick={onUnregister}>
+                Gỡ IP này
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 function SchedulePill({ label, from, to }: { label: string; from: string; to: string }) {

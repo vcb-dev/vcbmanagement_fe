@@ -12,6 +12,8 @@ const SHORT_LABEL: Record<AttendanceSlot, string> = {
   morning_out: 'Ra S',
   afternoon_in: 'Vào C',
   afternoon_out: 'Ra C',
+  overtime_in: 'Vào TC',
+  overtime_out: 'Ra TC',
 }
 
 function photoUrl(record: AttendanceRecord, slot: AttendanceSlot) {

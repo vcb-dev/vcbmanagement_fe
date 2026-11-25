@@ -5,6 +5,7 @@ import { PageContainer } from '@/components/page-container'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { AttendanceMonthSummary } from '@/features/attendance/AttendanceMonthSummary'
 import { useMe } from '@/features/auth/use-auth'
 import { fullTimeLedger, ledgerDates, partTimeLedger, type LedgerFilter } from '@/features/my-timesheet/day-ledger'
 import { hasStickyActions, planOf } from '@/features/my-timesheet/month-plan'
@@ -170,12 +171,13 @@ export function MyTimesheetPage() {
           <MonthNav month={month} max={currentMonth} onChange={changeMonth} className="justify-between" />
         </div>
 
+        <AttendanceMonthSummary month={month} maxMonth={currentMonth} onMonthChange={changeMonth} />
+
         <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <div className="min-w-0 space-y-1">
             <h2 className="sr-only sm:not-sr-only sm:text-2xl sm:font-semibold sm:tracking-tight">Công {formatMonth(month).toLowerCase()}</h2>
             {sheet.data ? <ProfileLine data={sheet.data} /> : <Skeleton className="h-5 w-full max-w-80" />}
           </div>
-          <MonthNav month={month} max={currentMonth} onChange={changeMonth} className="hidden sm:flex" />
         </header>
 
         {sheet.isError ? (
