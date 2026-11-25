@@ -8,6 +8,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { fetchMe, ME_QUERY_KEY } from '@/features/auth/use-auth'
 import { todayYmd } from '@/lib/format'
 import { apiClient } from '@/lib/api-client'
+import { isManagerRole } from '@/lib/user-display'
 import App from './App'
 import './index.css'
 
@@ -25,7 +26,7 @@ const queryClient = new QueryClient({
 })
 
 void queryClient.fetchQuery({ queryKey: ME_QUERY_KEY, queryFn: fetchMe, staleTime: 5 * 60_000 }).then((user) => {
-  if (!user || (user.role !== 'admin' && user.role !== 'manager')) return
+  if (!user || !isManagerRole(user.role)) return
   const day = todayYmd()
   void queryClient
     .prefetchQuery({

@@ -31,7 +31,7 @@ export function MyLeaveRequestsPage() {
     <PageContainer>
       <PageHeader
         title="Đơn xin phép"
-        description={`Xin nghỉ phép, đi muộn, về sớm hoặc làm việc ngoài văn phòng. Nghỉ phép có trừ phép năm được trừ khi quản lý duyệt; mỗi tháng có ${LATE_EXCUSE_MINUTES} phút đi muộn có phép, đơn đi muộn được duyệt trừ dần vào đó.`}
+        description={`Xin nghỉ phép, đi muộn, về sớm hoặc làm việc ngoài văn phòng. Nghỉ phép có trừ phép năm được trừ khi đơn được duyệt; mỗi tháng có ${LATE_EXCUSE_MINUTES} phút đi muộn có phép, đơn đi muộn được duyệt trừ dần vào đó.`}
         actions={
           <Button onClick={() => setFormOpen(true)}>
             <Plus />
@@ -46,7 +46,7 @@ export function MyLeaveRequestsPage() {
           <p className="text-sm font-medium">Bạn chưa gửi đơn nào</p>
           <p className="max-w-md text-sm text-muted-foreground">
             Cần nghỉ, đến muộn, về sớm hay làm việc bên ngoài thì bấm{' '}
-            <b className="font-medium text-foreground">Tạo đơn</b> để gửi quản lý duyệt.
+            <b className="font-medium text-foreground">Tạo đơn</b> để gửi leader hoặc quản lý duyệt.
           </p>
           <Button className="mt-2" onClick={() => setFormOpen(true)}>
             <Plus />

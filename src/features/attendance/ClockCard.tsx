@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useMe } from '@/features/auth/use-auth'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { formatDuration, formatTime } from '@/lib/format'
+import { isManagerRole } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
 import {
   SHIFT_LABEL,
@@ -113,7 +114,7 @@ export function ClockCard({ className }: { className?: string }) {
 
   const record = data?.record ?? null
   const nextSlot = data?.nextSlot ?? null
-  const canManageWifi = me?.role === 'admin' || me?.role === 'manager'
+  const canManageWifi = isManagerRole(me?.role)
   const busy = punch.isPending || photoCheck.isPending || registerWifi.isPending || unregisterWifi.isPending
   const photoOk = !!photo && photoCheck.isSuccess
   const fence = data?.geofence ?? null

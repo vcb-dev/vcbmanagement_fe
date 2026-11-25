@@ -14,6 +14,7 @@ export interface UserProfile {
 }
 
 export interface UserProfileInput {
+  role: UserRole
   departmentId: string | null
   employmentType: EmploymentType
   officeFloor: 4 | 5 | 6 | null

@@ -31,12 +31,12 @@ import {
   shiftYmd,
   todayYmd,
 } from '@/lib/format'
-import { ROLE_LABEL, displayName } from '@/lib/user-display'
+import { ROLE_LABEL, displayName, isManagerRole } from '@/lib/user-display'
 
 export function AttendancePage() {
   const { data: user } = useMe()
   const [params, setParams] = useSearchParams()
-  const isManager = user?.role === 'admin' || user?.role === 'manager'
+  const isManager = isManagerRole(user?.role)
   const tab = isManager && params.get('tab') === 'team' ? 'team' : 'me'
 
   const currentMonth = todayYmd().slice(0, 7)

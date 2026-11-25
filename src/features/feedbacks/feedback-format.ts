@@ -1,4 +1,5 @@
 import type { UserRole } from '@/features/auth/auth.types'
+import { isManagerRole } from '@/lib/user-display'
 import type { FeedbackStatus } from '@/features/part-time/part-time.types'
 import type { FeedbackSheetRef } from './feedbacks.types'
 
@@ -26,7 +27,7 @@ export function replyNextStatus(isManager: boolean): FeedbackStatus {
 
 export function sheetLink(sheet: FeedbackSheetRef, role: UserRole): string | null {
   if (sheet.type === 'part_time') {
-    if (role === 'admin' || role === 'manager') {
+    if (isManagerRole(role)) {
       return `/part-time-timesheets?tab=closing&month=${sheet.month}`
     }
     return `/my-timesheet?month=${sheet.month}`

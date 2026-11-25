@@ -24,6 +24,7 @@ import { homePath } from '@/features/auth/use-auth'
 import { useFeedbackCounts } from '@/features/feedbacks/use-feedbacks'
 import { useLeavePendingCount } from '@/features/leave-requests/use-leave-requests'
 import { formatTime } from '@/lib/format'
+import { isLeaveReviewer, isManagerRole } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
 import { NAV_GROUPS } from './nav-items'
 import { NavUser } from './nav-user'
@@ -35,9 +36,9 @@ export function AppSidebar({ user }: { user: User }) {
   const closeOnMobile = () => {
     if (isMobile) setOpenMobile(false)
   }
-  const isManagerOrAdmin = user.role === 'admin' || user.role === 'manager'
+  const isManagerOrAdmin = isManagerRole(user.role)
   const { data: feedbackCounts } = useFeedbackCounts(isManagerOrAdmin)
-  const { data: leavePending } = useLeavePendingCount(isManagerOrAdmin)
+  const { data: leavePending } = useLeavePendingCount(isLeaveReviewer(user.role))
   const groups = NAV_GROUPS.map((g) => ({
     ...g,
     items: g.items.filter((item) => !item.roles || item.roles.includes(user.role)),
