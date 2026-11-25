@@ -14,7 +14,7 @@ export function FacePage() {
       <PageHeader
         hideTitleOnPhone
         title="Đăng ký khuôn mặt"
-        description="Đăng ký khuôn mặt trên điện thoại: nhìn thẳng, quay trái, quay phải. Quản lý duyệt xong mới chấm công được."
+        description="Đăng ký khuôn mặt trên điện thoại: nhìn thẳng, quay trái, quay phải. Đăng ký xong là chấm công được."
       />
       <MyFace />
     </div>
@@ -79,7 +79,7 @@ function MyFace() {
           kind="enroll"
           idleLabel={profile ? 'Đăng ký lại bằng camera' : 'Mở camera để đăng ký'}
           onDone={() => {
-            toast.success('Đã đăng ký khuôn mặt, chờ quản lý duyệt')
+            toast.success('Đã đăng ký khuôn mặt. Bạn có thể chấm công.')
             void queryClient.invalidateQueries({ queryKey: ['face'] })
             void queryClient.invalidateQueries({ queryKey: ['attendance', 'today'] })
           }}
