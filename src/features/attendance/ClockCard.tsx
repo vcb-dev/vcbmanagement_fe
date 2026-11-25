@@ -349,7 +349,7 @@ export function ClockCard({ className }: { className?: string }) {
                 </div>
               </div>
             )}
-            <div className="grid items-start gap-3 md:grid-cols-[17rem_minmax(0,1fr)] md:gap-6">
+            <div className="grid items-stretch gap-3 md:grid-cols-[17rem_minmax(0,1fr)] md:gap-6">
             <CameraCapture
               photo={photo}
               onChange={(blob) => {
@@ -360,7 +360,7 @@ export function ClockCard({ className }: { className?: string }) {
               }}
               disabled={isPending || busy}
             />
-            <div className="space-y-3">
+            <div className="flex h-full flex-col gap-3">
             <p className="text-xs leading-5 text-muted-foreground">
               Chụp trực tiếp từ camera: <b className="font-medium text-foreground">mặt nhìn thẳng</b>, nền{' '}
               <b className="font-medium text-foreground">
@@ -407,7 +407,7 @@ export function ClockCard({ className }: { className?: string }) {
                         ? undefined
                         : 'Cần ảnh hợp lệ trước khi chấm công'
               }
-              className="h-12 min-h-11 w-full bg-clip-border text-base text-white disabled:opacity-100"
+              className="mt-auto h-12 min-h-11 w-full bg-clip-border text-base text-white disabled:opacity-100"
               style={{
                 backgroundColor: blocked ? '#c7d2fe' : punchSlot && !isInSlot(punchSlot) ? '#e11d48' : mode === 'overtime' ? '#6d28d9' : '#4f46e5',
                 color: '#fff',
@@ -422,6 +422,8 @@ export function ClockCard({ className }: { className?: string }) {
                   ? `Chấm công ${SLOT_LABEL[punchSlot].toLowerCase()}`
                   : 'Chấm công'}
             </Button>
+            </div>
+            </div>
             {(!photoOk || !locationOk || !wifiOk || (faceRequired && !faceApproved)) && (
               <p className="text-center text-xs text-zinc-500">
                 {faceRequired && !faceApproved
@@ -435,8 +437,6 @@ export function ClockCard({ className }: { className?: string }) {
                         : 'Chụp ảnh hợp lệ xong mới chấm công được'}
               </p>
             )}
-            </div>
-            </div>
           </div>
         )}
         </div>

@@ -1,5 +1,5 @@
 import { Camera, CameraOff, Loader2, RotateCcw, ScanFace, SwitchCamera, Trash2, X } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { attachCameraStream, getCameraStream, videoToJpeg } from '@/lib/camera'
 import { cn } from '@/lib/utils'
@@ -37,8 +37,6 @@ export function CameraCapture({
   const facingRef = useRef<Facing>('user')
   const previewUrl = useMemo(() => (photo ? URL.createObjectURL(photo) : null), [photo])
   const mirrored = facing === 'user'
-  /** Tỉ lệ khung hình camera để khung preview ôm vừa cả mặt, không cắt trên/dưới. */
-  const [frameRatio, setFrameRatio] = useState<number | null>(null)
 
   const stop = () => {
     streamRef.current?.getTracks().forEach((t) => t.stop())
@@ -58,7 +56,6 @@ export function CameraCapture({
     const video = videoRef.current
     if (!video) throw new Error('Không tìm thấy khung camera')
     await attachCameraStream(video, stream)
-    if (video.videoWidth > 0 && video.videoHeight > 0) setFrameRatio(video.videoWidth / video.videoHeight)
   }
 
   const start = async (nextFacing = facingRef.current) => {
@@ -111,21 +108,20 @@ export function CameraCapture({
   return (
     <div
       className={cn(
-        'min-w-0 space-y-2',
+        'flex h-full min-w-0 flex-col gap-2',
         state === 'live' &&
-          'max-md:fixed max-md:inset-0 max-md:z-50 max-md:flex max-md:flex-col max-md:bg-black max-md:p-3 max-md:pt-[max(0.75rem,env(safe-area-inset-top))] max-md:pb-[max(1rem,env(safe-area-inset-bottom))]',
+          'max-md:fixed max-md:inset-0 max-md:z-50 max-md:bg-black max-md:p-3 max-md:pt-[max(0.75rem,env(safe-area-inset-top))] max-md:pb-[max(1rem,env(safe-area-inset-bottom))]',
       )}
     >
       <div
         className={cn(
           'relative w-full overflow-hidden rounded-xl border bg-zinc-100',
           state === 'live'
-            ? 'max-md:h-auto max-md:min-h-0 max-md:flex-1 md:mx-auto md:h-auto md:max-h-[32rem] md:w-full md:[aspect-ratio:var(--cam-ratio)]'
+            ? 'min-h-44 flex-1 max-md:min-h-0'
             : previewUrl
-              ? 'h-auto'
-              : 'h-36 md:h-44',
+              ? 'max-md:h-auto md:min-h-44 md:flex-1'
+              : 'min-h-36 flex-1',
         )}
-        style={state === 'live' ? ({ '--cam-ratio': frameRatio ? String(frameRatio) : '3 / 4' } as CSSProperties) : undefined}
       >
         <video
           ref={videoRef}
@@ -142,7 +138,10 @@ export function CameraCapture({
           <img
             src={previewUrl}
             alt="Ảnh chấm công"
-            className={cn('relative mx-auto block h-auto max-h-[min(70dvh,36rem)] w-full object-contain', mirrored && '-scale-x-100')}
+            className={cn(
+              'relative mx-auto block h-auto max-h-[min(70dvh,36rem)] w-full object-contain md:absolute md:inset-0 md:size-full md:max-h-none',
+              mirrored && '-scale-x-100',
+            )}
           />
         ) : (
           <>
@@ -206,7 +205,7 @@ export function CameraCapture({
       </div>
 
       {previewUrl ? (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="mt-auto grid shrink-0 grid-cols-2 gap-2">
           <Button type="button" variant="outline" className="h-12 min-h-11" onClick={clearPhoto} disabled={disabled}>
             <Trash2 />
             Xoá ảnh
@@ -226,7 +225,7 @@ export function CameraCapture({
           </Button>
         </div>
       ) : state === 'live' ? (
-        <div className="grid shrink-0 grid-cols-[1fr_auto] gap-2">
+        <div className="mt-auto grid shrink-0 grid-cols-[1fr_auto] gap-2">
           <Button
             type="button"
             className="h-12 min-h-11 text-base max-md:bg-white max-md:text-zinc-900 max-md:hover:bg-zinc-100"
@@ -249,7 +248,7 @@ export function CameraCapture({
           </Button>
         </div>
       ) : (
-        <Button type="button" variant="outline" className="h-12 min-h-11 w-full text-base" onClick={() => void start()} disabled={disabled || state === 'starting'}>
+        <Button type="button" variant="outline" className="mt-auto h-12 min-h-11 w-full shrink-0 text-base" onClick={() => void start()} disabled={disabled || state === 'starting'}>
           <ScanFace />
           Mở camera
         </Button>
