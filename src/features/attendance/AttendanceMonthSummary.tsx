@@ -2,7 +2,6 @@ import { AlarmClock, CalendarCheck2, Hourglass, LogOut } from 'lucide-react'
 import { MonthNav } from '@/components/month-nav'
 import { StatCard } from '@/components/stat-card'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
 import { useAttendanceMonth } from '@/features/attendance/use-attendance'
 import { formatDuration, formatMonth } from '@/lib/format'
 
@@ -18,9 +17,6 @@ export function AttendanceMonthSummary({
 }) {
   const { data, isPending } = useAttendanceMonth(month)
   const summary = data?.summary
-  const shiftsIn = data?.records.reduce((n, r) => n + Number(!!r.morning.inAt) + Number(!!r.afternoon.inAt), 0) ?? 0
-  const onTimeShifts = shiftsIn - (summary?.lateCount ?? 0)
-  const onTimeRate = shiftsIn > 0 ? Math.round((onTimeShifts / shiftsIn) * 100) : null
 
   return (
     <Card>
@@ -49,16 +45,6 @@ export function AttendanceMonthSummary({
           loading={isPending}
         />
         <StatCard icon={LogOut} label="Về sớm" value={`${summary?.earlyLeaveCount ?? 0} lần`} tone="rose" loading={isPending} />
-        <div className="rounded-xl border bg-muted/30 p-4 sm:col-span-2 lg:col-span-4">
-          <div className="mb-2 flex items-center justify-between text-sm">
-            <span className="font-medium">Tỷ lệ đúng giờ</span>
-            <span className="font-semibold tabular-nums">{onTimeRate === null ? '—' : `${onTimeRate}%`}</span>
-          </div>
-          <Progress value={onTimeRate ?? 0} className="h-2" />
-          <p className="mt-2 text-xs text-muted-foreground">
-            {shiftsIn > 0 ? `${onTimeShifts}/${shiftsIn} lượt vào ca đúng giờ` : 'Chưa có ngày công nào trong tháng'}
-          </p>
-        </div>
       </CardContent>
     </Card>
   )
