@@ -116,7 +116,7 @@ export function CameraCapture({
       <div
         className={cn(
           'relative w-full overflow-hidden rounded-xl border bg-zinc-100',
-          state === 'live' ? 'h-52 max-md:h-auto max-md:min-h-0 max-md:flex-1' : 'h-36 sm:h-44',
+          state === 'live' ? 'h-44 max-md:h-auto max-md:min-h-0 max-md:flex-1 md:h-52' : 'h-36 md:h-44',
         )}
       >
         <video

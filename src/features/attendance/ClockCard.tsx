@@ -87,9 +87,9 @@ function LiveClock({ serverTime }: { serverTime?: string }) {
       <p className="text-sm capitalize" style={{ color: '#c7d2fe' }}>
         {vnDateLabel(now)}
       </p>
-      <p className="mt-1 text-2xl font-semibold sm:text-4xl" style={{ color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+      <p className="mt-1 text-3xl font-semibold md:text-5xl" style={{ color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
         {clock.hour}:{clock.minute}
-        <span className="text-lg sm:text-2xl" style={{ color: '#c7d2fe' }}>
+        <span className="text-xl md:text-2xl" style={{ color: '#c7d2fe' }}>
           :{clock.second}
         </span>
       </p>
@@ -169,8 +169,8 @@ export function ClockCard({ className }: { className?: string }) {
   const blocked = isPending || busy || !photoOk || !punchSlot || !locationOk || !wifiOk || (faceRequired && !faceApproved)
 
   return (
-    <Card className={cn('relative w-full min-w-0 max-w-xl gap-0 p-0', className)}>
-      <div className="relative min-w-0 overflow-hidden p-3 text-white sm:p-4" style={{ backgroundColor: '#4f46e5' }}>
+    <Card className={cn('relative w-full min-w-0 gap-0 p-0', className)}>
+      <div className="relative min-w-0 overflow-hidden p-4 text-white md:p-6" style={{ backgroundColor: '#4f46e5' }}>
         {data && (
           <div className="mb-2 flex max-w-full flex-wrap gap-1.5">
             <SchedulePill label="Sáng" from={data.schedule.morningStart} to={data.schedule.morningEnd} />
@@ -180,7 +180,7 @@ export function ClockCard({ className }: { className?: string }) {
         <LiveClock serverTime={data?.serverTime} />
       </div>
 
-      <div className="flex min-w-0 flex-col gap-3 p-3 sm:p-4">
+      <div className="flex min-w-0 flex-col gap-3 p-3 md:gap-4 md:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex rounded-full bg-muted p-1">
             <ModeButton active={mode === 'shift'} onClick={() => setMode('shift')}>
@@ -348,13 +348,7 @@ export function ClockCard({ className }: { className?: string }) {
                 </div>
               </div>
             )}
-            <p className="-mt-1 text-xs leading-5 text-muted-foreground">
-              Chụp trực tiếp từ camera: <b className="font-medium text-foreground">mặt nhìn thẳng</b>, nền{' '}
-              <b className="font-medium text-foreground">
-                {assignedFloor ? `văn phòng tầng ${assignedFloor}` : 'văn phòng tầng 5 hoặc 6'}
-              </b>
-              . Không dùng ảnh có sẵn.
-            </p>
+            <div className="grid items-start gap-3 md:grid-cols-[17rem_minmax(0,1fr)] md:gap-6">
             <CameraCapture
               photo={photo}
               onChange={(blob) => {
@@ -365,6 +359,14 @@ export function ClockCard({ className }: { className?: string }) {
               }}
               disabled={isPending || busy}
             />
+            <div className="space-y-3">
+            <p className="text-xs leading-5 text-muted-foreground">
+              Chụp trực tiếp từ camera: <b className="font-medium text-foreground">mặt nhìn thẳng</b>, nền{' '}
+              <b className="font-medium text-foreground">
+                {assignedFloor ? `văn phòng tầng ${assignedFloor}` : 'văn phòng tầng 5 hoặc 6'}
+              </b>
+              . Không dùng ảnh có sẵn.
+            </p>
             {photo && <PhotoCheckBox check={photoCheck} />}
             {punch.isError && (
               <div
@@ -381,7 +383,7 @@ export function ClockCard({ className }: { className?: string }) {
               placeholder="Ghi chú (không bắt buộc)"
               maxLength={255}
               disabled={isPending || busy}
-              className="h-11 text-base md:h-8 md:text-sm"
+              className="h-11 text-base md:h-9 md:text-sm"
             />
             {lateNow > 0 && (
               <p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
@@ -432,6 +434,8 @@ export function ClockCard({ className }: { className?: string }) {
                         : 'Chụp ảnh hợp lệ xong mới chấm công được'}
               </p>
             )}
+            </div>
+            </div>
           </div>
         )}
         </div>
