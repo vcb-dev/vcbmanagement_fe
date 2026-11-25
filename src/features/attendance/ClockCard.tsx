@@ -87,9 +87,9 @@ function LiveClock({ serverTime }: { serverTime?: string }) {
       <p className="text-sm capitalize" style={{ color: '#c7d2fe' }}>
         {vnDateLabel(now)}
       </p>
-      <p className="mt-2 text-3xl font-semibold sm:text-5xl" style={{ color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+      <p className="mt-1 text-2xl font-semibold sm:text-4xl" style={{ color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
         {clock.hour}:{clock.minute}
-        <span className="text-2xl" style={{ color: '#c7d2fe' }}>
+        <span className="text-lg sm:text-2xl" style={{ color: '#c7d2fe' }}>
           :{clock.second}
         </span>
       </p>
@@ -169,8 +169,8 @@ export function ClockCard({ className }: { className?: string }) {
   const blocked = isPending || busy || !photoOk || !punchSlot || !locationOk || !wifiOk || (faceRequired && !faceApproved)
 
   return (
-    <Card className={cn('relative min-w-0 gap-0 p-0', className)}>
-      <div className="relative min-w-0 overflow-hidden p-4 text-white sm:p-6" style={{ backgroundColor: '#4f46e5' }}>
+    <Card className={cn('relative w-full min-w-0 max-w-xl gap-0 p-0', className)}>
+      <div className="relative min-w-0 overflow-hidden p-3 text-white sm:p-4" style={{ backgroundColor: '#4f46e5' }}>
         {data && (
           <div className="mb-2 flex max-w-full flex-wrap gap-1.5">
             <SchedulePill label="Sáng" from={data.schedule.morningStart} to={data.schedule.morningEnd} />
@@ -180,7 +180,7 @@ export function ClockCard({ className }: { className?: string }) {
         <LiveClock serverTime={data?.serverTime} />
       </div>
 
-      <div className="flex min-w-0 flex-col gap-5 p-4 sm:p-6">
+      <div className="flex min-w-0 flex-col gap-3 p-3 sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex rounded-full bg-muted p-1">
             <ModeButton active={mode === 'shift'} onClick={() => setMode('shift')}>
@@ -329,7 +329,7 @@ export function ClockCard({ className }: { className?: string }) {
               )}
             </div>
             {faceRequired && !faceApproved && (
-              <div className="flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/5 p-3 text-sm">
+              <div className="flex items-start gap-2 rounded-lg border border-amber-500/25 bg-amber-500/5 p-2 text-sm">
                 <ScanFace className="mt-0.5 size-4 shrink-0 text-amber-600" />
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">
