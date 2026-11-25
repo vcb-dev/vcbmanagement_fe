@@ -20,6 +20,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useMe } from '@/features/auth/use-auth'
 import { getApiErrorMessage } from '@/lib/api-client'
+import { isManagerRole } from '@/lib/user-display'
 import { sheetLabel } from './feedback-format'
 import type { FeedbackDetail, SheetType } from './feedbacks.types'
 import { useCreateFeedback, useFeedbackSheetOptions } from './use-feedbacks'
@@ -36,7 +37,7 @@ export function FeedbackFormDialog({
   onCreated,
 }: FeedbackFormDialogProps) {
   const { data: me } = useMe()
-  const isStaff = me?.role === 'staff'
+  const isStaff = !!me && !isManagerRole(me.role)
 
   const { data: options = [], isLoading } = useFeedbackSheetOptions(open)
   const createMutation = useCreateFeedback()

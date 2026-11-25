@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useMe } from '@/features/auth/use-auth'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { FEEDBACK_STATUS_LABEL } from '@/features/part-time/part-time.types'
-import { EMPLOYMENT_LABEL, ROLE_LABEL, initials } from '@/lib/user-display'
+import { EMPLOYMENT_LABEL, ROLE_LABEL, initials, isManagerRole } from '@/lib/user-display'
 import {
   formatFeedbackTime,
   replyNextStatus,
@@ -30,7 +30,7 @@ export function FeedbackDetailPanel({ id, onDeleted }: FeedbackDetailPanelProps)
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
-  const isManagerOrAdmin = me?.role === 'admin' || me?.role === 'manager'
+  const isManagerOrAdmin = isManagerRole(me?.role)
   const isAdmin = me?.role === 'admin'
 
   if (!id) {

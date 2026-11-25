@@ -33,7 +33,7 @@ export function useMyLeaveRequests(params: LeaveRequestListParams) {
   })
 }
 
-/** Mọi đơn, cho admin / quản lý duyệt. */
+/** Mọi đơn, cho người duyệt (leader, admin, quản lý, HR). */
 export function useLeaveRequests(params: LeaveRequestListParams) {
   return useQuery({
     queryKey: [...KEY, 'all', params],
@@ -56,7 +56,7 @@ export function useLeaveRequestDetail(id: string | null) {
   })
 }
 
-/** Số đơn chờ duyệt, cho huy hiệu trên menu của admin / quản lý. */
+/** Số đơn chờ duyệt, cho huy hiệu trên menu của người duyệt. */
 export function useLeavePendingCount(enabled: boolean) {
   return useQuery({
     queryKey: [...KEY, 'pending-count'],

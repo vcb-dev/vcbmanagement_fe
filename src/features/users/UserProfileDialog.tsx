@@ -5,15 +5,25 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import type { EmploymentType } from '@/features/auth/auth.types'
+import type { EmploymentType, UserRole } from '@/features/auth/auth.types'
+import { useMe } from '@/features/auth/use-auth'
 import { shiftLabel, type Department } from '@/features/departments/departments.types'
 import { getApiErrorMessage } from '@/lib/api-client'
-import { EMPLOYMENT_LABEL, displayName } from '@/lib/user-display'
+import { EMPLOYMENT_LABEL, ROLE_LABEL, ROLE_OPTIONS, displayName } from '@/lib/user-display'
 import { useUpdateUserProfile } from './use-users'
 import type { UserProfile } from './users.types'
 
 /** Radix Select không nhận giá trị rỗng. */
 const NONE = 'none'
+
+/** Mỗi vai trò được làm gì, hiện dưới ô chọn để admin chọn đúng. */
+const ROLE_HINT: Record<UserRole, string> = {
+  admin: 'Toàn quyền, kể cả sửa hồ sơ nhân sự và bộ phận.',
+  manager: 'Vào các màn quản lý: chấm công, chốt công, tăng ca, duyệt đơn, feedback.',
+  hr: 'Quyền như Quản lý.',
+  leader: 'Hiện dùng các màn của nhân viên: công, đơn và feedback của mình.',
+  staff: 'Xem công, đơn và feedback của mình.',
+}
 
 export function UserProfileDialog({
   user,
@@ -25,6 +35,10 @@ export function UserProfileDialog({
   onClose: () => void
 }) {
   const update = useUpdateUserProfile()
+  const { data: me } = useMe()
+  // Backend cũng chặn: tự đổi vai trò có thể làm hệ thống không còn admin nào.
+  const isSelf = me?.id === user.id
+  const [role, setRole] = useState<UserRole>(user.role)
   const [departmentId, setDepartmentId] = useState(user.department?.id ?? NONE)
   const [employmentType, setEmploymentType] = useState<EmploymentType>(user.employmentType)
   const [officeFloor, setOfficeFloor] = useState(user.officeFloor ? String(user.officeFloor) : NONE)
@@ -40,6 +54,7 @@ export function UserProfileDialog({
       {
         id: user.id,
         input: {
+          role,
           departmentId: departmentId === NONE ? null : departmentId,
           employmentType,
           officeFloor: officeFloor === NONE ? null : (Number(officeFloor) as 4 | 5 | 6),
@@ -59,6 +74,22 @@ export function UserProfileDialog({
         </DialogHeader>
         <form onSubmit={submit} noValidate>
           <FieldGroup className="gap-4">
+            <Field>
+              <FieldLabel htmlFor="user-role">Vai trò</FieldLabel>
+              <Select value={role} onValueChange={(v) => setRole(v as UserRole)} disabled={isSelf}>
+                <SelectTrigger id="user-role" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ROLE_OPTIONS.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {ROLE_LABEL[r]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FieldDescription>{isSelf ? 'Không thể tự đổi vai trò của chính mình.' : ROLE_HINT[role]}</FieldDescription>
+            </Field>
             <Field>
               <FieldLabel htmlFor="user-department">Bộ phận</FieldLabel>
               <Select value={departmentId} onValueChange={setDepartmentId}>

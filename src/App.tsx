@@ -8,6 +8,7 @@ import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
 import { toast } from 'sonner'
 import { homePath, markLoggedOut, useMe } from '@/features/auth/use-auth'
 import { setSessionExpiredHandler } from '@/lib/api-client'
+import { LEAVE_REVIEWER_ROLES, MANAGER_ROLES, STAFF_ROLES } from '@/lib/user-display'
 import { MyTimesheetPage } from '@/pages/MyTimesheetPage'
 
 const AttendancePage = lazy(() => import('@/pages/AttendancePage').then((m) => ({ default: m.AttendancePage })))
@@ -75,7 +76,7 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<HomeRedirect />} />
-            <Route element={<ProtectedRoute roles={['staff']} />}>
+            <Route element={<ProtectedRoute roles={STAFF_ROLES} />}>
               <Route path="/my-timesheet" element={<MyTimesheetPage />} />
               <Route path="/my-feedbacks" element={<MyFeedbacksPage />} />
               <Route path="/my-leave-requests" element={<MyLeaveRequestsPage />} />
@@ -83,7 +84,7 @@ export default function App() {
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/assistant" element={<AssistantPage />} />
             <Route path="/face" element={<FacePage />} />
-            <Route element={<ProtectedRoute roles={['admin', 'manager']} />}>
+            <Route element={<ProtectedRoute roles={MANAGER_ROLES} />}>
               <Route path="/overview" element={<OverviewPage />} />
               <Route path="/feedbacks" element={<FeedbacksPage />} />
               <Route path="/face/review" element={<FaceReviewPage />} />
@@ -93,9 +94,11 @@ export default function App() {
               <Route path="/late" element={<LatePage />} />
               <Route path="/part-time-timesheets" element={<PartTimeTimesheetsPage />} />
               <Route path="/annual-leaves" element={<AnnualLeavesPage />} />
-              <Route path="/leave-requests" element={<LeaveRequestsPage />} />
               <Route path="/departments" element={<DepartmentsPage />} />
               <Route path="/users" element={<UsersPage />} />
+            </Route>
+            <Route element={<ProtectedRoute roles={LEAVE_REVIEWER_ROLES} />}>
+              <Route path="/leave-requests" element={<LeaveRequestsPage />} />
             </Route>
           </Route>
         </Route>

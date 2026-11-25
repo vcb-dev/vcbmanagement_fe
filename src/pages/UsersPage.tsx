@@ -20,7 +20,7 @@ import type { UserProfile } from '@/features/users/users.types'
 import { useElementWidth } from '@/hooks/use-element-width'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { formatDate, normalizeSearch } from '@/lib/format'
-import { EMPLOYMENT_LABEL, displayName } from '@/lib/user-display'
+import { EMPLOYMENT_LABEL, ROLE_LABEL, displayName } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
 
 /** Radix Select không nhận giá trị rỗng. */
@@ -30,9 +30,9 @@ const PAGE_SIZE = 15
 /** Tiêu đề bảng canh giữa, chữ đậm, cùng kiểu với các bảng khác. */
 const HEAD = 'text-center text-sm font-semibold'
 /** Khung hẹp hơn mức này thì bảng phải cuộn ngang, nên hiện danh sách mỗi người một dòng. */
-const TABLE_MIN_WIDTH = 700
+const TABLE_MIN_WIDTH = 800
 /** Cột Ca làm dài (có cả ca tối), chỉ thêm vào bảng khi khung đủ rộng cho nó. */
-const SHIFT_COLUMN_MIN_WIDTH = 1000
+const SHIFT_COLUMN_MIN_WIDTH = 1100
 /** Ô nhập và ô chọn: trên màn cảm ứng cao 40px cho dễ bấm. */
 const TOUCH_FIELD = 'pointer-coarse:h-10'
 const TOUCH_SELECT = 'pointer-coarse:data-[size=default]:h-10'
@@ -44,6 +44,16 @@ function EmploymentBadge({ user }: { user: UserProfile }) {
       className={cn(user.employmentType === 'part_time' && 'bg-violet-500/10 text-violet-800 dark:text-violet-300')}
     >
       {EMPLOYMENT_LABEL[user.employmentType]}
+    </Badge>
+  )
+}
+
+/** Đa số là nhân viên nên chỉ ghi chữ mờ; các vai trò khác hiện thành nhãn cho dễ thấy. */
+function RoleBadge({ user }: { user: UserProfile }) {
+  if (user.role === 'staff') return <span className="text-[13px] text-muted-foreground">{ROLE_LABEL.staff}</span>
+  return (
+    <Badge variant="outline" className={cn(user.role === 'admin' && 'border-primary/40 text-primary')}>
+      {ROLE_LABEL[user.role]}
     </Badge>
   )
 }
@@ -67,7 +77,7 @@ function LockedBadge() {
 
 /**
  * Một nhân sự khi khung hẹp (điện thoại, máy tính bảng, laptop nhỏ có sidebar mở): ảnh bên trái, tên và email,
- * rồi loại, bộ phận, tầng, ca làm, ngày ký HĐ ngay dưới để không phải vuốt ngang; nút Sửa ở bên phải.
+ * rồi vai trò (nếu không phải nhân viên), loại, bộ phận, tầng, ca làm, ngày ký HĐ ngay dưới để không phải vuốt ngang; nút Sửa ở bên phải.
  */
 function UserItem({
   user: u,
@@ -92,6 +102,7 @@ function UserItem({
           <p className="truncate text-xs text-muted-foreground">{u.email}</p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
+          {u.role !== 'staff' && <RoleBadge user={u} />}
           <EmploymentBadge user={u} />
           {u.department ? <span className="min-w-0 text-[13px]">{u.department.name}</span> : <UnassignedBadge full />}
         </div>
@@ -255,6 +266,7 @@ export function UsersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className={HEAD}>Nhân sự</TableHead>
+                  <TableHead className={HEAD}>Vai trò</TableHead>
                   <TableHead className={HEAD}>Loại</TableHead>
                   <TableHead className={HEAD}>Bộ phận</TableHead>
                   <TableHead className={HEAD}>Tầng</TableHead>
@@ -279,6 +291,9 @@ export function UsersPage() {
                             <p className="truncate text-xs text-muted-foreground">{u.email}</p>
                           </div>
                         </div>
+                      </TableCell>
+                      <TableCell className="text-center whitespace-nowrap">
+                        <RoleBadge user={u} />
                       </TableCell>
                       <TableCell className="text-center">
                         <EmploymentBadge user={u} />

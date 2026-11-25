@@ -27,7 +27,7 @@ function oneOf<T extends string>(value: string | null, options: readonly T[]): T
 }
 
 /**
- * Duyệt đơn xin phép cho admin / quản lý. Mặc định mở các đơn đang chờ, đơn có ngày bắt đầu gần nhất lên trước.
+ * Duyệt đơn xin phép cho leader, admin, quản lý, HR (leader nào cũng duyệt được mọi đơn, trừ đơn của mình). Mặc định mở các đơn đang chờ, đơn có ngày bắt đầu gần nhất lên trước.
  * Duyệt nghỉ phép có trừ phép năm thì phép tháng ở màn Phép năm và Chốt công tháng tự cộng; huỷ duyệt thì hoàn lại.
  * Trang khác mở sẵn bộ lọc qua URL (chỉ đọc lúc mở): `?status=&type=&q=&id=` (`id` là đơn được chọn sẵn).
  */

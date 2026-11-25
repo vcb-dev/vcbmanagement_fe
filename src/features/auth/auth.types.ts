@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'manager' | 'staff'
+export type UserRole = 'admin' | 'manager' | 'hr' | 'leader' | 'staff'
 export type EmploymentType = 'full_time' | 'part_time'
 
 export interface User {

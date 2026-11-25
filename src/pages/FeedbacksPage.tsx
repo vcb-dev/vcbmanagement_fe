@@ -33,10 +33,11 @@ import {
   useFeedbackCounts,
   useFeedbacks,
 } from '@/features/feedbacks/use-feedbacks'
+import { isManagerRole } from '@/lib/user-display'
 
 export function FeedbacksPage() {
   const { data: me } = useMe()
-  const isStaff = me?.role === 'staff'
+  const isStaff = !!me && !isManagerRole(me.role)
 
   // Filters state
   const [statusTab, setStatusTab] = useState<'all' | FeedbackStatus>('all')
