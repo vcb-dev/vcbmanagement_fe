@@ -1,5 +1,5 @@
-import { Info, Loader2, Paperclip, X } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Info, Loader2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -13,16 +13,8 @@ import { FEATURES } from '@/lib/features'
 import { todayYmd } from '@/lib/format'
 import { ROLE_LABEL } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
-import {
-  LATE_EXCUSE_MINUTES,
-  MAX_ATTACHMENTS,
-  MAX_ATTACHMENT_MB,
-  OFFSITE_LABEL,
-  TYPE_META,
-  TYPE_ORDER,
-  fileSizeLabel,
-  formatNumber,
-} from './leave-request-format'
+import { AttachmentDropzone } from './AttachmentDropzone'
+import { LATE_EXCUSE_MINUTES, MAX_ATTACHMENTS, MAX_ATTACHMENT_MB, OFFSITE_LABEL, TYPE_META, TYPE_ORDER, formatNumber } from './leave-request-format'
 import type { LeaveRequestDetail, LeaveRequestType, OffsiteWorkKind } from './leave-requests.types'
 import { useApprovers, useCreateLeaveRequest } from './use-leave-requests'
 
@@ -31,7 +23,6 @@ const LAST_APPROVER_KEY = 'vcb.leave-requests.approver'
 const PICK_APPROVER = FEATURES.leaveApproverPicker
 const QUICK_DAYS = [0.5, 1, 2, 3]
 const QUICK_HOURS = [0.5, 1, 1.5, 2]
-const ACCEPT = 'image/jpeg,image/png,image/webp,application/pdf'
 
 const DATE_LABEL: Record<LeaveRequestType, [string, string]> = {
   leave: ['Nghỉ từ ngày', 'Từ giờ'],
@@ -123,7 +114,7 @@ function QuickPicks({ values, current, unit, onPick }: { values: number[]; curre
 
 /**
  * Form xin phép thay cho form Lark: họ tên, mã nhân viên lấy từ tài khoản đăng nhập; các trường riêng hiện theo hình thức.
- * Như form Lark, mọi trường hiện ra đều bắt buộc, kể cả file xác nhận duyệt nghỉ của quản lý.
+ * Như form Lark, mọi trường hiện ra đều bắt buộc, trừ file xác nhận duyệt nghỉ của quản lý (chọn, dán hoặc kéo thả, lưu trên R2).
  */
 export function LeaveRequestFormDialog({
   open,
@@ -138,7 +129,6 @@ export function LeaveRequestFormDialog({
   const { data: today } = useAttendanceToday()
   const { data: approvers = [], isLoading: approversLoading } = useApprovers(open && PICK_APPROVER)
   const create = useCreateLeaveRequest()
-  const fileInput = useRef<HTMLInputElement>(null)
 
   const schedule = today?.schedule
   const isPartTime = me?.employmentType === 'part_time'
@@ -197,17 +187,6 @@ export function LeaveRequestFormDialog({
     return toMinutes(startTime) < toMinutes(schedule.morningEnd.slice(0, 5)) ? 'ca sáng' : 'ca chiều'
   }, [schedule, startTime])
 
-  function addFiles(list: FileList | null) {
-    if (!list) return
-    const picked = [...files, ...Array.from(list)]
-    const tooBig = picked.find((f) => f.size > MAX_ATTACHMENT_MB * 1024 * 1024)
-    if (tooBig) setError(`File "${tooBig.name}" lớn hơn ${MAX_ATTACHMENT_MB}MB`)
-    else if (picked.length > MAX_ATTACHMENTS) setError(`Đính kèm tối đa ${MAX_ATTACHMENTS} file`)
-    else setError(null)
-    setFiles(picked.filter((f) => f.size <= MAX_ATTACHMENT_MB * 1024 * 1024).slice(0, MAX_ATTACHMENTS))
-    if (fileInput.current) fileInput.current.value = ''
-  }
-
   const [dateLabel, timeLabel] = DATE_LABEL[type]
   const excuse = type === 'late_arrival' || type === 'early_leave'
   /** Các trường bắt buộc còn trống, theo thứ tự trên form. */
@@ -221,7 +200,6 @@ export function LeaveRequestFormDialog({
     type === 'offsite' && !offsiteKind && 'chi tiết công việc bên ngoài',
     !reason.trim() && 'lý do xin phép',
     PICK_APPROVER && !approverId && 'quản lý trực tiếp',
-    files.length === 0 && 'file xác nhận của quản lý',
     !acknowledged && 'xác nhận đã nắm rõ quy định',
   ].filter((f): f is string => typeof f === 'string')
 
@@ -260,7 +238,7 @@ export function LeaveRequestFormDialog({
           <DialogHeader className="border-b px-5 pt-5 pb-4">
             <DialogTitle>Tạo đơn xin phép</DialogTitle>
             <DialogDescription className="text-xs">
-              Đơn gửi tới {PICK_APPROVER ? 'quản lý trực tiếp' : 'admin / quản lý'} để duyệt. Tất cả các trường đều bắt buộc. Họ tên và mã nhân viên lấy theo
+              Đơn gửi tới {PICK_APPROVER ? 'quản lý trực tiếp' : 'các leader và quản lý'} để duyệt. Các trường đều bắt buộc, trừ file xác nhận của quản lý. Họ tên và mã nhân viên lấy theo
               tài khoản của bạn{me ? ` (${me.fullName || me.email})` : ''}.
             </DialogDescription>
           </DialogHeader>
@@ -459,50 +437,18 @@ export function LeaveRequestFormDialog({
             )}
 
             <section className="space-y-1.5">
-              <Label className="text-xs font-medium">Xác nhận bằng văn bản duyệt nghỉ của quản lý</Label>
+              <Label className="block text-xs font-medium">
+                Xác nhận bằng văn bản duyệt nghỉ của quản lý{' '}
+                <span className="font-normal text-muted-foreground">(không bắt buộc)</span>
+              </Label>
               <p className="text-xs text-muted-foreground">
-                Đơn nghỉ phép viết tay hoặc tin nhắn có sự đồng ý. Ảnh hoặc PDF, 1–{MAX_ATTACHMENTS} file, mỗi file ≤{' '}
-                {MAX_ATTACHMENT_MB}MB.
+                Đơn nghỉ phép viết tay hoặc ảnh chụp tin nhắn có sự đồng ý. Ảnh hoặc PDF, tối đa {MAX_ATTACHMENTS} file, mỗi
+                file ≤ {MAX_ATTACHMENT_MB}MB.
               </p>
               <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
                 Nếu chưa có sự đồng ý mà nghỉ thì coi là nghỉ không phép.
               </p>
-              {files.length > 0 && (
-                <ul className="space-y-1">
-                  {files.map((f, i) => (
-                    <li key={`${f.name}-${i}`} className="flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs">
-                      <Paperclip className="size-3.5 shrink-0 text-muted-foreground" />
-                      <span className="min-w-0 flex-1 truncate">{f.name}</span>
-                      <span className="shrink-0 text-muted-foreground tabular-nums">{fileSizeLabel(f.size)}</span>
-                      <button
-                        type="button"
-                        aria-label={`Bỏ ${f.name}`}
-                        onClick={() => setFiles(files.filter((_, j) => j !== i))}
-                        className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                      >
-                        <X className="size-3.5" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {files.length < MAX_ATTACHMENTS && (
-                <>
-                  <input
-                    ref={fileInput}
-                    type="file"
-                    accept={ACCEPT}
-                    multiple
-                    className="sr-only"
-                    id="lr-files"
-                    onChange={(e) => addFiles(e.target.files)}
-                  />
-                  <Button type="button" variant="outline" size="sm" onClick={() => fileInput.current?.click()}>
-                    <Paperclip />
-                    Đính kèm file
-                  </Button>
-                </>
-              )}
+              <AttachmentDropzone files={files} onChange={setFiles} onError={setError} disabled={create.isPending} />
             </section>
 
             <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border bg-muted/30 p-3 text-sm">
