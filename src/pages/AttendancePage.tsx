@@ -24,11 +24,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AttendancePhotos } from '@/features/attendance/AttendancePhoto'
 import { AttendanceStatus, ShiftTimes } from '@/features/attendance/AttendanceStatus'
 import { ClockCard } from '@/features/attendance/ClockCard'
-import { useAttendanceDaily, useAttendanceMonth, useAttendanceToday } from '@/features/attendance/use-attendance'
+import { useAttendanceDaily, useAttendanceMonth } from '@/features/attendance/use-attendance'
 import { useMe } from '@/features/auth/use-auth'
 import {
   formatDuration,
   formatMonth,
+  formatTime,
   formatWorkDate,
   shiftMonth,
   shiftYmd,
@@ -38,7 +39,6 @@ import { ROLE_LABEL, displayName } from '@/lib/user-display'
 
 export function AttendancePage() {
   const { data: user } = useMe()
-  const { data: today } = useAttendanceToday()
   const [params, setParams] = useSearchParams()
   const isManager = user?.role === 'admin' || user?.role === 'manager'
   const tab = isManager && params.get('tab') === 'team' ? 'team' : 'me'
@@ -53,58 +53,9 @@ export function AttendancePage() {
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-7xl space-y-4 overflow-x-clip p-3 pb-8 sm:space-y-6 sm:p-4 md:p-6 lg:p-8">
-      <PageHeader
-        hideTitleOnPhone
-        title="Chấm công"
-        description={
-          today
-            ? `Ca sáng ${today.schedule.morningStart}–${today.schedule.morningEnd}, chiều ${today.schedule.afternoonStart}–${today.schedule.afternoonEnd}. Vào sau giờ bắt đầu tính muộn, ra trước giờ kết thúc tính về sớm.`
-            : 'Theo dõi giờ vào, giờ ra và bảng công hàng tháng.'
-        }
-      />
+      <PageHeader hideTitleOnPhone title="Chấm công" />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <ClockCard />
-
-        <Card className="lg:col-span-2">
-          <CardHeader className="max-sm:grid-cols-1">
-            <CardTitle>Tổng hợp {formatMonth(month).toLowerCase()}</CardTitle>
-            <CardDescription>Số liệu chấm công của bạn trong tháng</CardDescription>
-            <CardAction className="max-sm:col-start-1 max-sm:row-auto max-sm:justify-self-start">
-              <MonthNav month={month} max={currentMonth} onChange={setMonth} />
-            </CardAction>
-          </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-2">
-            <StatCard icon={CalendarCheck2} label="Ngày công" value={`${s?.workDays ?? 0} ngày`} tone="indigo" loading={isPending} />
-            <StatCard
-              icon={Hourglass}
-              label="Tổng giờ làm"
-              value={formatDuration(s?.totalWorkedMinutes ?? 0)}
-              tone="emerald"
-              loading={isPending}
-            />
-            <StatCard
-              icon={AlarmClock}
-              label="Đi muộn"
-              value={`${s?.lateCount ?? 0} lần`}
-              hint={`Tổng ${formatDuration(s?.totalLateMinutes ?? 0)}`}
-              tone="amber"
-              loading={isPending}
-            />
-            <StatCard icon={EarlyIcon} label="Về sớm" value={`${s?.earlyLeaveCount ?? 0} lần`} tone="rose" loading={isPending} />
-            <div className="rounded-xl border bg-muted/30 p-4 sm:col-span-2">
-              <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="font-medium">Tỷ lệ đúng giờ</span>
-                <span className="font-semibold tabular-nums">{onTimeRate === null ? '—' : `${onTimeRate}%`}</span>
-              </div>
-              <Progress value={onTimeRate ?? 0} className="h-2" />
-              <p className="mt-2 text-xs text-muted-foreground">
-                {shiftsIn > 0 ? `${onTimeShifts}/${shiftsIn} lượt vào ca đúng giờ` : 'Chưa có ngày công nào trong tháng'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <ClockCard />
 
       <Tabs
         value={tab}
@@ -128,7 +79,7 @@ export function AttendancePage() {
           <Card>
             <CardHeader>
               <CardTitle>Lịch sử chấm công</CardTitle>
-              <CardDescription>{formatMonth(month)} · đổi tháng ở thẻ tổng hợp phía trên</CardDescription>
+              <CardDescription>{formatMonth(month)}</CardDescription>
             </CardHeader>
             <CardContent>
               {isPending ? (
@@ -142,6 +93,7 @@ export function AttendancePage() {
                       <TableHead>Ca sáng</TableHead>
                       <TableHead>Ca chiều</TableHead>
                       <TableHead>Số giờ</TableHead>
+                      <TableHead>Tăng ca</TableHead>
                       <TableHead>Trạng thái</TableHead>
                       <TableHead>Ảnh</TableHead>
                       <TableHead className="hidden md:table-cell">Ghi chú</TableHead>
@@ -158,6 +110,9 @@ export function AttendancePage() {
                           <ShiftTimes shift={r.afternoon} />
                         </TableCell>
                         <TableCell className="tabular-nums">{formatDuration(r.workedMinutes)}</TableCell>
+                        <TableCell className="tabular-nums text-sm">
+                          {r.overtime?.inAt ? `${formatTime(r.overtime.inAt)}–${formatTime(r.overtime.outAt)}` : '—'}
+                        </TableCell>
                         <TableCell>
                           <AttendanceStatus record={r} live={r.workDate === todayYmd()} />
                         </TableCell>
@@ -185,6 +140,45 @@ export function AttendancePage() {
           </TabsContent>
         )}
       </Tabs>
+
+      <Card>
+        <CardHeader className="max-sm:grid-cols-1">
+          <CardTitle>Tổng hợp {formatMonth(month).toLowerCase()}</CardTitle>
+          <CardDescription>Số liệu chấm công của bạn trong tháng</CardDescription>
+          <CardAction className="max-sm:col-start-1 max-sm:row-auto max-sm:justify-self-start">
+            <MonthNav month={month} max={currentMonth} onChange={setMonth} />
+          </CardAction>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard icon={CalendarCheck2} label="Ngày công" value={`${s?.workDays ?? 0} ngày`} tone="indigo" loading={isPending} />
+          <StatCard
+            icon={Hourglass}
+            label="Tổng giờ làm"
+            value={formatDuration(s?.totalWorkedMinutes ?? 0)}
+            tone="emerald"
+            loading={isPending}
+          />
+          <StatCard
+            icon={AlarmClock}
+            label="Đi muộn"
+            value={`${s?.lateCount ?? 0} lần`}
+            hint={`Tổng ${formatDuration(s?.totalLateMinutes ?? 0)}`}
+            tone="amber"
+            loading={isPending}
+          />
+          <StatCard icon={EarlyIcon} label="Về sớm" value={`${s?.earlyLeaveCount ?? 0} lần`} tone="rose" loading={isPending} />
+          <div className="rounded-xl border bg-muted/30 p-4 sm:col-span-2 lg:col-span-4">
+            <div className="mb-2 flex items-center justify-between text-sm">
+              <span className="font-medium">Tỷ lệ đúng giờ</span>
+              <span className="font-semibold tabular-nums">{onTimeRate === null ? '—' : `${onTimeRate}%`}</span>
+            </div>
+            <Progress value={onTimeRate ?? 0} className="h-2" />
+            <p className="mt-2 text-xs text-muted-foreground">
+              {shiftsIn > 0 ? `${onTimeShifts}/${shiftsIn} lượt vào ca đúng giờ` : 'Chưa có ngày công nào trong tháng'}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

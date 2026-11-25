@@ -1,7 +1,7 @@
 import type { User } from '@/features/auth/auth.types'
 import type { FaceMe } from '@/features/face/face.types'
 
-export type AttendanceSlot = 'morning_in' | 'morning_out' | 'afternoon_in' | 'afternoon_out'
+export type AttendanceSlot = 'morning_in' | 'morning_out' | 'afternoon_in' | 'afternoon_out' | 'overtime_in' | 'overtime_out'
 export type ShiftKey = 'morning' | 'afternoon'
 
 export interface ShiftRecord {
@@ -37,6 +37,8 @@ export interface AttendanceRecord {
   /** Số ca đi muộn trong ngày (0–2). */
   lateCount: number
   earlyCount: number
+  /** Tăng ca trong ngày. Không cộng vào công ca sáng/chiều. */
+  overtime?: { inAt: string | null; outAt: string | null; workedMinutes: number | null } | null
   /** Mỗi lượt chấm đều kèm ảnh. */
   punches: AttendancePunch[]
 }
@@ -105,6 +107,8 @@ export const SLOT_LABEL: Record<AttendanceSlot, string> = {
   morning_out: 'Ra ca sáng',
   afternoon_in: 'Vào ca chiều',
   afternoon_out: 'Ra ca chiều',
+  overtime_in: 'Vào tăng ca',
+  overtime_out: 'Ra tăng ca',
 }
 
 export const SHIFT_LABEL: Record<ShiftKey, string> = { morning: 'Sáng', afternoon: 'Chiều' }
