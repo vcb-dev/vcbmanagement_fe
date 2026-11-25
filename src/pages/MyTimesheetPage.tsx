@@ -3,15 +3,15 @@ import { useSearchParams } from 'react-router-dom'
 import { MonthNav } from '@/components/month-nav'
 import { PageContainer } from '@/components/page-container'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AttendanceMonthSummary } from '@/features/attendance/AttendanceMonthSummary'
 import { useMe } from '@/features/auth/use-auth'
-import { fullTimeLedger, ledgerDates, partTimeLedger, type LedgerFilter } from '@/features/my-timesheet/day-ledger'
+import { fullTimeLedger, ledgerDates, needsAttention, partTimeLedger, type LedgerFilter } from '@/features/my-timesheet/day-ledger'
+import { MonthActions } from '@/features/my-timesheet/MonthActions'
 import { hasStickyActions, planOf } from '@/features/my-timesheet/month-plan'
 import type { MyTimesheet } from '@/features/my-timesheet/my-timesheet.types'
 import { TimesheetCalendar, type CalendarFocus } from '@/features/my-timesheet/TimesheetCalendar'
-import { TimesheetSummaryCard } from '@/features/my-timesheet/TimesheetSummaryCard'
 import { useMyTimesheet } from '@/features/my-timesheet/use-my-timesheet'
 import { DisputeDialog } from '@/features/part-time/DisputeDialog'
 import { FeedbackThread } from '@/features/part-time/FeedbackThread'
@@ -25,7 +25,7 @@ const BELOW_APP_HEADER = 'calc(3.5rem + env(safe-area-inset-top, 0px))'
 
 /**
  * Trang cao tối thiểu bằng phần màn hình dưới thanh tiêu đề (trừ lề khung 0,5rem × 2 và đệm trang 1rem × 2).
- * Chỉ màn rộng (hai cột) mới giãn theo, để lịch và cột phải kéo xuống tới đáy thay vì dồn lên trên.
+ * Chỉ màn rộng mới giãn theo, để lịch kéo xuống tới đáy thay vì dồn lên trên.
  * Trần 50rem: màn rất cao thì dừng lại, mỗi dòng của bảng tuần không cao quá ~80px.
  */
 const FILL_HEIGHT = `min(calc(100dvh - ${BELOW_APP_HEADER} - 3rem), 50rem)`
@@ -65,8 +65,8 @@ function ProfileLine({ data }: { data: MyTimesheet }) {
 }
 
 /**
- * Công của tôi. Thứ tự theo câu hỏi của nhân viên: tháng này được bao nhiêu công, có gì cần xem (thẻ tổng công),
- * từng ngày ra sao (danh sách ngày), rồi trao đổi với quản lý. Màn rộng thì thẻ tổng công và trao đổi sang cột phải.
+ * Công của tôi: tổng hợp tháng ở trên, lịch chấm công rộng hết trang, dưới lịch là xác nhận công tháng
+ * (trạng thái + Xác nhận / Báo sai) và trao đổi với quản lý, màn rộng thì hai khối này nằm cạnh nhau.
  */
 export function MyTimesheetPage() {
   const [searchParams] = useSearchParams()
@@ -109,7 +109,7 @@ export function MyTimesheetPage() {
 
   const disputeDay = useCallback((text: string) => setDayDispute({ text, at: Date.now() }), [])
 
-  /** Lọc lịch theo các ngày đó và cuộn tới lịch, khi bấm một chỉ số ở thẻ tổng công. */
+  /** Lọc lịch theo các ngày đó và cuộn tới lịch, khi bấm "Xem N ngày cần chú ý" ở khối xác nhận. */
   function showDays(next: LedgerFilter) {
     setFilter(next)
     setFocus({ at: Date.now() })
@@ -128,10 +128,16 @@ export function MyTimesheetPage() {
   const dispute = data ? planOf(data).dispute : null
   const ledgerReady = data && (!isPartTime || !data.profile.department || ptDays.data)
 
-  const verdict = data ? (
-    <TimesheetSummaryCard data={data} days={days} onShowDays={showDays} />
+  // Khối xác nhận lấy từ chân thẻ tổng công cũ; `*:border-t-0` bỏ đường kẻ trên vốn để ngăn với phần số liệu.
+  const actions = data ? (
+    <Card className="gap-0 pb-0 *:border-t-0">
+      <CardHeader>
+        <CardTitle className="text-base">Xác nhận công tháng</CardTitle>
+      </CardHeader>
+      <MonthActions data={data} attention={days.filter(needsAttention).length} onShowAttention={() => showDays('attention')} />
+    </Card>
   ) : (
-    <Skeleton className="h-96 w-full rounded-xl" />
+    <Skeleton className="h-40 w-full rounded-xl" />
   )
 
   const ledger = ledgerReady ? (
@@ -190,13 +196,14 @@ export function MyTimesheetPage() {
             </CardContent>
           </Card>
         ) : (
-          // Màn rộng: lưới giãn kín chiều cao trang; hàng 2 (1fr) để khối trao đổi kéo xuống, lịch trải hai hàng, hai cột cùng chạm đáy.
-          <div className="flex flex-col gap-6 @min-[1136px]:grid @min-[1136px]:flex-1 @min-[1136px]:grid-cols-[minmax(0,1fr)_20rem] @min-[1136px]:grid-rows-[auto_1fr] @min-[1136px]:gap-4">
-            <div className="order-1 min-w-0 @min-[1136px]:col-start-2 @min-[1136px]:row-start-1 @min-[1136px]:sticky @min-[1136px]:self-start" style={{ top: `calc(${BELOW_APP_HEADER} + 1rem)` }}>
-              {verdict}
+          // Lịch rộng hết trang, màn rộng thì giãn kín phần còn lại của chiều cao trang.
+          // Dưới lịch: xác nhận + trao đổi, từ 48rem nằm cạnh nhau và cao bằng nhau.
+          <div className="flex flex-col gap-6 @min-[1136px]:flex-1 @min-[1136px]:gap-4">
+            <div className="flex min-w-0 flex-col @min-[1136px]:flex-1">{ledger}</div>
+            <div className="grid gap-6 @3xl:grid-cols-[20rem_minmax(0,1fr)] @3xl:gap-4">
+              <div className="grid min-w-0">{actions}</div>
+              <div className="grid min-w-0">{conversation}</div>
             </div>
-            <div className="order-2 flex min-w-0 flex-col @min-[1136px]:col-start-1 @min-[1136px]:row-span-2 @min-[1136px]:row-start-1">{ledger}</div>
-            <div className="order-3 min-w-0 @min-[1136px]:col-start-2 @min-[1136px]:row-start-2 @min-[1136px]:grid">{conversation}</div>
           </div>
         )}
 
