@@ -8,12 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { useMe } from '@/features/auth/use-auth'
 import { getApiErrorMessage } from '@/lib/api-client'
-import { formatDuration, formatTime, formatWorkDate } from '@/lib/format'
+import { formatDuration, formatTime } from '@/lib/format'
 import { isManagerRole } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
 import {
   SHIFT_LABEL,
-  SLOT_LABEL,
   type AttendanceSlot,
   type AttendanceToday,
   type ShiftKey,
@@ -112,10 +111,6 @@ export function ClockCard({ className }: { className?: string }) {
   const overtime = record?.overtime ?? null
   const overtimeSlot: AttendanceSlot | null = !overtime?.inAt ? 'overtime_in' : !overtime.outAt ? 'overtime_out' : null
   const punchSlot = mode === 'overtime' ? overtimeSlot : nextSlot
-  const overtimeShift: ShiftRecord | undefined = overtime
-    ? { inAt: overtime.inAt, outAt: overtime.outAt, lateMinutes: null, earlyMinutes: null, workedMinutes: overtime.workedMinutes }
-    : undefined
-
   const submit = () => {
     if (!photo || !photoOk || !punchSlot || !locationOk || !wifiOk || (faceRequired && !faceApproved)) return
     punch.mutate(
@@ -196,15 +191,9 @@ export function ClockCard({ className }: { className?: string }) {
           />
         )}
 
+        {mode === 'shift' && (
         <div className="order-3">
-        {mode === 'overtime' ? (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <OvertimeFact label="Ngày làm" value={data ? formatWorkDate(data.date) : '—'} />
-            <OvertimeFact label="Check in" value={formatTime(overtime?.inAt)} />
-            <OvertimeFact label="Check out" value={formatTime(overtime?.outAt)} />
-            <OvertimeFact label="Tổng giờ" value={formatDuration(liveWorked(overtimeShift))} />
-          </div>
-        ) : isPending ? (
+        {isPending ? (
           <Skeleton className="h-28 w-full" />
         ) : (
           <div className="overflow-x-auto rounded-xl border">
@@ -236,6 +225,7 @@ export function ClockCard({ className }: { className?: string }) {
           </div>
         )}
         </div>
+        )}
 
         {mode === 'shift' && (
         <div className="order-4 space-y-2 text-sm">
@@ -282,15 +272,7 @@ export function ClockCard({ className }: { className?: string }) {
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
               <span className="font-medium">Chụp ảnh xác nhận</span>
               {punchSlot && (
-                <span className="text-xs text-muted-foreground">
-                  {mode === 'overtime' ? (punchSlot === 'overtime_out' ? 'Check out' : 'Check in') : SLOT_LABEL[punchSlot]}
-                  {target && (
-                    <>
-                      {' '}
-                      · giờ chuẩn <span className="font-medium text-foreground">{target}</span>
-                    </>
-                  )}
-                </span>
+                <span className="text-xs text-muted-foreground">{isInSlot(punchSlot) ? 'Check in' : 'Check out'}</span>
               )}
             </div>
             {faceRequired && !faceApproved && (
@@ -326,13 +308,6 @@ export function ClockCard({ className }: { className?: string }) {
             />
             <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-3">
-            <p className="text-xs leading-5 text-muted-foreground">
-              Chụp trực tiếp từ camera: <b className="font-medium text-foreground">mặt nhìn thẳng</b>, nền{' '}
-              <b className="font-medium text-foreground">
-                {assignedFloor ? `văn phòng tầng ${assignedFloor}` : 'văn phòng tầng 5 hoặc 6'}
-              </b>
-              . Không dùng ảnh có sẵn.
-            </p>
             {photo && <PhotoCheckBox check={photoCheck} />}
             {punch.isError && (
               <div
@@ -384,13 +359,9 @@ export function ClockCard({ className }: { className?: string }) {
                 ? 'Đang kiểm tra ảnh…'
                 : punch.isPending
                   ? 'Đang chấm công…'
-                  : mode === 'overtime'
-                    ? punchSlot === 'overtime_out'
-                      ? 'Check out'
-                      : 'Check in'
-                    : punchSlot
-                      ? `Chấm công ${SLOT_LABEL[punchSlot].toLowerCase()}`
-                      : 'Chấm công'}
+                  : punchSlot && !isInSlot(punchSlot)
+                    ? 'Check out'
+                    : 'Check in'}
             </Button>
             </div>
             </div>
@@ -623,15 +594,6 @@ function WifiPanel({
           </div>
         )}
       </div>
-    </div>
-  )
-}
-
-function OvertimeFact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border px-3 py-2">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-0.5 text-sm font-semibold tabular-nums">{value}</p>
     </div>
   )
 }

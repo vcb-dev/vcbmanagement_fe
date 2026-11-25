@@ -1,6 +1,5 @@
 import {
   AlarmClock,
-  CalendarCheck2,
   ChevronLeft,
   ChevronRight,
   UserCheck,
@@ -8,25 +7,20 @@ import {
   UserX,
 } from 'lucide-react'
 import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { UserAvatar } from '@/components/layout/nav-user'
-import { MonthNav } from '@/components/month-nav'
 import { PageHeader } from '@/components/page-header'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AttendancePhotos } from '@/features/attendance/AttendancePhoto'
 import { AttendanceStatus, ShiftTimes } from '@/features/attendance/AttendanceStatus'
 import { ClockCard } from '@/features/attendance/ClockCard'
-import { useAttendanceDaily, useAttendanceMonth } from '@/features/attendance/use-attendance'
+import { useAttendanceDaily } from '@/features/attendance/use-attendance'
 import { useMe } from '@/features/auth/use-auth'
 import {
   formatDuration,
-  formatMonth,
-  formatTime,
   formatWorkDate,
   shiftYmd,
   todayYmd,
@@ -35,13 +29,7 @@ import { ROLE_LABEL, displayName, isManagerRole } from '@/lib/user-display'
 
 export function AttendancePage() {
   const { data: user } = useMe()
-  const [params, setParams] = useSearchParams()
   const isManager = isManagerRole(user?.role)
-  const tab = isManager && params.get('tab') === 'team' ? 'team' : 'me'
-
-  const currentMonth = todayYmd().slice(0, 7)
-  const [month, setMonth] = useState(currentMonth)
-  const { data: monthData, isPending } = useAttendanceMonth(month)
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-7xl space-y-4 overflow-x-clip p-3 pb-8 sm:space-y-6 sm:p-4 md:p-6 lg:p-8">
@@ -49,92 +37,7 @@ export function AttendancePage() {
 
       <ClockCard />
 
-      <Tabs
-        value={tab}
-        onValueChange={(v) => setParams(v === 'team' ? { tab: 'team' } : {}, { replace: true })}
-        className="gap-4"
-      >
-        {isManager && (
-          <TabsList>
-            <TabsTrigger value="me">
-              <CalendarCheck2 />
-              Lịch sử của tôi
-            </TabsTrigger>
-            <TabsTrigger value="team">
-              <Users />
-              Bảng công nhân viên
-            </TabsTrigger>
-          </TabsList>
-        )}
-
-        <TabsContent value="me">
-          <Card>
-            <CardHeader className="max-sm:grid-cols-1">
-              <CardTitle>Lịch sử chấm công</CardTitle>
-              <CardDescription>Các lượt vào ca, ra ca trong tháng</CardDescription>
-              <CardAction className="max-sm:col-start-1 max-sm:row-auto max-sm:justify-self-start">
-                <MonthNav month={month} max={currentMonth} onChange={setMonth} />
-              </CardAction>
-            </CardHeader>
-            <CardContent>
-              {isPending ? (
-                <TableSkeleton />
-              ) : monthData && monthData.records.length > 0 ? (
-                <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Ngày</TableHead>
-                      <TableHead>Ca sáng</TableHead>
-                      <TableHead>Ca chiều</TableHead>
-                      <TableHead>Số giờ</TableHead>
-                      <TableHead>Tăng ca</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead>Ảnh</TableHead>
-                      <TableHead className="hidden md:table-cell">Ghi chú</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {monthData.records.map((r) => (
-                      <TableRow key={r.id}>
-                        <TableCell className="font-medium capitalize">{formatWorkDate(r.workDate)}</TableCell>
-                        <TableCell>
-                          <ShiftTimes shift={r.morning} />
-                        </TableCell>
-                        <TableCell>
-                          <ShiftTimes shift={r.afternoon} />
-                        </TableCell>
-                        <TableCell className="tabular-nums">{formatDuration(r.workedMinutes)}</TableCell>
-                        <TableCell className="tabular-nums text-sm">
-                          {r.overtime?.inAt ? `${formatTime(r.overtime.inAt)}–${formatTime(r.overtime.outAt)}` : '—'}
-                        </TableCell>
-                        <TableCell>
-                          <AttendanceStatus record={r} live={r.workDate === todayYmd()} />
-                        </TableCell>
-                        <TableCell>
-                          <AttendancePhotos record={r} />
-                        </TableCell>
-                        <TableCell className="hidden max-w-56 truncate text-muted-foreground md:table-cell">
-                          {r.punches.map((p) => p.note).filter(Boolean).join(' · ') || '—'}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                </div>
-              ) : (
-                <Empty text={`Không có dữ liệu chấm công trong ${formatMonth(month).toLowerCase()}`} />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {isManager && (
-          <TabsContent value="team">
-            <TeamBoard />
-          </TabsContent>
-        )}
-      </Tabs>
+      {isManager && <TeamBoard />}
     </div>
   )
 }
@@ -258,11 +161,3 @@ function TableSkeleton() {
   )
 }
 
-function Empty({ text }: { text: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-      <CalendarCheck2 className="size-8 text-muted-foreground/60" />
-      <p className="text-sm text-muted-foreground">{text}</p>
-    </div>
-  )
-}
