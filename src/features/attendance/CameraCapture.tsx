@@ -110,7 +110,7 @@ export function CameraCapture({
   return (
     <div
       className={cn(
-        'flex h-full min-h-0 min-w-0 flex-col gap-2',
+        'flex min-h-0 min-w-0 flex-col gap-2',
         className,
         state === 'live' &&
           'max-md:fixed max-md:inset-0 max-md:z-50 max-md:bg-black max-md:p-3 max-md:pt-[max(0.75rem,env(safe-area-inset-top))] max-md:pb-[max(1rem,env(safe-area-inset-bottom))]',
@@ -120,10 +120,10 @@ export function CameraCapture({
         className={cn(
           'relative w-full overflow-hidden rounded-xl border bg-zinc-100',
           state === 'live'
-            ? 'min-h-0 flex-1 max-md:min-h-0 md:h-full md:min-h-44'
+            ? 'min-h-0 flex-1 max-md:min-h-0 md:h-80'
             : previewUrl
-              ? 'max-md:h-auto md:h-full md:min-h-44'
-              : 'min-h-44 flex-1 md:h-full',
+              ? 'h-auto'
+              : 'min-h-44',
         )}
       >
         <video
@@ -142,7 +142,7 @@ export function CameraCapture({
             src={previewUrl}
             alt="Ảnh chấm công"
             className={cn(
-              'relative mx-auto block h-auto max-h-[min(70dvh,36rem)] w-full object-contain md:absolute md:inset-0 md:size-full md:max-h-none',
+              'relative mx-auto block h-auto max-h-[min(70dvh,36rem)] w-full object-contain',
               mirrored && '-scale-x-100',
             )}
           />
