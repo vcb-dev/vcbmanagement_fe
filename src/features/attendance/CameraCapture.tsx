@@ -120,10 +120,10 @@ export function CameraCapture({
         className={cn(
           'relative w-full overflow-hidden rounded-xl border bg-zinc-100',
           state === 'live'
-            ? 'min-h-52 flex-1 max-md:min-h-0'
+            ? 'min-h-0 flex-1 max-md:min-h-0 md:h-full md:min-h-44'
             : previewUrl
-              ? 'max-md:h-auto md:aspect-[4/3] md:min-h-52 md:flex-1'
-              : 'min-h-52 flex-1 md:aspect-[4/3]',
+              ? 'max-md:h-auto md:h-full md:min-h-44'
+              : 'min-h-44 flex-1 md:h-full',
         )}
       >
         <video

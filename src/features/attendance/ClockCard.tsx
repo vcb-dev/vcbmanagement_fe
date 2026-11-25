@@ -351,9 +351,9 @@ export function ClockCard({ className }: { className?: string }) {
                 </div>
               </div>
             )}
-            <div className="grid items-stretch gap-3 md:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)] md:gap-6 md:[&>*]:h-full">
+            <div className="flex flex-col gap-3 md:grid md:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] md:grid-rows-[minmax(11rem,auto)_auto] md:items-stretch md:gap-x-6 md:gap-y-2">
             <CameraCapture
-              className="md:h-full"
+              className="md:col-start-1 md:row-span-2 md:grid md:h-auto md:grid-rows-subgrid md:gap-y-2"
               photo={photo}
               onChange={(blob) => {
                 punch.reset()
@@ -363,7 +363,8 @@ export function ClockCard({ className }: { className?: string }) {
               }}
               disabled={isPending || busy}
             />
-            <div className="flex h-full min-h-0 flex-col gap-3">
+            <div className="flex flex-col gap-3 md:col-start-2 md:row-span-2 md:grid md:grid-rows-subgrid md:gap-y-2">
+            <div className="flex flex-col gap-3">
             <p className="text-xs leading-5 text-muted-foreground">
               Chụp trực tiếp từ camera: <b className="font-medium text-foreground">mặt nhìn thẳng</b>, nền{' '}
               <b className="font-medium text-foreground">
@@ -395,6 +396,7 @@ export function ClockCard({ className }: { className?: string }) {
                 Chấm bây giờ sẽ tính đi muộn {formatDuration(lateNow)}
               </p>
             )}
+            </div>
             <Button
               size="lg"
               onClick={submit}
@@ -410,7 +412,7 @@ export function ClockCard({ className }: { className?: string }) {
                         ? undefined
                         : 'Cần ảnh hợp lệ trước khi chấm công'
               }
-              className="mt-auto h-12 min-h-11 w-full bg-clip-border text-base text-white disabled:opacity-100"
+              className="h-12 min-h-11 w-full bg-clip-border text-base text-white disabled:opacity-100"
               style={{
                 backgroundColor: blocked ? '#c7d2fe' : mode === 'overtime' ? '#6d28d9' : punchSlot && !isInSlot(punchSlot) ? '#e11d48' : '#4f46e5',
                 color: '#fff',
