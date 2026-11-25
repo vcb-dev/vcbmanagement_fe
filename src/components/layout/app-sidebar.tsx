@@ -52,7 +52,7 @@ export function AppSidebar({ user }: { user: User }) {
           <SidebarMenuItem className="min-w-0 flex-1">
             <SidebarMenuButton size="lg" asChild className="hover:bg-transparent">
               <NavLink to={homePath()} onClick={closeOnMobile}>
-                <BrandMark className="size-8 rounded-lg shadow-sm" />
+                <BrandMark className="h-8 w-auto max-w-[7.5rem] group-data-[collapsible=icon]:size-8" />
                 <div className="grid flex-1 text-left leading-tight">
                   <span className="truncate text-sm font-semibold">VCB Management</span>
                   <span className="truncate text-xs text-muted-foreground">Viên Chi Bảo</span>

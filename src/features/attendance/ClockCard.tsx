@@ -5,18 +5,14 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
 import { useMe } from '@/features/auth/use-auth'
 import { getApiErrorMessage } from '@/lib/api-client'
-import { formatDuration, formatTime } from '@/lib/format'
+import { formatDuration } from '@/lib/format'
 import { isManagerRole } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
 import {
-  SHIFT_LABEL,
   type AttendanceSlot,
   type AttendanceToday,
-  type ShiftKey,
-  type ShiftRecord,
   type WorkSchedule,
 } from './attendance.types'
 import { AttendanceStatus } from './AttendanceStatus'
@@ -101,13 +97,6 @@ export function ClockCard({ className }: { className?: string }) {
   const clock = vnHms(now)
   const nowMinutes = toMinutes(`${clock.hour}:${clock.minute}`)
 
-  /** Ca đang mở thì tính "đã làm" theo thời gian thực. */
-  const liveWorked = (shift: ShiftRecord | undefined) => {
-    if (!shift?.inAt) return null
-    if (shift.outAt) return shift.workedMinutes
-    return Math.max(0, Math.round((now.getTime() - new Date(shift.inAt).getTime()) / 60_000))
-  }
-
   const overtime = record?.overtime ?? null
   const overtimeSlot: AttendanceSlot | null = !overtime?.inAt ? 'overtime_in' : !overtime.outAt ? 'overtime_out' : null
   const punchSlot = mode === 'overtime' ? overtimeSlot : nextSlot
@@ -132,7 +121,6 @@ export function ClockCard({ className }: { className?: string }) {
 
   const target = data && mode === 'shift' && nextSlot ? slotTime(data.schedule, nextSlot) : null
   const lateNow = target && nextSlot && isInSlot(nextSlot) ? Math.max(0, nowMinutes - toMinutes(target)) : 0
-  const activeShift: ShiftKey | null = mode === 'shift' && nextSlot ? (nextSlot.startsWith('morning') ? 'morning' : 'afternoon') : null
   const finished = mode === 'overtime' ? !overtimeSlot : !nextSlot
   const blocked = isPending || busy || !photoOk || !punchSlot || !locationOk || !wifiOk || (faceRequired && !faceApproved)
 
@@ -189,42 +177,6 @@ export function ClockCard({ className }: { className?: string }) {
             onUnregister={() => unregisterWifi.mutate()}
             registerPending={registerWifi.isPending}
           />
-        )}
-
-        {mode === 'shift' && (
-        <div className="order-3">
-        {isPending ? (
-          <Skeleton className="h-28 w-full" />
-        ) : (
-          <div className="overflow-x-auto rounded-xl border">
-            <div className="grid min-w-[17rem] grid-cols-[2.75rem_1fr_1fr_1fr] bg-muted text-xs text-muted-foreground">
-              <span className="px-2 py-2 sm:px-3">Ca</span>
-              <span className="py-2 text-center">Giờ vào</span>
-              <span className="py-2 text-center">Giờ ra</span>
-              <span className="py-2 text-center">Đã làm</span>
-            </div>
-            {(
-              (['morning', 'afternoon'] as const).map((key) => {
-                const shift = record?.[key]
-                return (
-                  <div
-                    key={key}
-                    className={cn(
-                      'grid min-w-[17rem] grid-cols-[2.75rem_1fr_1fr_1fr] items-center border-t text-foreground',
-                      activeShift === key && 'bg-accent',
-                    )}
-                  >
-                    <span className="px-3 py-3 text-sm font-medium">{SHIFT_LABEL[key]}</span>
-                    <TimeCell value={formatTime(shift?.inAt)} late={shift?.lateMinutes} />
-                    <TimeCell value={formatTime(shift?.outAt)} early={shift?.earlyMinutes} />
-                    <TimeCell value={formatDuration(liveWorked(shift))} />
-                  </div>
-                )
-              })
-            )}
-          </div>
-        )}
-        </div>
         )}
 
         {mode === 'shift' && (
@@ -594,22 +546,6 @@ function WifiPanel({
           </div>
         )}
       </div>
-    </div>
-  )
-}
-
-function TimeCell({ value, late, early }: { value: string; late?: number | null; early?: number | null }) {
-  return (
-    <div className="px-1 py-2.5 text-center">
-      <p className="text-sm font-semibold text-foreground sm:text-base" style={{ fontVariantNumeric: 'tabular-nums' }}>
-        {value}
-      </p>
-      {(late ?? 0) > 0 && (
-        <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400">Muộn {formatDuration(late)}</p>
-      )}
-      {(early ?? 0) > 0 && (
-        <p className="text-[11px] font-medium text-orange-600 dark:text-orange-400">Sớm {formatDuration(early)}</p>
-      )}
     </div>
   )
 }

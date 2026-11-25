@@ -60,7 +60,7 @@ export function LoginPage() {
   if (oauthOk) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background p-6 text-foreground">
-        <BrandMark className="size-12 animate-pulse rounded-2xl" />
+        <BrandMark className="h-16 max-w-[14rem] animate-pulse" />
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="size-4 animate-spin" />
           Đang đăng nhập…
@@ -78,7 +78,7 @@ export function LoginPage() {
         </div>
 
         <div className="relative flex items-center gap-3">
-          <BrandMark />
+          <BrandMark className="h-12 max-w-[12rem] rounded-lg bg-white p-1" />
           <div>
             <p className="text-[11px] font-semibold tracking-[0.22em] text-indigo-300 uppercase">
               Viên Chi Bảo
@@ -121,7 +121,7 @@ export function LoginPage() {
 
         <div className="mx-auto w-full max-w-sm pt-6 lg:pt-0">
           <div className="mb-8 flex flex-col items-center gap-3 text-center lg:items-start lg:text-left">
-            <BrandMark className="size-12 rounded-2xl lg:hidden" />
+            <BrandMark className="h-16 max-w-[14rem] lg:hidden" />
             <div className="space-y-1.5">
               <h1 className="text-[1.65rem] leading-tight font-semibold tracking-tight text-foreground">
                 Chào mừng trở lại

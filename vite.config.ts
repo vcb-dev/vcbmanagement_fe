@@ -22,7 +22,7 @@ const manifest: Partial<ManifestOptions> = {
   name: 'VCB Management',
   short_name: 'VCB',
   description: 'Chấm công Viên Chi Bảo',
-  theme_color: '#4f46e5',
+  theme_color: '#c6a15a',
   background_color: '#ffffff',
   display: 'standalone',
   orientation: 'portrait',
@@ -65,7 +65,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: false,
       selfDestroying: true,
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'pwa-192.png', 'pwa-512.png'],
+      includeAssets: ['favicon.png', 'brand-logo.png', 'apple-touch-icon.png', 'pwa-192.png', 'pwa-512.png'],
       manifest,
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png}'],
