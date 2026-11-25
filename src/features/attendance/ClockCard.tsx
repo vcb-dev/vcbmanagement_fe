@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { useMe } from '@/features/auth/use-auth'
 import { getApiErrorMessage } from '@/lib/api-client'
-import { formatDuration, formatTime } from '@/lib/format'
+import { formatDuration, formatTime, formatWorkDate } from '@/lib/format'
 import { isManagerRole } from '@/lib/user-display'
 import { cn } from '@/lib/utils'
 import {
@@ -172,7 +172,7 @@ export function ClockCard({ className }: { className?: string }) {
   return (
     <Card className={cn('relative w-full min-w-0 gap-0 p-0', className)}>
       <div className="relative min-w-0 overflow-hidden p-4 text-white md:p-6" style={{ backgroundColor: '#4f46e5' }}>
-        {data && (
+        {data && mode === 'shift' && (
           <div className="mb-2 flex max-w-full flex-wrap gap-1.5">
             <SchedulePill label="Sáng" from={data.schedule.morningStart} to={data.schedule.morningEnd} />
             <SchedulePill label="Chiều" from={data.schedule.afternoonStart} to={data.schedule.afternoonEnd} />
@@ -235,7 +235,14 @@ export function ClockCard({ className }: { className?: string }) {
         )}
 
         <div className="order-3">
-        {isPending ? (
+        {mode === 'overtime' ? (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <OvertimeFact label="Ngày làm" value={data ? formatWorkDate(data.date) : '—'} />
+            <OvertimeFact label="Check in" value={formatTime(overtime?.inAt)} />
+            <OvertimeFact label="Check out" value={formatTime(overtime?.outAt)} />
+            <OvertimeFact label="Tổng giờ" value={formatDuration(liveWorked(overtimeShift))} />
+          </div>
+        ) : isPending ? (
           <Skeleton className="h-28 w-full" />
         ) : (
           <div className="overflow-x-auto rounded-xl border">
@@ -245,14 +252,7 @@ export function ClockCard({ className }: { className?: string }) {
               <span className="py-2 text-center">Giờ ra</span>
               <span className="py-2 text-center">Đã làm</span>
             </div>
-            {mode === 'overtime' ? (
-              <div className="grid min-w-[17rem] grid-cols-[2.75rem_1fr_1fr_1fr] items-center border-t bg-accent text-foreground">
-                <span className="px-3 py-3 text-sm font-medium">TC</span>
-                <TimeCell value={formatTime(overtimeShift?.inAt)} />
-                <TimeCell value={formatTime(overtimeShift?.outAt)} />
-                <TimeCell value={formatDuration(liveWorked(overtimeShift))} />
-              </div>
-            ) : (
+            {(
               (['morning', 'afternoon'] as const).map((key) => {
                 const shift = record?.[key]
                 return (
@@ -275,6 +275,7 @@ export function ClockCard({ className }: { className?: string }) {
         )}
         </div>
 
+        {mode === 'shift' && (
         <div className="order-4 space-y-2 text-sm">
           <div className="flex items-start justify-between gap-3">
             <span className="whitespace-nowrap text-muted-foreground">Trạng thái</span>
@@ -298,6 +299,7 @@ export function ClockCard({ className }: { className?: string }) {
             </div>
           )}
         </div>
+        )}
 
         <div className="order-2">
         {data && finished ? (
@@ -305,7 +307,7 @@ export function ClockCard({ className }: { className?: string }) {
             <PartyPopper className="size-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
             <p>
               {mode === 'overtime' ? (
-                <>Đã chấm vào và ra tăng ca hôm nay.</>
+                <>Đã check in và check out tăng ca hôm nay.</>
               ) : (
                 <>
                   Bạn đã chấm công đủ 2 ca hôm nay. <span className="text-muted-foreground">Còn tăng ca thì chuyển sang mục Tăng ca.</span>
@@ -319,7 +321,7 @@ export function ClockCard({ className }: { className?: string }) {
               <span className="font-medium">Chụp ảnh xác nhận</span>
               {punchSlot && (
                 <span className="text-xs text-muted-foreground">
-                  {SLOT_LABEL[punchSlot]}
+                  {mode === 'overtime' ? (punchSlot === 'overtime_out' ? 'Check out' : 'Check in') : SLOT_LABEL[punchSlot]}
                   {target && (
                     <>
                       {' '}
@@ -409,7 +411,7 @@ export function ClockCard({ className }: { className?: string }) {
               }
               className="mt-auto h-12 min-h-11 w-full bg-clip-border text-base text-white disabled:opacity-100"
               style={{
-                backgroundColor: blocked ? '#c7d2fe' : punchSlot && !isInSlot(punchSlot) ? '#e11d48' : mode === 'overtime' ? '#6d28d9' : '#4f46e5',
+                backgroundColor: blocked ? '#c7d2fe' : mode === 'overtime' ? '#6d28d9' : punchSlot && !isInSlot(punchSlot) ? '#e11d48' : '#4f46e5',
                 color: '#fff',
               }}
             >
@@ -418,9 +420,13 @@ export function ClockCard({ className }: { className?: string }) {
                 ? 'Đang kiểm tra ảnh…'
                 : punch.isPending
                   ? 'Đang chấm công…'
-                  : punchSlot
-                  ? `Chấm công ${SLOT_LABEL[punchSlot].toLowerCase()}`
-                  : 'Chấm công'}
+                  : mode === 'overtime'
+                    ? punchSlot === 'overtime_out'
+                      ? 'Check out'
+                      : 'Check in'
+                    : punchSlot
+                      ? `Chấm công ${SLOT_LABEL[punchSlot].toLowerCase()}`
+                      : 'Chấm công'}
             </Button>
             </div>
             </div>
@@ -653,6 +659,15 @@ function WifiPanel({
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function OvertimeFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border px-3 py-2">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-0.5 text-sm font-semibold tabular-nums">{value}</p>
     </div>
   )
 }
