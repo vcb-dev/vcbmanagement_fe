@@ -1,4 +1,4 @@
-import { AlarmClock, CircleAlert, Clock3, Loader2, LocateFixed, LogIn, LogOut, MapPin, MapPinOff, PartyPopper, RotateCw, ScanFace, ShieldCheck, ShieldX, Wifi, WifiOff } from 'lucide-react'
+import { AlarmClock, CircleAlert, Loader2, LocateFixed, LogIn, LogOut, MapPin, MapPinOff, PartyPopper, RotateCw, ScanFace, ShieldCheck, ShieldX, Wifi, WifiOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -26,16 +26,6 @@ import { useAttendanceToday, usePhotoCheck, usePunch, useRegisterOfficeWifi, use
 import { geoVerdict, useGeolocation, type GeoVerdict } from './use-geolocation'
 
 const VN_TZ = 'Asia/Ho_Chi_Minh'
-
-function vnDateLabel(d: Date) {
-  return d.toLocaleDateString('vi-VN', {
-    weekday: 'long',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    timeZone: VN_TZ,
-  })
-}
 
 function vnHms(d: Date) {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -79,24 +69,6 @@ function slotTime(schedule: WorkSchedule, slot: AttendanceSlot) {
 }
 
 const isInSlot = (slot: AttendanceSlot) => slot.endsWith('_in')
-
-function LiveClock({ serverTime }: { serverTime?: string }) {
-  const now = useSystemNow(serverTime, 1000)
-  const clock = vnHms(now)
-  return (
-    <>
-      <p className="text-sm capitalize" style={{ color: '#c7d2fe' }}>
-        {vnDateLabel(now)}
-      </p>
-      <p className="mt-1 text-3xl font-semibold md:text-5xl" style={{ color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
-        {clock.hour}:{clock.minute}
-        <span className="text-xl md:text-2xl" style={{ color: '#c7d2fe' }}>
-          :{clock.second}
-        </span>
-      </p>
-    </>
-  )
-}
 
 export function ClockCard({ className }: { className?: string }) {
   const { data: me } = useMe()
@@ -171,16 +143,6 @@ export function ClockCard({ className }: { className?: string }) {
 
   return (
     <Card className={cn('relative w-full min-w-0 gap-0 p-0', className)}>
-      <div className="relative min-w-0 overflow-hidden p-4 text-white md:p-6" style={{ backgroundColor: '#4f46e5' }}>
-        {data && mode === 'shift' && (
-          <div className="mb-2 flex max-w-full flex-wrap gap-1.5">
-            <SchedulePill label="Sáng" from={data.schedule.morningStart} to={data.schedule.morningEnd} />
-            <SchedulePill label="Chiều" from={data.schedule.afternoonStart} to={data.schedule.afternoonEnd} />
-          </div>
-        )}
-        <LiveClock serverTime={data?.serverTime} />
-      </div>
-
       <div className="flex min-w-0 flex-col gap-3 p-3 md:gap-4 md:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex rounded-full bg-muted p-1">
@@ -671,15 +633,6 @@ function OvertimeFact({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl border px-3 py-2">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-0.5 text-sm font-semibold tabular-nums">{value}</p>
-    </div>
-  )
-}
-
-function SchedulePill({ label, from, to }: { label: string; from: string; to: string }) {
-  return (
-    <div className="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: 'rgba(255,255,255,0.18)', color: '#fff' }}>
-      <Clock3 className="size-3.5" />
-      {label} {from}–{to}
     </div>
   )
 }
