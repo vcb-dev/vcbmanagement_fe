@@ -55,6 +55,15 @@ const SAFE_AREA = {
   right: "pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]",
 } as const
 
+/*
+ * Dải `sheet-status-bar` trong SheetContent (sheet trái / phải):
+ * iOS 26+ dò một điểm ở giữa mép trên màn hình (cách mép ~4px). Trúng phần tử fixed/sticky rộng ≥ 90% màn hình, cao > 10px,
+ * có màu nền thì tô vùng thanh trạng thái bằng màu đó; không trúng thì iOS phủ một dải làm mờ, cao hơn thanh trạng thái
+ * ~30pt, lên nội dung. Menu điện thoại chỉ rộng 70–75% (sheet phải trên màn ngang / máy tính bảng cũng hẹp) nên chữ ở đầu
+ * menu bị mờ. Dải này phủ ngang cả mép trên, mang màu nền của sheet (`bg-inherit`) nhưng không vẽ gì (`bg-clip-text`,
+ * không có chữ) và không chặn chạm. Đặt trong Content (không phải cạnh Overlay) để còn nguyên trong lúc sheet trượt ra.
+ */
+
 function SheetContent({
   className,
   children,
@@ -79,6 +88,16 @@ function SheetContent({
         {...props}
       >
         {children}
+        {(side === "left" || side === "right") && (
+          <div
+            aria-hidden
+            data-slot="sheet-status-bar"
+            className={cn(
+              "pointer-events-none fixed top-0 z-50 h-[max(12px,env(safe-area-inset-top))] w-screen bg-inherit bg-clip-text",
+              side === "left" ? "left-0" : "right-0"
+            )}
+          />
+        )}
         {showCloseButton && (
           <SheetPrimitive.Close data-slot="sheet-close" asChild>
             <Button

@@ -172,7 +172,7 @@ export function FeedbacksPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Tìm theo người gửi hoặc nội dung…"
-              className="h-9 pl-8 text-xs"
+              className="h-9 pl-8 text-base pointer-fine:text-xs"
             />
           </div>
 

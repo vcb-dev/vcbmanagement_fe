@@ -181,7 +181,7 @@ function ReviewForm({
         onChange={(e) => setNote(e.target.value)}
         maxLength={1000}
         rows={2}
-        className="resize-y text-sm"
+        className="resize-y"
         placeholder={detail.status === 'approved' ? 'Lý do huỷ duyệt' : 'Ví dụ: Đồng ý, nhớ bàn giao đầy đủ'}
       />
       {error && <p className="text-xs text-destructive">{error}</p>}

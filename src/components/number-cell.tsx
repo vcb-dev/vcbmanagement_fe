@@ -93,7 +93,7 @@ export function NumberCell({
       onBlur={commit}
       onKeyDown={onKeyDown}
       className={cn(
-        'h-8 w-14 rounded-md border border-transparent bg-transparent px-2 text-right text-sm tabular-nums transition-colors outline-none',
+        'h-8 w-14 rounded-md border border-transparent bg-transparent px-2 text-right text-base pointer-fine:text-sm tabular-nums transition-colors outline-none',
         'hover:border-input hover:bg-background dark:hover:bg-input/30',
         'focus:border-ring focus:bg-background focus:ring-3 focus:ring-ring/30 dark:focus:bg-input/30',
         'disabled:cursor-not-allowed disabled:text-muted-foreground',

@@ -102,7 +102,7 @@ export function LeaveRequestsPage() {
               placeholder="Tìm tên hoặc email…"
               aria-label="Tìm người gửi"
               // Điện thoại chữ 16px: nhỏ hơn thì iPhone tự phóng to trang khi bấm vào ô.
-              className="h-9 pl-8 text-xs max-sm:text-base"
+              className="h-9 pl-8 text-base sm:pointer-fine:text-xs"
             />
           </div>
           <Select value={type} onValueChange={resetPage((v: string) => setType(v as 'all' | LeaveRequestType))}>
