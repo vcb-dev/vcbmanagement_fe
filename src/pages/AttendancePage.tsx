@@ -3,8 +3,6 @@ import {
   CalendarCheck2,
   ChevronLeft,
   ChevronRight,
-  Hourglass,
-  LogOut as EarlyIcon,
   UserCheck,
   Users,
   UserX,
@@ -12,12 +10,11 @@ import {
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { UserAvatar } from '@/components/layout/nav-user'
+import { MonthNav } from '@/components/month-nav'
 import { PageHeader } from '@/components/page-header'
-import { StatCard } from '@/components/stat-card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -31,7 +28,6 @@ import {
   formatMonth,
   formatTime,
   formatWorkDate,
-  shiftMonth,
   shiftYmd,
   todayYmd,
 } from '@/lib/format'
@@ -46,10 +42,6 @@ export function AttendancePage() {
   const currentMonth = todayYmd().slice(0, 7)
   const [month, setMonth] = useState(currentMonth)
   const { data: monthData, isPending } = useAttendanceMonth(month)
-  const s = monthData?.summary
-  const shiftsIn = monthData?.records.reduce((n, r) => n + Number(!!r.morning.inAt) + Number(!!r.afternoon.inAt), 0) ?? 0
-  const onTimeShifts = shiftsIn - (s?.lateCount ?? 0)
-  const onTimeRate = shiftsIn > 0 ? Math.round((onTimeShifts / shiftsIn) * 100) : null
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-7xl space-y-4 overflow-x-clip p-3 pb-8 sm:space-y-6 sm:p-4 md:p-6 lg:p-8">
@@ -77,9 +69,12 @@ export function AttendancePage() {
 
         <TabsContent value="me">
           <Card>
-            <CardHeader>
+            <CardHeader className="max-sm:grid-cols-1">
               <CardTitle>Lịch sử chấm công</CardTitle>
-              <CardDescription>{formatMonth(month)}</CardDescription>
+              <CardDescription>Các lượt vào ca, ra ca trong tháng</CardDescription>
+              <CardAction className="max-sm:col-start-1 max-sm:row-auto max-sm:justify-self-start">
+                <MonthNav month={month} max={currentMonth} onChange={setMonth} />
+              </CardAction>
             </CardHeader>
             <CardContent>
               {isPending ? (
@@ -140,45 +135,6 @@ export function AttendancePage() {
           </TabsContent>
         )}
       </Tabs>
-
-      <Card>
-        <CardHeader className="max-sm:grid-cols-1">
-          <CardTitle>Tổng hợp {formatMonth(month).toLowerCase()}</CardTitle>
-          <CardDescription>Số liệu chấm công của bạn trong tháng</CardDescription>
-          <CardAction className="max-sm:col-start-1 max-sm:row-auto max-sm:justify-self-start">
-            <MonthNav month={month} max={currentMonth} onChange={setMonth} />
-          </CardAction>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard icon={CalendarCheck2} label="Ngày công" value={`${s?.workDays ?? 0} ngày`} tone="indigo" loading={isPending} />
-          <StatCard
-            icon={Hourglass}
-            label="Tổng giờ làm"
-            value={formatDuration(s?.totalWorkedMinutes ?? 0)}
-            tone="emerald"
-            loading={isPending}
-          />
-          <StatCard
-            icon={AlarmClock}
-            label="Đi muộn"
-            value={`${s?.lateCount ?? 0} lần`}
-            hint={`Tổng ${formatDuration(s?.totalLateMinutes ?? 0)}`}
-            tone="amber"
-            loading={isPending}
-          />
-          <StatCard icon={EarlyIcon} label="Về sớm" value={`${s?.earlyLeaveCount ?? 0} lần`} tone="rose" loading={isPending} />
-          <div className="rounded-xl border bg-muted/30 p-4 sm:col-span-2 lg:col-span-4">
-            <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="font-medium">Tỷ lệ đúng giờ</span>
-              <span className="font-semibold tabular-nums">{onTimeRate === null ? '—' : `${onTimeRate}%`}</span>
-            </div>
-            <Progress value={onTimeRate ?? 0} className="h-2" />
-            <p className="mt-2 text-xs text-muted-foreground">
-              {shiftsIn > 0 ? `${onTimeShifts}/${shiftsIn} lượt vào ca đúng giờ` : 'Chưa có ngày công nào trong tháng'}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }
@@ -269,27 +225,6 @@ function TeamBoard() {
         )}
       </CardContent>
     </Card>
-  )
-}
-
-function MonthNav({ month, max, onChange }: { month: string; max: string; onChange: (m: string) => void }) {
-  return (
-    <div className="flex items-center gap-1">
-      <Button variant="outline" size="icon" className="size-11 md:size-8" onClick={() => onChange(shiftMonth(month, -1))} aria-label="Tháng trước">
-        <ChevronLeft />
-      </Button>
-      <span className="min-w-28 text-center text-sm font-medium">{formatMonth(month)}</span>
-      <Button
-        variant="outline"
-        size="icon"
-        className="size-11 md:size-8"
-        onClick={() => onChange(shiftMonth(month, 1))}
-        disabled={month >= max}
-        aria-label="Tháng sau"
-      >
-        <ChevronRight />
-      </Button>
-    </div>
   )
 }
 
