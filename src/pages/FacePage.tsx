@@ -13,7 +13,7 @@ export function FacePage() {
     <div className="mx-auto w-full min-w-0 max-w-5xl space-y-4 overflow-x-clip p-3 pb-8 sm:space-y-6 sm:p-4 md:p-6 lg:p-8">
       <PageHeader
         hideTitleOnPhone
-        title="Khuôn mặt"
+        title="Đăng ký khuôn mặt"
         description="Đăng ký khuôn mặt trên điện thoại: nhìn thẳng, quay trái, quay phải. Quản lý duyệt xong mới chấm công được."
       />
       <MyFace />

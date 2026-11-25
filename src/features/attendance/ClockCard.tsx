@@ -343,10 +343,10 @@ export function ClockCard({ className }: { className?: string }) {
                         : 'Chưa đăng ký khuôn mặt'}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {face?.profile?.rejectReason ?? 'Vào mục Khuôn mặt để đăng ký trước khi chấm công.'}
+                    {face?.profile?.rejectReason ?? 'Hãy đăng ký khuôn mặt trước khi chấm công.'}
                   </p>
                   <Button asChild variant="link" className="h-auto px-0 text-xs">
-                    <Link to="/face">Mở mục Khuôn mặt</Link>
+                    <Link to="/face">Mở đăng ký khuôn mặt</Link>
                   </Button>
                 </div>
               </div>

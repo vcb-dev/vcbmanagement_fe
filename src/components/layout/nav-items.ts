@@ -74,7 +74,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Nhân sự',
     items: [
       { title: 'Chấm công', url: '/attendance', icon: CalendarClock, description: 'Vào ca, ra ca & bảng công' },
-      { title: 'Khuôn mặt', url: '/face', icon: ScanFace, description: 'Đăng ký khuôn mặt của bạn' },
+      { title: 'Đăng ký khuôn mặt', url: '/face', icon: ScanFace, description: 'Đăng ký khuôn mặt của bạn' },
       {
         title: 'Duyệt khuôn mặt',
         url: '/face/review',
