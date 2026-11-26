@@ -1,5 +1,6 @@
 import { ArrowLeft, ArrowRight, Check, Loader2, ScanFace, ShieldAlert, UserRound } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { getApiErrorMessage } from '@/lib/api-client'
 import { cn } from '@/lib/utils'
@@ -47,6 +48,7 @@ export function FaceScan({
     liveRef.current = false
     streamRef.current?.getTracks().forEach((t) => t.stop())
     streamRef.current = null
+    if (videoRef.current) videoRef.current.srcObject = null
     setLive(false)
     busyRef.current = false
     savingRef.current = false
@@ -59,7 +61,9 @@ export function FaceScan({
     if (!live || !sessionId || !video || !streamRef.current) return
     let cancelled = false
     const loop = async () => {
-      await attachCameraStream(video, streamRef.current!)
+      if (video.srcObject !== streamRef.current || !video.videoWidth) {
+        await attachCameraStream(video, streamRef.current!)
+      }
       setHint('Đang chỉnh sáng camera…')
       await new Promise((r) => window.setTimeout(r, CAMERA_WARMUP_MS))
       while (!cancelled && liveRef.current && sessionRef.current) {
@@ -117,13 +121,20 @@ export function FaceScan({
 
   const begin = async () => {
     setError(null)
+    const video = videoRef.current
+    if (!video) {
+      setError('Không tìm thấy khung camera')
+      return
+    }
     try {
-      // iPhone: getUserMedia phải chạy trong cùng lần chạm, trước await mạng.
+      // iPhone PWA: video phải có sẵn trong trang, gắn stream và play() trước khi gọi mạng.
       const stream = await openUserCamera()
       streamRef.current = stream
+      liveRef.current = true
+      flushSync(() => setLive(true))
+      await attachCameraStream(video, stream)
       const session = await start.mutateAsync(kind)
       sessionRef.current = session.sessionId
-      liveRef.current = true
       savingRef.current = false
       reconnectsRef.current = 0
       setSessionId(session.sessionId)
@@ -133,10 +144,8 @@ export function FaceScan({
       setPoseOk(false)
       setHoldSeconds(null)
       setSaving(false)
-      setLive(true)
     } catch (err) {
-      streamRef.current?.getTracks().forEach((t) => t.stop())
-      streamRef.current = null
+      stop()
       setError(getApiErrorMessage(err))
     }
   }
@@ -146,28 +155,40 @@ export function FaceScan({
 
   return (
     <div className="space-y-3">
-      {live ? (
-        <div className="mx-auto w-full max-w-sm min-w-0 space-y-3 max-md:fixed max-md:inset-0 max-md:z-50 max-md:flex max-md:max-w-none max-md:flex-col max-md:overflow-y-auto max-md:bg-black max-md:p-3 max-md:pt-[max(0.75rem,env(safe-area-inset-top))] max-md:pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <div className="relative h-[min(70dvh,32rem)] w-full overflow-hidden rounded-3xl border bg-black max-md:min-h-0 max-md:flex-1 sm:h-auto sm:aspect-[3/4]">
-            <video ref={videoRef} playsInline muted autoPlay className="size-full -scale-x-100 object-cover" />
-            <OvalGuide step={step} poseOk={poseOk} blocked={blocked} saving={saving} holdSeconds={holdSeconds} />
-            <p className="absolute inset-x-0 bottom-3 line-clamp-2 px-10 text-center text-sm font-semibold text-white drop-shadow">
-              {hint}
-            </p>
-            <Button
-              type="button"
-              variant="ghost"
-              className="absolute top-2 right-2 h-11 min-w-11 px-3 text-white hover:bg-white/15 hover:text-white"
-              onClick={stop}
-            >
-              Huỷ
-            </Button>
-          </div>
+      <div
+        className={cn(
+          'mx-auto w-full max-w-sm min-w-0 space-y-3',
+          live
+            ? 'max-md:fixed max-md:inset-0 max-md:z-50 max-md:flex max-md:max-w-none max-md:flex-col max-md:overflow-y-auto max-md:bg-black max-md:p-3 max-md:pt-[max(0.75rem,env(safe-area-inset-top))] max-md:pb-[max(1rem,env(safe-area-inset-bottom))]'
+            : 'pointer-events-none fixed top-0 left-0 -z-10 h-[min(70dvh,32rem)] w-full opacity-0',
+        )}
+      >
+        <div className="relative h-[min(70dvh,32rem)] w-full overflow-hidden rounded-3xl border bg-black max-md:min-h-0 max-md:flex-1 sm:h-auto sm:aspect-[3/4]">
+          <video ref={videoRef} playsInline muted autoPlay className="size-full object-cover" />
+          {live && (
+            <>
+              <OvalGuide step={step} poseOk={poseOk} blocked={blocked} saving={saving} holdSeconds={holdSeconds} />
+              <p className="absolute inset-x-0 bottom-3 line-clamp-2 px-10 text-center text-sm font-semibold text-white drop-shadow">
+                {hint}
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                className="pointer-events-auto absolute top-2 right-2 h-11 min-w-11 px-3 text-white hover:bg-white/15 hover:text-white"
+                onClick={stop}
+              >
+                Huỷ
+              </Button>
+            </>
+          )}
+        </div>
+        {live && (
           <div className="shrink-0 max-md:rounded-xl max-md:bg-white/95 max-md:p-2">
             <StepRail steps={steps} current={stepIndex} poseOk={poseOk} saving={saving} holding={holdSeconds != null} />
           </div>
-        </div>
-      ) : (
+        )}
+      </div>
+      {!live && (
         <Button type="button" variant="outline" className="h-12 w-full text-base" onClick={begin} disabled={start.isPending}>
           {start.isPending ? <Loader2 className="animate-spin" /> : <ScanFace />}
           {idleLabel}
