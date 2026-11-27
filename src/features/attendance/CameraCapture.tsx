@@ -1,5 +1,6 @@
 import { Camera, CameraOff, Loader2, RotateCcw, ScanFace, SwitchCamera, Trash2, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
+import { flushSync } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { attachCameraStream, getCameraStream, videoToJpeg } from '@/lib/camera'
 import { cn } from '@/lib/utils'
@@ -70,8 +71,8 @@ export function CameraCapture({
     try {
       const stream = await getCameraStream(nextFacing)
       streamRef.current = stream
+      flushSync(() => setState('live'))
       await attachAndPlay(stream)
-      setState('live')
     } catch (err) {
       stop()
       setError(cameraErrorMessage(err))
@@ -133,8 +134,7 @@ export function CameraCapture({
           autoPlay
           className={cn(
             'absolute inset-0 size-full object-contain',
-            mirrored && '-scale-x-100',
-            !previewUrl && state === 'live' ? 'opacity-100' : 'opacity-0',
+            !previewUrl && state === 'live' ? 'opacity-100' : 'pointer-events-none opacity-0',
           )}
         />
         {previewUrl ? (

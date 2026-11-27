@@ -35,19 +35,26 @@ export function prepareVideoEl(video: HTMLVideoElement) {
 
 export async function attachCameraStream(video: HTMLVideoElement, stream: MediaStream) {
   prepareVideoEl(video)
-  video.srcObject = stream
+  if (video.srcObject !== stream) video.srcObject = stream
   if (video.readyState < 1 || !video.videoWidth) {
     await new Promise<void>((resolve, reject) => {
       const timer = window.setTimeout(() => reject(new Error('Camera không sẵn sàng')), 10_000)
       const done = () => {
         window.clearTimeout(timer)
         video.removeEventListener('loadedmetadata', done)
+        video.removeEventListener('loadeddata', done)
         resolve()
       }
       video.addEventListener('loadedmetadata', done)
+      video.addEventListener('loadeddata', done)
     })
   }
-  await video.play().catch(() => undefined)
+  try {
+    await video.play()
+  } catch {
+    await new Promise((resolve) => window.setTimeout(resolve, 200))
+    await video.play()
+  }
 }
 
 function jpegFromCanvas(canvas: HTMLCanvasElement, quality: number): Blob | null {
