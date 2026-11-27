@@ -73,7 +73,7 @@ export interface AttendanceToday {
     floorMatch?: boolean
     clientIp?: string | null
     wifiFloor?: 4 | 5 | 6 | null
-    assignedFloor?: 4 | 5 | 6 | null
+    assignedFloor?: 4 | 5 | 6 | 7 | null
   }
   record: AttendanceRecord | null
   /** null = đã chấm đủ trong ngày. */

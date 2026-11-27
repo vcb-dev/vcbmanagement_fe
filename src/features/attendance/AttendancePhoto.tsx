@@ -72,7 +72,8 @@ export function AttendancePhotos({ record, title }: { record: AttendanceRecord |
                   )}
                   {p.sceneScore != null && (
                     <span className="block text-xs">
-                      Nền văn phòng{p.floorNote ? ` ${p.floorNote}` : ''} {Math.round(p.sceneScore * 100)}%
+                      {p.floorNote === 'tầng 7' ? 'Đồng hồ tường tầng 7' : `Nền văn phòng${p.floorNote ? ` ${p.floorNote}` : ''}`}{' '}
+                      {Math.round(p.sceneScore * 100)}%
                     </span>
                   )}
                   {p.distanceMeters !== null && (
