@@ -9,6 +9,7 @@ import { AttendanceMonthSummary } from '@/features/attendance/AttendanceMonthSum
 import { useMe } from '@/features/auth/use-auth'
 import { fullTimeLedger, ledgerDates, needsAttention, partTimeLedger, type LedgerFilter } from '@/features/my-timesheet/day-ledger'
 import { MonthActions } from '@/features/my-timesheet/MonthActions'
+import { MonthSummaryCompact } from '@/features/my-timesheet/MonthSummaryCompact'
 import { hasStickyActions, planOf } from '@/features/my-timesheet/month-plan'
 import type { MyTimesheet } from '@/features/my-timesheet/my-timesheet.types'
 import { TimesheetCalendar, type CalendarFocus } from '@/features/my-timesheet/TimesheetCalendar'
@@ -177,7 +178,11 @@ export function MyTimesheetPage() {
           <MonthNav month={month} max={currentMonth} onChange={changeMonth} className="justify-between" />
         </div>
 
-        <AttendanceMonthSummary month={month} maxMonth={currentMonth} onMonthChange={changeMonth} />
+        {/* Điện thoại: 4 chỉ số gọn trong một thẻ; từ sm giữ 4 thẻ tổng hợp như cũ. */}
+        <MonthSummaryCompact month={month} className="sm:hidden" />
+        <div className="hidden sm:block">
+          <AttendanceMonthSummary month={month} maxMonth={currentMonth} onMonthChange={changeMonth} />
+        </div>
 
         <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <div className="min-w-0 space-y-1">
