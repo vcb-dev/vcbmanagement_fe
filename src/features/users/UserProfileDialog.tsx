@@ -124,7 +124,7 @@ export function UserProfileDialog({
                 </SelectContent>
               </Select>
               <FieldDescription>
-                Tầng 5 và 6 dùng chung nền văn phòng và Wi‑Fi. Tầng 7 chỉ nhận đồng hồ tường, không kiểm tra Wi‑Fi.
+                Tầng 5 và 6 dùng chung nền văn phòng và Wi‑Fi. Tầng 4 và tầng 7 mỗi tầng một đồng hồ tường, không kiểm tra Wi‑Fi.
               </FieldDescription>
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">

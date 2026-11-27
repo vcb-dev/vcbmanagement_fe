@@ -90,7 +90,7 @@ export function ClockCard({ className }: { className?: string }) {
   const locationOk = !verdict || verdict.allowed
   const wifi = data?.officeWifi
   const assignedFloor = wifi?.assignedFloor ?? me?.officeFloor ?? null
-  const clockFloor = assignedFloor === 7
+  const clockFloor = assignedFloor === 4 || assignedFloor === 7
   const wifiOk = clockFloor || !wifi?.required || !!wifi.floorMatch
   const face = data?.face
   const faceRequired = !!face?.required
@@ -407,8 +407,8 @@ function PhotoCheckBox({ check }: { check: ReturnType<typeof usePhotoCheck> }) {
             Giờ {screenTime ?? '—'} · ngày {screenDate ?? '—'} khớp hệ thống
             {faceScore != null && ` · khuôn mặt khớp đã đăng ký (${Math.round(faceScore * 100)}%)`}
             {sceneScore != null &&
-              (floorNote === 'tầng 7'
-                ? ` · đồng hồ tường tầng 7 (${Math.round(sceneScore * 100)}%)`
+              (floorNote === 'tầng 4' || floorNote === 'tầng 7'
+                ? ` · đồng hồ tường ${floorNote} (${Math.round(sceneScore * 100)}%)`
                 : ` · nền văn phòng ${floorNote ?? 'tầng 5–6'} (${Math.round(sceneScore * 100)}%)`)}
             {replayScore != null && ` · không phải giơ màn hình (điểm ${Math.round(replayScore * 100)}%)`}
           </p>
@@ -493,7 +493,7 @@ function WifiPanel({
     <div
       className={cn(
         'flex items-start gap-3 rounded-xl border p-3 text-sm',
-        assignedFloor === 7
+        assignedFloor === 4 || assignedFloor === 7
           ? 'border-[#a7f3d0] bg-[#ecfdf5] text-[#047857]'
           : wifi?.required
             ? wifiOk
@@ -502,15 +502,15 @@ function WifiPanel({
             : 'border-amber-500/30 bg-amber-500/5 text-amber-950 dark:text-amber-100',
       )}
     >
-      {assignedFloor === 7 || (wifi?.required && wifiOk) ? (
+      {assignedFloor === 4 || assignedFloor === 7 || (wifi?.required && wifiOk) ? (
         <Wifi className="mt-0.5 size-4 shrink-0" />
       ) : (
         <WifiOff className="mt-0.5 size-4 shrink-0" />
       )}
       <div className="min-w-0 flex-1 space-y-2">
         <p className="font-medium">
-          {assignedFloor === 7
-            ? 'Tầng 7 chấm bằng đồng hồ tường'
+          {assignedFloor === 4 || assignedFloor === 7
+            ? `Tầng ${assignedFloor} chấm bằng đồng hồ tường`
             : !wifi?.required
             ? 'Chưa bật lọc Wi‑Fi công ty'
             : wifiOk
@@ -528,8 +528,8 @@ function WifiPanel({
                     : 'Chưa kết nối Wi‑Fi đúng tầng'}
         </p>
         <p className="text-xs text-muted-foreground">
-          {assignedFloor === 7
-            ? 'Không kiểm tra Wi‑Fi. Ảnh phải có đồng hồ tường tầng 7 phía sau, không dùng nền tầng 5–6.'
+          {assignedFloor === 4 || assignedFloor === 7
+            ? `Không kiểm tra Wi‑Fi. Ảnh phải có đồng hồ tường tầng ${assignedFloor} phía sau, không dùng đồng hồ tầng kia hay nền tầng 5–6.`
             : !wifi?.required
             ? 'Gán tầng cho nhân sự, rồi ghi nhận Wi‑Fi từng tầng.'
             : wifiOk
@@ -543,7 +543,7 @@ function WifiPanel({
                 : assignedFloor === 5 || assignedFloor === 6
                   ? 'Nối Wi‑Fi tầng 5 hoặc 6 rồi tải lại trang.'
                   : `Nối Wi‑Fi ${assignedFloor ? `tầng ${assignedFloor}` : 'đúng tầng'} rồi tải lại trang.`}
-          {assignedFloor !== 7 && wifi?.clientIp ? ` IP: ${wifi.clientIp}.` : ''}
+          {assignedFloor !== 4 && assignedFloor !== 7 && wifi?.clientIp ? ` IP: ${wifi.clientIp}.` : ''}
         </p>
         {canManageWifi && (
           <div className="flex flex-wrap items-center gap-2">
