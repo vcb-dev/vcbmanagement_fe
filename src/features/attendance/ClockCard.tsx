@@ -277,7 +277,7 @@ export function ClockCard({ className }: { className?: string }) {
               placeholder="Ghi chú (không bắt buộc)"
               maxLength={255}
               disabled={isPending || busy}
-              className="h-11 text-base md:h-9 md:text-sm"
+              className="h-11 text-base md:h-9 md:pointer-fine:text-sm"
             />
             {lateNow > 0 && (
               <p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">

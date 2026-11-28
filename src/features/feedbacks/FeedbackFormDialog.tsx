@@ -220,7 +220,7 @@ export function FeedbackFormDialog({
                   placeholder="Ví dụ: Ngày 24/09 máy chỉ ghi giờ vào, thiếu giờ ra…"
                   maxLength={2000}
                   rows={4}
-                  className="resize-y text-xs leading-relaxed"
+                  className="resize-y text-base leading-relaxed pointer-fine:text-xs"
                 />
               </div>
 

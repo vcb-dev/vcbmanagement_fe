@@ -161,3 +161,21 @@
     max-width: 100%;
   }
 }
+
+/*
+ * iOS 26+ lấy màu vùng thanh trạng thái từ phần tử fixed/sticky rộng ≥ 90% ở giữa mép trên (cao > 10px, có màu nền);
+ * không có thì phủ dải làm mờ lên ~30pt nội dung ngay dưới thanh trạng thái. Trang có thanh đầu trang dính đã đủ, còn
+ * trang đăng nhập / màn chờ tải thì chưa (nút cài app, đổi giao diện bị mờ) → dải này (đặt trong index.html) đứng thay.
+ * Không vẽ gì: `background-clip: text` mà không có chữ. z-index 1: thua thanh đầu trang (z-10), sheet, hộp thoại, màn
+ * camera (z-50) để iOS lấy đúng màu của chúng. Sheet trái / phải có dải riêng (`sheet-status-bar` trong ui/sheet.tsx).
+ */
+.status-bar-sampler {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 1;
+  height: max(12px, env(safe-area-inset-top));
+  background-color: var(--background);
+  -webkit-background-clip: text;
+  background-clip: text;
+  pointer-events: none;
+}

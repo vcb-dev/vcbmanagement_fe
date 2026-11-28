@@ -259,7 +259,7 @@ function ReplyForm({
         placeholder="Nhập nội dung trả lời..."
         maxLength={2000}
         rows={3}
-        className="resize-y text-xs leading-relaxed"
+        className="resize-y text-base leading-relaxed pointer-fine:text-xs"
       />
 
       <div className="flex flex-wrap items-center justify-between gap-2">

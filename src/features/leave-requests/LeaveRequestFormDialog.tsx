@@ -408,7 +408,7 @@ export function LeaveRequestFormDialog({
                 onChange={(e) => setReason(e.target.value)}
                 maxLength={1000}
                 rows={3}
-                className="resize-y text-sm"
+                className="resize-y"
                 placeholder="Ví dụ: Đưa con đi khám"
               />
             </section>

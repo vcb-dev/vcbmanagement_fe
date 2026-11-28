@@ -265,7 +265,7 @@ export function LeaveEditSheet({
                             const parsed = parseFloat(e.target.value)
                             handleMonthChange(m - 1, isNaN(parsed) ? 0 : parsed)
                           }}
-                          className="h-7 p-1 text-center text-xs tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          className="h-7 p-1 text-center text-base pointer-fine:text-xs tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
                         <Button
                           type="button"
