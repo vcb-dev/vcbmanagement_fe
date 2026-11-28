@@ -57,7 +57,7 @@ export function UserProfileDialog({
           role,
           departmentId: departmentId === NONE ? null : departmentId,
           employmentType,
-          officeFloor: officeFloor === NONE ? null : (Number(officeFloor) as 4 | 5 | 6),
+          officeFloor: officeFloor === NONE ? null : (Number(officeFloor) as 4 | 5 | 6 | 7),
           contractStartDate: contract || null,
         },
       },
@@ -120,9 +120,12 @@ export function UserProfileDialog({
                   <SelectItem value="4">Tầng 4</SelectItem>
                   <SelectItem value="5">Tầng 5</SelectItem>
                   <SelectItem value="6">Tầng 6</SelectItem>
+                  <SelectItem value="7">Tầng 7</SelectItem>
                 </SelectContent>
               </Select>
-              <FieldDescription>Nhân sự chỉ chấm khi Wi‑Fi và nền ảnh đúng tầng này. Ảnh tầng khác sẽ bị từ chối.</FieldDescription>
+              <FieldDescription>
+                Tầng 5 và 6 dùng chung nền văn phòng và Wi‑Fi. Tầng 4 và tầng 7 mỗi tầng một đồng hồ tường, không kiểm tra Wi‑Fi.
+              </FieldDescription>
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field>
