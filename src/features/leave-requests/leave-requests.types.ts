@@ -2,6 +2,11 @@ import type { EmploymentType, UserRole } from '@/features/auth/auth.types'
 
 export type LeaveRequestType = 'leave' | 'late_arrival' | 'early_leave' | 'offsite'
 export type LeaveRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
+/**
+ * Đơn gửi đích danh trưởng nhóm phụ trách / quản lý trực tiếp trong hồ sơ nhân sự (HRM),
+ * hay gửi chung Quản lý / HR (`manager`, không xác định được ai).
+ */
+export type LeaveRequestRoute = 'leader' | 'direct_manager' | 'manager'
 export type OffsiteWorkKind = 'store' | 'online' | 'outside'
 export type RequestShift = 'morning' | 'afternoon' | 'evening'
 
@@ -47,6 +52,11 @@ export interface LeaveRequest {
     department: { id: string; name: string } | null
   }
   approver: PersonRef | null
+  /** Gửi ai duyệt; `routeNote` ghi vì sao không tới trưởng nhóm phụ trách. null = đơn cũ, trước khi có chọn người duyệt. */
+  routedTo: LeaveRequestRoute | null
+  routeNote: string | null
+  /** Người nhận đơn đích danh, chọn lúc gửi theo hệ thống quản lý nhân sự. */
+  approvers: PersonRef[]
   reviewedBy: PersonRef | null
   reviewedAt: string | null
   reviewNote: string | null

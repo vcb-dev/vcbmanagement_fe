@@ -1,7 +1,7 @@
 import { formatDateTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { LeaveStatusBadge, LeaveTypeIcon } from './LeaveRequestBadges'
-import { TYPE_META, durationLabel, startLabel } from './leave-request-format'
+import { TYPE_META, durationLabel, routeLabel, startLabel } from './leave-request-format'
 import type { LeaveRequest } from './leave-requests.types'
 
 /**
@@ -62,7 +62,11 @@ export function LeaveRequestList({
                 <span className="line-clamp-1 text-xs text-muted-foreground">{item.reason}</span>
                 <span className="text-[11px] text-muted-foreground tabular-nums">
                   Gửi {formatDateTime(item.createdAt)}
-                  {item.approver ? ` · Người duyệt: ${item.approver.name}` : ''}
+                  {item.approver
+                    ? ` · Người duyệt: ${item.approver.name}`
+                    : routeLabel(item)
+                      ? ` · Gửi ${routeLabel(item)}`
+                      : ''}
                 </span>
               </span>
             </button>

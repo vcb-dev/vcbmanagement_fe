@@ -10,12 +10,14 @@ import { cn } from '@/lib/utils'
 import { LeaveStatusBadge, LeaveTypeIcon } from './LeaveRequestBadges'
 import {
   OFFSITE_LABEL,
+  ROUTE_ROLE_LABEL,
   SHIFT_LABEL,
   STATUS_LABEL,
   TYPE_META,
   allocationLabel,
   fileSizeLabel,
   formatNumber,
+  routeLabel,
 } from './leave-request-format'
 import type { LeaveRequestDetail } from './leave-requests.types'
 import { attachmentUrl, useLeaveRequestAction, useLeaveRequestDetail } from './use-leave-requests'
@@ -303,6 +305,16 @@ export function LeaveRequestDetailPanel({
         <Row label="Lý do">
           <span className="whitespace-pre-wrap">{detail.reason}</span>
         </Row>
+        {routeLabel(detail) && (
+          <Row label="Gửi duyệt">
+            {routeLabel(detail)}
+            {detail.routedTo && ROUTE_ROLE_LABEL[detail.routedTo] && (
+              <span className="text-muted-foreground"> · {ROUTE_ROLE_LABEL[detail.routedTo]}</span>
+            )}
+            {/* Vì sao đơn không tới trưởng nhóm phụ trách (chưa chọn, chưa có quyền duyệt…), để người duyệt và người gửi biết. */}
+            {detail.routeNote && <span className="block text-xs text-muted-foreground">{detail.routeNote}</span>}
+          </Row>
+        )}
         {detail.approver && (
           <Row label="Người duyệt">{`${detail.approver.name} (${ROLE_LABEL[detail.approver.role]})`}</Row>
         )}

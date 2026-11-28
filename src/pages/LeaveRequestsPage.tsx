@@ -11,7 +11,9 @@ import { LeaveRequestBoard } from '@/features/leave-requests/LeaveRequestBoard'
 import { LATE_EXCUSE_MINUTES, STATUS_LABEL, TYPE_META, TYPE_ORDER } from '@/features/leave-requests/leave-request-format'
 import type { LeaveRequestStatus, LeaveRequestType } from '@/features/leave-requests/leave-requests.types'
 import { useLeaveRequests } from '@/features/leave-requests/use-leave-requests'
+import { useMe } from '@/features/auth/use-auth'
 import { FEATURES } from '@/lib/features'
+import { isManagerRole } from '@/lib/user-display'
 import { NO_SCROLLBAR } from '@/lib/scroll'
 import { cn } from '@/lib/utils'
 
@@ -27,12 +29,18 @@ function oneOf<T extends string>(value: string | null, options: readonly T[]): T
 }
 
 /**
- * Duyệt đơn xin phép cho leader, admin, quản lý, HR (leader nào cũng duyệt được mọi đơn, trừ đơn của mình). Mặc định mở các đơn đang chờ, đơn có ngày bắt đầu gần nhất lên trước.
+ * Duyệt đơn xin phép cho leader, admin, quản lý, HR. Đơn gửi trưởng nhóm phụ trách, không được thì quản lý trực tiếp
+ * trong hồ sơ của người gửi (hệ thống quản lý nhân sự), không có thì gửi chung Quản lý / HR. Trưởng nhóm chỉ thấy đơn
+ * gửi cho mình; admin, quản lý, HR thấy mọi đơn, có nút lọc đơn gửi mình (gồm đơn gửi chung Quản lý / HR).
+ * Mặc định mở các đơn đang chờ, đơn có ngày bắt đầu gần nhất lên trước.
  * Duyệt nghỉ phép có trừ phép năm thì phép tháng ở màn Phép năm và Chốt công tháng tự cộng; huỷ duyệt thì hoàn lại.
  * Trang khác mở sẵn bộ lọc qua URL (chỉ đọc lúc mở): `?status=&type=&q=&id=` (`id` là đơn được chọn sẵn).
  */
 export function LeaveRequestsPage() {
   const [params] = useSearchParams()
+  const { data: me } = useMe()
+  // Trưởng nhóm chỉ thấy đơn gửi cho mình nên không cần lọc; quản lý / HR thấy mọi đơn, lọc ra đơn gửi mình.
+  const showMineFilter = FEATURES.leaveApproverPicker || isManagerRole(me?.role)
   const [status, setStatus] = useState<StatusTab>(() => oneOf(params.get('status'), TABS) ?? 'pending')
   const [type, setType] = useState<'all' | LeaveRequestType>(() => oneOf(params.get('type'), TYPE_ORDER) ?? 'all')
   const [mineOnly, setMineOnly] = useState(false)
@@ -118,10 +126,11 @@ export function LeaveRequestsPage() {
               ))}
             </SelectContent>
           </Select>
-          {FEATURES.leaveApproverPicker && (
+          {showMineFilter && (
             <button
               type="button"
               aria-pressed={mineOnly}
+              title={isManagerRole(me?.role) ? 'Đơn gửi đích danh bạn và đơn gửi chung Quản lý / HR' : undefined}
               onClick={() => {
                 setMineOnly(!mineOnly)
                 setPage(1)

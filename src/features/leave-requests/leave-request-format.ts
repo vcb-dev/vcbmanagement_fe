@@ -1,6 +1,13 @@
 import { CalendarOff, Clock4, LogOut, MapPin, type LucideIcon } from 'lucide-react'
 import { formatDate } from '@/lib/format'
-import type { LeaveRequest, LeaveRequestStatus, LeaveRequestType, OffsiteWorkKind, RequestShift } from './leave-requests.types'
+import type {
+  LeaveRequest,
+  LeaveRequestRoute,
+  LeaveRequestStatus,
+  LeaveRequestType,
+  OffsiteWorkKind,
+  RequestShift,
+} from './leave-requests.types'
 
 /**
  * Mỗi người mỗi tháng có bấy nhiêu phút đi muộn có phép (cùng số với BE). Đơn đi muộn được duyệt trừ phút muộn
@@ -83,6 +90,18 @@ export function durationLabel(r: Pick<LeaveRequest, 'type' | 'leaveDays' | 'dedu
     case 'offsite':
       return r.offsiteKind ? OFFSITE_LABEL[r.offsiteKind] : ''
   }
+}
+
+/** Người nhận đơn là ai với người gửi, ghi sau tên. */
+export const ROUTE_ROLE_LABEL: Partial<Record<LeaveRequestRoute, string>> = {
+  leader: 'trưởng nhóm phụ trách',
+  direct_manager: 'quản lý trực tiếp',
+}
+
+/** Đơn gửi cho ai duyệt; null với đơn cũ (gửi trước khi chia theo team). */
+export function routeLabel(r: Pick<LeaveRequest, 'routedTo' | 'approvers'>): string | null {
+  if (r.approvers.length) return r.approvers.map((a) => a.name).join(', ')
+  return r.routedTo === 'manager' ? 'Quản lý / HR' : null
 }
 
 /** "08:00 · 17/11/2026" */

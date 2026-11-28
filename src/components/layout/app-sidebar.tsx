@@ -100,8 +100,9 @@ export function AppSidebar({ user }: { user: User }) {
                       {showFeedbackBadge && (
                         <SidebarMenuBadge>{feedbackCounts.open}</SidebarMenuBadge>
                       )}
-                      {item.badge === 'leavePending' && (leavePending?.pending ?? 0) > 0 && (
-                        <SidebarMenuBadge>{leavePending!.pending}</SidebarMenuBadge>
+                      {/* Chỉ đếm đơn gửi đích danh mình: trưởng nhóm là đơn của nhóm, quản lý / HR là đơn gửi Quản lý / HR. */}
+                      {item.badge === 'leavePending' && (leavePending?.pendingForMe ?? 0) > 0 && (
+                        <SidebarMenuBadge>{leavePending!.pendingForMe}</SidebarMenuBadge>
                       )}
                     </SidebarMenuItem>
                   )
